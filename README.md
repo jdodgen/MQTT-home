@@ -9,5 +9,5 @@ Common python routines shared amoung linux and micropython devices
 # linux
 Linux IoT, typicaly RPI ore equiv devices
 # micropython
-calso cantains a libray specific to micropython devices
+mostly ESP32-S2 projects and cantains a libray specific to micropython devices
 
