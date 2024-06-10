@@ -1,8 +1,7 @@
 import uuid
 #
 # conditional print
-import os 
-my_name = os.path.basename(__file__).split(".")[0]
+my_name = "mqtt_hello"
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
     #return
