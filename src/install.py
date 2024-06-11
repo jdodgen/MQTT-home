@@ -23,8 +23,8 @@ while not cfg :
 
     if wifi == "T":
         cfg = config_boilerplate+'''
-ssid = 'JEDguest'
-wifi_pw = '9098673852'
+ssid = 'xxxx'
+wifi_pw = 'xxxxxx'
 server = 'home-broker.local'   # or whate ever your broker name is
 '''
     elif wifi == 'P':
