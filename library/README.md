@@ -1,1 +1,1 @@
-# shared packages both linux and micropython
+# shared packages used by both linux and micropython
