@@ -10,5 +10,5 @@ Common python routines shared amoung linux and micropython devices
 # linux
 Linux IoT, typicaly RPI servers
 # micropython
-mostly ESP32-S2 projects and cantains a libray specific to micropython devices
+mostly ESP32-S2 projects and contains a libray of code specific to micropython devices
 
