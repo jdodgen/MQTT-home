@@ -1,0 +1,137 @@
+home-broker - a small dedicated mqtt, fauxmo and zigbee server
+it consolodates zigbee and Internet/WiFi devices in a sqlite database.
+It only collects configuration and does not command devices
+
+a small http server exists: 
+    1) maintain/map fauxmo devices
+    2) provides a link zigbee2mqtt to maintain zigbee devices
+    3) allow manual entry of custom IP devices
+    4) collects nome-broker pub/sub devices 
+    5) view consilodated devices and generated topics/payloads
+    6) it can be used to test devices turn on and off
+
+It serves device information via pub/sub to extract devices from database
+to be used by another automation system. This data is simplfied and 
+formatted data including the pub/sub strings 
+
+Hardware. 
+SBC  pretty much anthing that can run Linux with Eathernet RJ45 
+    and a USB port for the zigbee dongle if using zigbee2mqtt
+ 
+here are the working dongles
+https://www.zigbee2mqtt.io/guide/adapters/ 
+
+
+# Test system: 
+"Le Potato" (because RPI 3's were unavailble).
+"SONOFF Zigbee 3.0 USB Dongle" (compatable and cheap)
+
+# from:
+https://github.com/n8henrie/fauxmo-plugins
+
+# download 
+mqttplugin.py 
+# and place it here with the rest of the py code
+# it might already be included
+# install raspbian lite or linux distro of your choice
+
+# we name this "home-broker" later
+# you can access via http://home-broker.local  when on your LAN
+
+# set login 
+
+# if using raspian change the following in raspi-config:
+
+sudo raspi-config
+
+    # fix the following:
+    # system option > host name "home-broker"
+	# system > auto login (this system auto runs at boot
+    #        to make debugging easier)
+	# interface options > enable ssh
+	# performance options > video memory as small as possable
+	# localization set time zone
+    # advanced options expand sd card 
+	# when finished allow it to reboot
+
+# now "putty in" from your computer to make things easier:
+
+use home-broker.local for the address
+
+sudo apt update
+sudo apt upgrade
+sudo apt install pip
+sudo apt install mosquitto
+
+# You do this IF we run it from main.py 
+# right now we let it run by itsself
+
+# sudo systemctl disable mosquitto.service
+
+# to start, monitor and restart as needed 
+
+# bring in the python packages
+
+sudo pip install fauxmo
+sudo pip install paho.mqtt
+sudo pip install gevent
+sudo pip install flask
+sudo pip install pgrep
+
+# fix the conf.d directory for a future ftp
+# not used # sudo chmod a+w /etc/mosquitto/conf.d
+
+# now install zigbee2mqtt
+
+https://www.zigbee2mqtt.io/guide/installation/01_linux.html
+
+# change config to use home-broker.local for the broker
+# broker has not been configured yet 
+
+
+
+# now install home-broker code
+sftp down the following (filezilla):
+
+copy mosquitto.conf to /etc/mosquitto/conf.d
+
+zigbee2mqtt_manager.py
+mqtt_service_task.py
+http_server.py
+database.py
+fauxmo_manager.py
+const.py
+message.py
+devices_to_json.py
+load_zigbee_data.py
+load_IP_device_data.py
+main.py
+index_html.py
+../library/mqtt_hello.py
+
+
+
+# this is a development environment
+# and set things  up to auto start the home-broker on boot
+# future may just run as a deamon but harder to debug.
+#
+code replace /dev/ttyUSB0 with your ZBC port
+edit  .bashrc 
+add to the end
+
+sudo chmod a+rw /dev/ttyUSB0
+echo booting in 10 seconds
+sleep 10
+sudo python3 main.py
+sudo echo `date` >> bootlog
+sudo reboot
+
+
+
+# Notes
+# If replicating/copying prebuilt immages make sure 
+# the /opt/zigbee2mqtt/data stuff is fresh and not 
+# a previous install
+# configuration.yaml should be fresh
+# coordinator_backup.json should be deleted
+# Unsure about database.db 

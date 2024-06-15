@@ -12,6 +12,8 @@ def print(*args, **kwargs): # replace print
 base_topic = "home/"
 hello_request_topic = base_topic+"send_hello"  # I devices subscribe to this when fufilled they publish the /home/xxx/hello
 
+hello_subscribe_pattern = base_topic+"+/hello" # this is a subscribe to capture IP device configs
+
 head = '''{
 "name": "%s", 
 "desc": "%s",

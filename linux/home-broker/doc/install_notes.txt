@@ -1,0 +1,123 @@
+Install_notes
+home-broker 
+
+# download mqttplugin.py if you want a newer version
+https://github.com/n8henrie/fauxmo-plugins
+and replace the current one in the  home-broker py code
+
+install raspbian lite or the linux distro of your choice
+use the lite or server versions. 
+
+do "ip a" to get ip address
+
+the rest is eaiser with putty
+
+raspbian fixed with rpi imaging tool
+
+# So you can access via http://home-broker.local  when on your LAN
+
+# if using raspian change the following as needed, in raspi-config:
+
+sudo raspi-config
+
+  # fix the following:
+  # system option > host name "home-broker"
+  # system > auto login (this system auto runs at boot
+  #        to make debugging easier)
+  # interface options > enable ssh  
+  # not working --  performance options > video memory as small as possable
+  # localization set time zone
+  # advanced options expand sd card 
+  # when finished allow it to reboot
+
+# now "putty in" from your desktop to make things easier:
+use home-broker.local for the address (Or what ever you changed it to).
+
+# we install the following:
+sudo apt update
+sudo apt upgrade
+sudo apt install pip
+sudo apt install mosquitto
+sudo apt install sqlite3
+
+# also some python parts are needed:
+sudo pip install fauxmo    --break-system-packages
+sudo pip install paho.mqtt --break-system-packages
+sudo pip install gevent    --break-system-packages
+sudo pip install flask     --break-system-packages
+sudo pip install pgrep     --break-system-packages
+
+# now install zigbee2mqtt from here
+
+https://www.zigbee2mqtt.io/guide/installation/01_linux.html
+
+sudo curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs git make g++ gcc libsystemd-dev make
+
+sudo mkdir /opt/zigbee2mqtt
+sudo chown -R ${USER}: /opt/zigbee2mqtt
+
+git clone --depth 1 https://github.com/Koenkk/zigbee2mqtt.git /opt/zigbee2mqtt
+
+cd /opt/zigbee2mqtt
+npm ci
+
+npm run build
+
+cp /opt/zigbee2mqtt/data/configuration.example.yaml /opt/zigbee2mqtt/data/configuration.yaml
+nano /opt/zigbee2mqtt/data/configuration.yaml
+
+cp /opt/zigbee2mqtt/data/configuration.example.yaml /opt/zigbee2mqtt/data/configuration.yaml
+
+# notes:
+# change config to use home-broker.local for the broker
+# broker has not been configured yet 
+# note: cd /opt/zigbee2mqtt
+# note: npm start
+
+# now install home-broker code
+sftp down the following to the "auto login" user:
+
+const.py
+database.py
+devices_to_json.py
+fauxmo_manager.py
+http_server.py
+index_html.py
+json_tools.py
+load_IP_device_data.py
+load_zigbee_data.py
+main.py
+message.py
+mosquitto_manager.py
+mqtt_service_task.py
+mqttplugin.py
+zigbee2mqtt_manager.py
+../library/mqtt_hello.py
+
+# at this point you need to know what tty the zigbee dongle is on
+# typicaly it is ttyUSB0 your SBC/linux may be different
+
+# edit  .bashrc we are running from here
+# add to the end the following:
+
+setterm -blank 0
+sudo chmod a+rw /dev/ttyUSB0  
+echo booting in 10 seconds
+sleep 10
+sudo python3 main.py
+
+# Now confugured so reboot.  
+# System is alive now http://home-broker.local to localy configure
+
+'''
+this is desihgned to be a standalone system
+once built and SD image saved
+replacated as needed, zero pre boot customation.
+simply accessed as http://home-broker.local on the end users LAN.
+For now no login,  because this is running on a small LAN
+protection is provided by the router/firewall. 
+'''
+
+
+

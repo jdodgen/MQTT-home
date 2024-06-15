@@ -264,12 +264,13 @@ class database:
 		cur=self.get_cursor()
 		try:
 			cur.execute("delete from mqtt_feature where friendly_name = ?", (name,))
-			cur.execute("delete from mqtt_device where friendly_name = ?", upsert_deviceupsert_device
+			cur.execute("delete from mqtt_device where friendly_name = ?", (name,))
+		except:
 			print("problem deleting?")
 		cur.close()
 		self.con.commit()
 
-	def upsert_deviceupsert_device(self, description, name, source):
+	def upsert_device(self, description, name, source):
 		# first check to see if we have a major change
 		# notifiers may need this to reduce MQTT traffic
 		#  
