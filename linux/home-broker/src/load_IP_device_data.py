@@ -48,7 +48,7 @@ def load_IP_device(payload):
             else:
                 topic = f["topic"] if "topic" in f else None
                 feature_description = f["desc"] if "desc" in f else None
-                notification_level = db.upsert_feature(  name, 
+                exists = db.upsert_feature(  name, 
                                     property,  
                                     feature_description,
                                     type,
@@ -57,8 +57,8 @@ def load_IP_device(payload):
                                     f["payload_on"]  if "payload_on"  in f else None,
                                     f["payload_off"] if "payload_off" in f else None,
                                 )
-                if notification_level !=  const.minor:
-                    change_record_count += 1
+                if not exists:
+                    changed_record_count += 1
         if change_record_count > 0:
             publish_single(const.home_MQTTdevices_get, "load_IP_device") 
 

@@ -273,7 +273,7 @@ class database:
 	def upsert_device(self, description, name, source):
 		# first check to see if we have a major change
 		# notifiers may need this to reduce MQTT traffic
-		#  
+		#  	
 		cur = self.con.cursor()
 		cur.execute("""
 			select
@@ -295,7 +295,7 @@ class database:
 			insert or replace into mqtt_device 
 				(description, 
 				friendly_name, 
-				source,
+				source,home_MQTT_devices
 				date) 
 			values (?,?,?,?)
 			""", 
@@ -343,13 +343,13 @@ class database:
 			true_value,  
 			false_value
 			):
-		# first check to see if we have a major change
+		# first check to see if we have a change
 		# notifiers may need this to reduce MQTT traffic
 		#  
 		cur = self.con.cursor()
 		cur.execute("""
 			select
-				friendly_name
+			friendly_name
 			from mqtt_feature 
 			where friendly_name = ?
 			and property = ?
@@ -360,31 +360,33 @@ class database:
 			and true_value = ?
 			and false_value  = ?
 	    """, (friendly_name, property, description, type, access, topic, true_value, false_value))
-		r = const.minor if cur.fetchone() else None   ## duplicate date will change minor
+		exists = True if cur.fetchone() else False
 		cur.close()
-		#
-		# we always update atleast for date
-		#
+		if exists:
+			return True
 		cur=self.get_cursor()
-		cur.execute("""insert or replace into mqtt_feature 
-			(friendly_name, 
-			property,  
-			description, 
-			type,
-			access, 
-			topic,  
-			true_value,  
-			false_value
-			)
-			  values (?,?,?,?,?,?,?,?)""", 
-			  (friendly_name,
-			property,  
-			description, 
-			type,
-			access, 
-			topic,  
-			true_value,  
-			false_value,))
+		try:
+			cur.execute("""insert or replace into mqtt_feature 
+				(friendly_name, 
+				property,  
+				description, 
+				type,
+				access, 
+				topic,  
+				true_value,  
+				false_value
+				)
+				values (?,?,?,?,?,?,?,?)""", 
+				(friendly_name,
+				property,  
+				description, 
+				type,
+				access, 
+				topic,  
+				true_value,  
+				false_value,))
+		except:
+			pass
 		cur.close()
 		self.con.commit()
 		return r
@@ -446,7 +448,7 @@ class database:
 		cur = self.con.cursor()
 		if not wemo_port:
 			cur.execute("""
-			select COALESCE(max(wemo_port),0)
+			select COALESCE(max(wemo_port),0)home_MQTT_devices
 				from wemo
 			""")
 			largest_wemo_port = cur.fetchone()[0]
@@ -546,6 +548,9 @@ class database:
 			source, -- "zigbee", or "IP" others in future
 					-- name is "friendler" than IEEE
 					-- zigbee2mqtt forces unique "friendly_name"s zigbee2mqtt
+        return base_topic+id[2:]+"/hello"
+
+def raw_send_hello(client, name, desc, *features):
 					-- our IP devices CAN share the same name to support MQTT multicast
 					-- IEEE is stored but not use. For IP devices it will be the last one reporting in
 					-- if the devices sharing friendly names have different features 

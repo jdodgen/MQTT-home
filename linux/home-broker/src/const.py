@@ -45,8 +45,6 @@ home_MQTT_devices = "home/MQTTdevices/configuration"  # Normaized json of ALL de
 #
 # hello_subscribe = "home/+/hello" # tgis is a subscribe to capture IP device configs
 # 
-minor = "minor"  # if so we do not need to refresh our "retain"s
-
 #
 # mosquitto configuration edit this as needed,
 # the file is located at mosquitto_file_path
