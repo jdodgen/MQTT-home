@@ -41,6 +41,16 @@ class hello:
     def topic(self):
         id = hex(uuid.getnode())
         return base_topic+id[2:]+"/hello"
+
+def raw_send_hello(client, name, desc, *features):
+    h = hello(name, desc)
+    for f in features:
+        h.add_feature(f)
+    h.payload()
+    topic = h.topic()
+    payload = h.payload()
+    print("[topic[%s] payload\n%s\n" % (topic, payload))
+    client.publish(topic, payload) 
     
 async def send_hello(client, name, desc, *features):
     h = hello(name, desc)
