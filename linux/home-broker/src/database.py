@@ -283,7 +283,7 @@ class database:
 			where friendly_name = ?
 			and description = ?
 	    """, (name, description))
-		r =  const.minor if cur.fetchone() else None   ## one found nothing important minor
+		r =  True if cur.fetchone() else False   ## one found nothing important minor
 		cur.close()
 		#
 		# we always update atleast for date
@@ -295,7 +295,7 @@ class database:
 			insert or replace into mqtt_device 
 				(description, 
 				friendly_name, 
-				source,home_MQTT_devices
+				source,
 				date) 
 			values (?,?,?,?)
 			""", 
@@ -389,7 +389,6 @@ class database:
 			pass
 		cur.close()
 		self.con.commit()
-		return r
 
 	def get_feature(self, friendly_name, property, topic):
 		cur = self.con.cursor()

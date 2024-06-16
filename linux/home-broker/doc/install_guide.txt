@@ -1,3 +1,6 @@
+This needs to be clean up:
+
+
 home-broker - a small dedicated mqtt, fauxmo and zigbee server
 it consolodates zigbee and Internet/WiFi devices in a sqlite database.
 It only collects configuration and does not command devices
@@ -31,7 +34,7 @@ https://github.com/n8henrie/fauxmo-plugins
 
 # download 
 mqttplugin.py 
-# and place it here with the rest of the py code
+# and place it here with the rest of the py codesshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
 # it might already be included
 # install raspbian lite or linux distro of your choice
 
@@ -62,7 +65,7 @@ sudo apt update
 sudo apt upgrade
 sudo apt install pip
 sudo apt install mosquitto
-
+sshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
 # You do this IF we run it from main.py 
 # right now we let it run by itsself
 
@@ -86,7 +89,7 @@ sudo pip install pgrep
 https://www.zigbee2mqtt.io/guide/installation/01_linux.html
 
 # change config to use home-broker.local for the broker
-# broker has not been configured yet 
+# broker has not been configured yet sshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
 
 
 
@@ -95,20 +98,8 @@ sftp down the following (filezilla):
 
 copy mosquitto.conf to /etc/mosquitto/conf.d
 
-zigbee2mqtt_manager.py
-mqtt_service_task.py
-http_server.py
-database.py
-fauxmo_manager.py
-const.py
-message.py
-devices_to_json.py
-load_zigbee_data.py
-load_IP_device_data.py
-main.py
-index_html.py
-../library/mqtt_hello.py
-
+# bulk load of our code see "install_files.bat"
+sshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
 
 
 # this is a development environment
@@ -119,13 +110,14 @@ code replace /dev/ttyUSB0 with your ZBC port
 edit  .bashrc 
 add to the end
 
+```
 sudo chmod a+rw /dev/ttyUSB0
 echo booting in 10 seconds
 sleep 10
 sudo python3 main.py
 sudo echo `date` >> bootlog
 sudo reboot
-
+```
 
 
 # Notes

@@ -31,8 +31,8 @@ def load_IP_device(payload):
         name = device["name"]
         description = device["desc"]
         features = device["features"]
-        notification_level = db.upsert_device(description, name, source)
-        if notification_level !=  const.minor:
+        exists = db.upsert_device(description, name, source)
+        if not exists:
             change_record_count += 1
     except Exception:
         print("upsert_device failed [%s]" % (Exception,))
@@ -58,7 +58,7 @@ def load_IP_device(payload):
                                     f["payload_off"] if "payload_off" in f else None,
                                 )
                 if not exists:
-                    changed_record_count += 1
+                    change_record_count += 1
         if change_record_count > 0:
             publish_single(const.home_MQTTdevices_get, "load_IP_device") 
 
