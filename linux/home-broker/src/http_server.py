@@ -12,6 +12,7 @@ import threading
 from queue import Empty
 import time
 import index_html
+import mqtt_hello
 #
 # conditional print
 import os 
@@ -109,9 +110,9 @@ def modify_wemo():
 
 @app.route("/all_devices", methods =["GET", "POST"])
 def all_devices():
+    msg = ""
     if request.method == "POST":
         global db
-        msg = ""
         rowid=None
         update_IP = False
         print("/all_devices action[%s]" % request.form["action"])
@@ -120,10 +121,10 @@ def all_devices():
         if parts[0] == "send":
             send_mqtt_publish(parts[2], parts[1])
         elif parts[0] == "zbrefresh":
-            message.publish_single(const.zigbee2mqtt_bridge_devices)
+            message.simple_subscribe(const.zigbee2mqtt_bridge_devices)
             msg="ZigBee devices refreshed"
         elif parts[0] == "iprefresh":
-            message.publish_single(const.home_MQTTdevices_get, my_name) 
+            message.publish_single(mqtt_hello.hello_request_topic, my_name) 
             msg="Auto IP devices refreshed"
         elif parts[0] == 'delete':
             db.delete_device(parts[1])

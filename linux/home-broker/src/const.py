@@ -1,5 +1,5 @@
 #inside const.py constants and configurable items
-version = 0.2
+version = 0.3
 
 import os
 if os.name =="nt": # testing under Windows
@@ -39,7 +39,7 @@ db_timeout = 120 # we have nothing that would cause a long lock
 #
 zigbee2mqtt_bridge_devices = "zigbee2mqtt/bridge/devices"  # this subscribe gets all the zigbee devices from z2m 
 # 
-home_MQTTdevices_get = "home/MQTTdevices/get"  # topic requests a fresh MQTTDevices 
+# home_MQTTdevices_get = "home/MQTTdevices/get"  # topic requests a fresh MQTTDevices 
 #
 home_MQTT_devices = "home/MQTTdevices/configuration"  # Normaized json of ALL devices.  home-broker "publish reatain"s this for other apps it has all the zb and ip devices unified
 #

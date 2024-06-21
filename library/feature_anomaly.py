@@ -1,4 +1,4 @@
-import json
+# MIT licence Copyright Jim dodgen 2024
 
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
@@ -27,9 +27,8 @@ class feature:
         self.cooked = feat(name, subscribe=subscribe, publish=publish)
         print(self.cooked)
 
-    def feature_json(self):
-        config_json = json.dumps(self.cooked)
-        return config_json
+    def cooked(self):
+        return self.cooked
     
     def topic(self):
         return self.cooked["topic"]   # publisher "sets" this subscriber subscribes to a published topic

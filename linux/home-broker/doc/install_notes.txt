@@ -76,24 +76,8 @@ cp /opt/zigbee2mqtt/data/configuration.example.yaml /opt/zigbee2mqtt/data/config
 # note: npm start
 
 # now install home-broker code
-sftp down the following to the "auto login" user:
-
-const.py
-database.py
-devices_to_json.py
-fauxmo_manager.py
-http_server.py
-index_html.py
-json_tools.py
-load_IP_device_data.py
-load_zigbee_data.py
-main.py
-message.py
-mosquitto_manager.py
-mqtt_service_task.py
-mqttplugin.py
-zigbee2mqtt_manager.py
-../library/mqtt_hello.py
+# bulk load of our code see "install_files.bat"
+sshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
 
 # at this point you need to know what tty the zigbee dongle is on
 # typicaly it is ttyUSB0 your SBC/linux may be different

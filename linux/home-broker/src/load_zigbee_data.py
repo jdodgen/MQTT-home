@@ -43,7 +43,11 @@ def load_database_from_zigbee(zigbee2mqtt_devices):
     db = database.database()
 
     db.delete_all_zb_devices()
-    devices =json.loads(zigbee2mqtt_devices)
+    try:
+        devices =json.loads(zigbee2mqtt_devices)
+    except:
+        print("payload not a json file")
+        return
     #print("\n\n",devices,"\n\n")
     for d in devices:
         #print(d.keys())

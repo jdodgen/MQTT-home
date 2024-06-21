@@ -10,9 +10,11 @@ sudo chmod 666 /dev/ttyUSB0
 esptool.py --port /dev/ttyUSB0 erase_flash
 esptool.py --chip esp32 --port /dev/ttyUSB0 write_flash -z 0x1000 esp32-20220618-v1.22.1.bin
 
-sudo apt install picocom 
+sudo apt install picocom
 sudo pip install adafruit-ampy
 
+# dangerous but it allows access to the tty
+sudo usermod -a -G root $USER
 
 mpy --help
 ampy --port /dev/ttyUSB0 --baud  115200 ls
@@ -31,7 +33,7 @@ http://192.168.0.73:9000/jhw_led/on
 esp32-s2 stuff
 sudo chmod 666 /dev/ttyACM0
 
-sudo esptool.py -b 115200 --port /dev/ttyACM0 erase_flash 
+sudo esptool.py -b 115200 --port /dev/ttyACM0 erase_flash
 sudo esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 GENERIC_S2-20220618-v1.19.1.bin
 
 import mip
@@ -53,8 +55,8 @@ sudo ampy --port /dev/ttyACM0 put jhw.py
 sudo ampy --port /dev/ttyACM0 put wifi.py
 sudo ampy --port /dev/ttyACM0 put boot.py
 sudo ampy --port /dev/ttyACM0 put button.py
-sudo ampy --port /dev/ttyACM0 put simple.py 
-sudo ampy --port /dev/ttyACM0 put robust.py 
+sudo ampy --port /dev/ttyACM0 put simple.py
+sudo ampy --port /dev/ttyACM0 put robust.py
 sudo ampy --port /dev/ttyACM0 put MQTT_master.py
 sudo ampy --port /dev/ttyACM0 put alert_handler.py
 

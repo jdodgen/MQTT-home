@@ -3,6 +3,7 @@ import database
 import json
 from message import publish_single
 import const
+from mqtt_hello import hello_refresh_request
 
 
 '''The access property is a 3-bit bitmask.
@@ -15,22 +16,28 @@ Bit 3: The property can be retrieved with a /get command (when this bit is true,
 # conditional print
 import os 
 my_name = os.path.basename(__file__).split(".")[0]
-xprint = print # copy print
+raw_print = print # copy print
 def print(*args, **kwargs): # replace print
-    return
-    xprint("["+my_name+"]", *args, **kwargs) # the copied real print
+    #return
+    raw_print("["+my_name+"]", *args, **kwargs) # the copied real print
 #
 #
-def load_IP_device(payload):
-    db = database.database()
+def load_IP_device(db, address, payload):
+    print("processing %s" % (address,))
     source = "IP"
     change_record_count = 0
-    #print("address [%s]" % address) 
+    # print("Loading device descriptor:\n```\n%s\n```" % payload) 
     try:
         device =json.loads(payload)
+    except:
+        print("json.loads failed")
+        print(payload)
+        return
+    try:
         name = device["name"]
         description = device["desc"]
         features = device["features"]
+        print("name[%s] desc[%s]" % (name, description))
         exists = db.upsert_device(description, name, source)
         if not exists:
             change_record_count += 1
@@ -38,15 +45,15 @@ def load_IP_device(payload):
         print("upsert_device failed [%s]" % (Exception,))
     else:
         for f in features:
-            print(f)
             try:
                 type = f["type"]
                 property = f["property"]
                 access = f["mqtt"]
+                print("feature: "+property)
             except:
                 print("feature failed for[%s]" % (name,))
             else:
-                topic = f["topic"] if "topic" in f else None
+                topic = f["topic"] if "topic" in f else f["pub_topic"] if "pub_topic" in f else None
                 feature_description = f["desc"] if "desc" in f else None
                 exists = db.upsert_feature(  name, 
                                     property,  
@@ -60,7 +67,7 @@ def load_IP_device(payload):
                 if not exists:
                     change_record_count += 1
         if change_record_count > 0:
-            publish_single(const.home_MQTTdevices_get, "load_IP_device") 
+            publish_single(hello_refresh_request, "load_IP_device") 
 
 # this is a load of some test data from micropython devices 
 if __name__ == "__main__":

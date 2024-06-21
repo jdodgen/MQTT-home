@@ -24,6 +24,7 @@ SOFTWARE.
 
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
+import paho.mqtt.subscribe as subscribe
 import sys
 import socket
 
@@ -175,6 +176,20 @@ def publish_single(topic, payload, my_parent=None):
           (topic, payload, our_ip_address(),))
     rc = publish.single(topic, payload, hostname=our_ip_address()) 
     print("publish_single returned[%s]" % rc)
+
+def resubscribe(client, userdata, message):
+    xprint("resubscribe for %s" % (message.topic,))
+    client.unsubscribe(message.topic)
+    client.subscribe(message.topic)
+
+def simple_subscribe(topic, my_parent=None):
+    global parent
+    parent = my_parent
+    print("simple_subscribe: topic[%s]  broker[%s]" % 
+          (topic, our_ip_address(),))
+    rc = subscribe.callback(resubscribe, topic, hostname=our_ip_address()) 
+    print("simple_subscribe returned[%s]" % rc)
+    
 
 ### test area ###
 if __name__ == "__main__":
