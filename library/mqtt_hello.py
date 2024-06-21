@@ -12,9 +12,9 @@ def print(*args, **kwargs): # replace print
 hello_tag = "hello"
 base_topic = "home"
 
-hello_request_topic =     base_topic+"/send_hello"  # I devices subscribe to this when fufilled they publish the /home/xxx/hello
+hello_request_topic =     base_topic+"/home_broker/send_hello"  # I devices subscribe to this.  they publish the /home/xxx/hello payload built here
 hello_subscribe_pattern = base_topic+"/+/"+hello_tag # this is a subscribe to capture IP device configs
-hello_refresh_request =   base_topic+"/refresh"  # when published, causes home-broker to request all devices for stuff
+hello_refresh_request =   base_topic+"/home_broker/refresh"  # when published, causes home-broker to request all devices for stuff
 
 id = hex(uuid.getnode())
 print("id[%s]" % (id,))
