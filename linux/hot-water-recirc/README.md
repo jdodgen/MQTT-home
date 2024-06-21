@@ -1,5 +1,7 @@
-//configuration
-install 32 bit lite Rpi os
+# Building a system
+
+```
+install latest lite version, this assumes Raspbian
 
 using the "raspberry pi imager"
 make selections then after "next"
@@ -47,26 +49,12 @@ sudo python3 main.py
 sudo echo `date` >> bootlog
 sudo reboot
 
-// now system is built and needs the controler code
-
-// send the following files using sftp (filezilla)
-// from "water_heater_recirc/Python" directory
-// to /home/<username>/ 
-
-main.py
-mqtt_manager.py
-database.py
-const.py
-run_pump_cycle.py
-rpi_interface.py
-web_server.py
-index_html.py
-status_html.py
-MQTT_messages.py
-device_dictionaries.py
+// now system is built and needs the controller code
+edit IP and run the install_files.py to sftp the code
 
 // Best to test first from putty and not via a boot
-// just to see if all workstation
+// just to see if all works
+```
 
 
 
