@@ -88,6 +88,7 @@ async def main(client):
     while True:
         await asyncio.sleep(0.3)
         if (btn.test() == 0):
+         print("button pressed")
             await client.publish(butt.topic(), butt.payload_on())
 
 time.sleep(5)
