@@ -66,7 +66,7 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         await client.subscribe(mqtt_hello.hello_request_topic)                  
 
 async def main(client):
-    btn=button.button(button_pin)
+    btn=button.button(button_pin, client)
         
     ah.flash(count=2) # lets you know it has booted
 
@@ -88,7 +88,7 @@ async def main(client):
     while True:
         await asyncio.sleep(0.3)
         if (btn.test() == 0):
-         print("button pressed")
+            print("button pressed")
             await client.publish(butt.topic(), butt.payload_on())
 
 time.sleep(5)

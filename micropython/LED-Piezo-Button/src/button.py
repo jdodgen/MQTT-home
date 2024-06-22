@@ -9,13 +9,15 @@
 # not enter power saving sleep-and-wait mode
 # waiting for an event. 
 
-from universal_machine import machine, asyncio
-
+from universal_machine import machine
 class button:
-	def __init__(self, pin, mqtt_client) # client is left here to ease fixing IRQ issue
+	def __init__(self, pin, mqtt_client):
+		self.mqtt_client = mqtt_client # client is here when IRQ fixed
 		self.button_pin = machine.Pin(pin, machine.Pin.IN, machine.Pin.PULL_UP)
 		 
 	def test(self):
 		value = self.button_pin.value()
 		# print("button value[%s]" % (value,))
 		return value
+
+button(1,2)

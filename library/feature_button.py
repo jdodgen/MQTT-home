@@ -38,7 +38,7 @@ class feature:
         return self.cooked["topic"]   # publisher "sets" this subscriber subscribes to a published topic
 
     def payload_on(self):
-        return self.cookedictd["payload_on"]
+        return self.cooked["payload_on"]
 
 
 # # unit tests
