@@ -20,4 +20,4 @@ class button:
 		# print("button value[%s]" % (value,))
 		return value
 
-button(1,2)
+# button(1,2)
