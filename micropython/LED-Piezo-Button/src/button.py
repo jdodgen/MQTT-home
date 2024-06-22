@@ -10,7 +10,7 @@
 # shpuld redo when the IRQ/mqtt_as problem fixed.
 # the use of polling requires this processor to run and 
 # not enter power saving sleep-and-wait mode
-# waiting for an event. 
+# waiting for an event.
 
 from universal_machine import machine
 class button:
