@@ -3,8 +3,11 @@
 
 # this was using interupts/IRQ and now is being polled
 # the interupts messed with the async in mqtt_as.py
-# this tends to be polled at the end of the main.py loop.
-# Should come back and the the IRQ/mqtt_as problem fixed.
+# 
+# typicaly button.test() is called in the main.py 
+# loop hopefully with somthing to do or a sleep(0.3).
+#
+# shpuld redo when the IRQ/mqtt_as problem fixed.
 # the use of polling requires this processor to run and 
 # not enter power saving sleep-and-wait mode
 # waiting for an event. 
