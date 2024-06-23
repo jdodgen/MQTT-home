@@ -32,8 +32,7 @@ from message import our_ip_address
 import os
 #
 # conditional print
-import os 
-my_name = os.path.basename(__file__).split(".")[0]
+my_name = "fauxmo_manager"
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
     #return
@@ -104,7 +103,10 @@ def build_cfg():
             name = dev[1].replace('"','\\"')
             topic = dev[2].replace('"','\\"')
             on_payload = dev[3].replace('"','\\"')
-            off_payload = dev[4].replace('"','\\"')
+            try:
+                off_payload = dev[4].replace('"','\\"')
+            except:
+                off_payload = None
             fauxmo_cfg = fauxmo_cfg + per_device_minimum % (port, name, topic,on_payload, topic, off_payload, our_ip_address(), const.broker_mqtt_port)
             fauxmo_cfg = fauxmo_cfg + use_fake_state  
             fauxmo_cfg = fauxmo_cfg + initial_state

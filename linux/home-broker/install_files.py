@@ -1,6 +1,6 @@
 import pysftp
-# import os
-host = "192.168.0.193"
+#host = "192.168.0.193"
+host = "192.168.1.226"
 name="jim"
 word="foobar"
 print("uploading to %s@%s" % (name,host,)) # I force access to the code for the password
