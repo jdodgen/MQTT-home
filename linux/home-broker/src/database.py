@@ -541,15 +541,10 @@ class database:
 		drop table if exists mqtt_device;
 		create table mqtt_device
 		(
-			-- ieee_address text, 
 			friendly_name,
 			description,
 			source, -- "zigbee", or "IP" others in future
-					-- name is "friendler" than IEEE
 					-- zigbee2mqtt forces unique "friendly_name"s zigbee2mqtt
-        return base_topic+id[2:]+"/hello"
-
-def raw_send_hello(client, name, desc, *features):
 					-- our IP devices CAN share the same name to support MQTT multicast
 					-- IEEE is stored but not use. For IP devices it will be the last one reporting in
 					-- if the devices sharing friendly names have different features 
@@ -559,7 +554,15 @@ def raw_send_hello(client, name, desc, *features):
 			PRIMARY KEY (friendly_name)
 		);
 
-		-- one or more features for each  device
+		drop table if exists device_ieee;
+		create table device_ieee
+		(
+			ieee_addr text,
+			friendly_name,
+			date,
+			PRIMARY KEY (ieee_addr)
+		);
+
 		drop table if exists mqtt_feature;
 		create table mqtt_feature
 		(	mqtt_feature_id integer auto increment,
