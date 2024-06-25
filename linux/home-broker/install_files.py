@@ -14,27 +14,31 @@ name="jim"
 word="foobar"
 host=hosts[int(i)]
 print("uploading to %s@%s" % (name, host,)) # I force access to the code for the password
-# os.system("sshpass -p foobar sftp -oBatchMode=no -b install_files.bat "+target)
+
+files = [
+"src/zigbee2mqtt_manager.py",
+"src/mqtt_service_task.py",
+"src/http_server.py",
+"src/database.py",
+"src/fauxmo_manager.py",
+"src/mosquitto_manager.py",
+"src/const.py",
+"src/message.py",
+"src/devices_to_json.py",
+"src/load_zigbee_data.py",
+"src/mqttplugin.py",
+"src/load_IP_device_data.py",
+"src/main.py",
+"src/json_tools.py",
+"src/index_html.py",
+"../../library/mqtt_hello.py",   
+]
 
 try:
     with pysftp.Connection(host, username=name, password=word) as sftp:
         print("pushing files ...")
-        sftp.put("src/zigbee2mqtt_manager.py")
-        sftp.put("src/mqtt_service_task.py")
-        sftp.put("src/http_server.py")
-        sftp.put("src/database.py")
-        sftp.put("src/fauxmo_manager.py")
-        sftp.put("src/mosquitto_manager.py")
-        sftp.put("src/const.py")
-        sftp.put("src/message.py")
-        sftp.put("src/devices_to_json.py")
-        sftp.put("src/load_zigbee_data.py")
-        sftp.put("src/mqttplugin.py")
-        sftp.put("src/load_IP_device_data.py")
-        sftp.put("src/main.py")
-        sftp.put("src/json_tools.py")
-        sftp.put("src/index_html.py")
-        sftp.put("../../library/mqtt_hello.py")
+        for f in files:
+            sftp.put(f)
 except: 
     print("An error occured, typicaly cert issue,\nrunning ssh to clean it up\n")          
     os.system("ssh %s@%s" % (name,host,))
