@@ -137,10 +137,11 @@ def start_fauxmo_task():
     return p
 
 def stop_fauxmo_task(p):
+    print_always("terminating")
     p.terminate()
     time.sleep(1)
     while p.is_alive():
-        print("fauxmo wont die")
+        print_always("fauxmo wont die")
         time.sleep(0.1)
     p.join()
     p.close()
