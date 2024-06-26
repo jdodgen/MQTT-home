@@ -33,10 +33,10 @@ files = [
 import pysftp
 import os
 
-print(0) all")
+print("0 - all hosts")
 ndx = 1
 for h in hosts:
-    print("%s) %s" % (ndx,h,))
+    print("%s - %s" % (ndx,h,))
     ndx += 1
 print("which?")
 i = input()
