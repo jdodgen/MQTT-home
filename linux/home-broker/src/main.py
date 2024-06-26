@@ -100,6 +100,7 @@ if __name__ == "__main__":
             print("watch_dog_queue [%s]" % (command,))
             if command == "startfauxmotask":
                 # comes from http_server.py after a restart request
+                fauxmo_manager.stop_fauxmo_task(fauxmo_task)
                 fauxmo_task = None # this cause it to be started
             elif command == "shutdown":
                 active = active_children()
