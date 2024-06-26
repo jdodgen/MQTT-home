@@ -68,9 +68,7 @@ def create_wemo():
         action = request.form["action"]
         print("action[%s]" % action)
         if action == "restart":
-            fauxmo_manager.stop_fauxmo_task(fauxmo_task)
-            # to keep watchdog happy, let it know about the change
-            watch_dog_queue.put(["startfauxmotask", "start"])
+             watch_dog_queue.put(["startfauxmotask", "start"]) # cause a restart
         elif action == "display":
             cfg = fauxmo_manager.get_fauxmo_cfg()
             if cfg:
