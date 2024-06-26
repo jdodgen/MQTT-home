@@ -46,9 +46,9 @@ if int(i) == 0:
     what_to_do = hosts
 else:
     try:
-        what_to_do = [hosts[int(i-1)],] # singleton
+        what_to_do = [hosts[int(i)-1],] # singleton
     except:
-        print("Not a valid entry, must be 0 to %s" % (len(hosts)+1,))
+        print("Not a valid entry, must be 0 to %s" % (len(hosts),))
     else:
         for host in what_to_do:
             print("uploading to %s@%s" % (name, host,)) # I force access to the code for the password
@@ -60,5 +60,3 @@ else:
             except: 
                 print("An error occured, typicaly cert issue,\nrunning ssh to clean it up\n")          
                 os.system("ssh %s@%s" % (name,host,))
-            
-
