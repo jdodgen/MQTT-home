@@ -29,6 +29,10 @@ files = [
 "../../library/mqtt_hello.py",   
 ]
 #
+# password and name
+name="jim"
+word="foobar"
+#
 # code starts here.
 import pysftp
 import os
@@ -40,8 +44,7 @@ for h in hosts:
     ndx += 1
 print("which?")
 i = input()
-name="jim"
-word="foobar"
+
 if int(i) == 0:
     what_to_do = hosts
 else:
