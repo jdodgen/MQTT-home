@@ -50,15 +50,15 @@ else:
     except:
         print("Not a valid entry, must be 0 to %s" % (len(hosts)+1,))
     else:
-    for host in what_to_do:
-        print("uploading to %s@%s" % (name, host,)) # I force access to the code for the password
-        try:
-            with pysftp.Connection(host, username=name, password=word) as sftp:
-                print("pushing files ...")
-                for f in files:
-                    sftp.put(f)
-        except: 
-            print("An error occured, typicaly cert issue,\nrunning ssh to clean it up\n")          
-            os.system("ssh %s@%s" % (name,host,))
-        
+        for host in what_to_do:
+            print("uploading to %s@%s" % (name, host,)) # I force access to the code for the password
+            try:
+                with pysftp.Connection(host, username=name, password=word) as sftp:
+                    print("pushing files ...")
+                    for f in files:
+                        sftp.put(f)
+            except: 
+                print("An error occured, typicaly cert issue,\nrunning ssh to clean it up\n")          
+                os.system("ssh %s@%s" % (name,host,))
+            
 
