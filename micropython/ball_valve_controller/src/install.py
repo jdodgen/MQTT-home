@@ -1,6 +1,9 @@
 # instaltion of micropython as well as LED_pizo_button code
 # MIT Licence Copyright Jim Dodgen 2024
-
+# this uses relative paths must needs to be run in src
+# 
+# customize to your environment
+#
 import os
 print("""
 Press AND HOLD the button labelled BOOT or 0 (ZERO),
