@@ -1,5 +1,6 @@
 # instaltion of micropython as well as LED_pizo_button code
 # MIT Licence Copyright Jim Dodgen 2024
+# change things as needed for your environment 
 
 import os
 print("""
