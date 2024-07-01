@@ -28,8 +28,9 @@ It integrates [fauxmo](https://github.com/n8henrie/fauxmo), [zigbee2mqtt](https:
 It has a protocol to let the IP devices report their configurationsimular to how z2m works  
 Zigbee and IP devices are stored in a sqlite3 database in a common format.  
 it MQTT publishes a compressed JSON of all devices and features. for use of other MQTT devices.   
-# It is only configuration manager 
-its job is to only collect store and distibute the configuration that is all.  
+# It is only a "configuration manager" 
+its job is to only collect store and distibute the configuration that is all.
+Other automation systems use configuration file for the MQTT messages comunicate with "things".
 
 
 
