@@ -1,6 +1,7 @@
 # install script to
 # Push/flash system into MCU and attach console for testing
 # MIT License Copyright Jim Dodgen 2024
+# customized for quad-chimes
 # 
 import os 
 import datetime
@@ -31,21 +32,36 @@ server = "%s"
 #
 # list of files being installed
 #
+mp_lib_offset="../../library/"
+all_lib_offset="../../../library/"
 code = [
-    "../library/main.py",
-    "../library/mqtt_as.py",
-    "../library/boot.py",
-    "../library/uuid.py",
-    "../../library/mqtt_hello.py",
-    "../../library/feature_button.py",
-    "../../library/feature_ding_ding.py",
-    "../../library/feature_ding_dong.py",
-    "../../library/feature_three_chimes.py",
-    "../../library/feature_westminster.py",
+    mp_lib_offset+"main.py",
+    mp_lib_offset+"mqtt_as.py",
+    mp_lib_offset+"boot.py",
+    mp_lib_offset+"uuid.py",
+    all_lib_offset+"mqtt_hello.py",
+    all_lib_offset+"feature_button.py",
+    all_lib_offset+"feature_ding_ding.py",
+    all_lib_offset+"feature_ding_dong.py",
+    all_lib_offset+"feature_three_chimes.py",
+    all_lib_offset+"feature_westminster.py",
+    "button.py",
+    "chime.py",
+    "mqtt_cfg.py",
+    "run.py",
+    "cfg.py",
 ]
 # 
 # raw code below 
 #
+## reposition if needed
+abspath = os.path.abspath(__file__)
+files_dir = os.path.dirname(abspath)+"/" 
+
+## os.chdir(dir)
+##print("moved here for paths to work: ",dir)
+##
+
 ## write mqtt_cfg,py 
 cfg=None
 while not cfg :
@@ -60,7 +76,7 @@ while not cfg :
         cfg = mqtt_cfg_boilerplate % (ssid, wifi_password, server, now,)
     elif wifi == 'S':
         cfg = mqtt_cfg_boilerplate % (ssid, wifi_password,server, now,)
-with open("mqtt_cfg.py", "w") as f: 
+with open(files_dir+"mqtt_cfg.py", "w") as f: 
     f.write(cfg)
 ##
 
@@ -81,12 +97,12 @@ if micropython_bin:
         input("\nPress RST (button in notched area)\npress any key to continue: ")
 ## 
 
-## sending code      
-#ans = input() 
-os.system("pwd")
+## sending code    
+# ans = input("any key, to continue: ") 
+print("current directory: ", os.system("pwd"))
 for c in code:
     print("installing [%s]" % (c,))
-    os.system("ampy --port "+tty_port+" put "+c)
+    os.system("ampy --port "+tty_port+" put "+files_dir+c)
 ##
 #
 os.system("ampy --port "+tty_port+" ls")   # list files

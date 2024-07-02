@@ -1,6 +1,6 @@
 import cfg
-
-from universal_machine import asyncio, machine
+import machine
+import uasyncio as asyncio
 
 class chime:
     def __init__(self):

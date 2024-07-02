@@ -35,6 +35,9 @@ class feature:
     def cooked(self):
         return self.cooked
     
+    def get(self):
+        return self.cooked
+    
     def topic(self):
         return self.cooked["topic"]   # publisher "sets" this subscriber subscribes to a published topic
     

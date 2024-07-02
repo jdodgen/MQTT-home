@@ -6,14 +6,14 @@ import uasyncio as asyncio  # micropython version
 import mqtt_as
 import time
 import cfg
-
-
+# library stuff
 import feature_ding_ding
 import feature_ding_dong
 import feature_westminster
 import feature_button
 import feature_three_chimes
 import mqtt_hello
+# our code
 import chime
 import button
 
@@ -21,9 +21,8 @@ ding_ding =    feature_ding_ding.feature(cfg.name,         subscribe=True)
 ding_dong =    feature_ding_dong.feature(cfg.name,         subscribe=True)
 westminster =  feature_westminster.feature(cfg.name,       subscribe=True)
 three_chimes = feature_three_chimes.feature(cfg.name,      subscribe=True)
-btn =           feature_button.feature(cfg.name,           publish=True)
+btn =          feature_button.feature(cfg.name,            publish=True)
 
-button_press = button.button(cfg.button_pin)
 
 c = chime.chime()
 
@@ -37,13 +36,13 @@ hardcoded_generic_description ="Four different chimes and a button"
 async def say_hello(client):
  # who am I sends a hello 
     print("say_hello: sending hello")
-    await mqtt_hello.send_hello(client, cfg.valve_name, 
+    await mqtt_hello.send_hello(client, cfg.name, 
                         hardcoded_generic_description, 
-                        ding_ding.feature_json(),
-                        ding_dong.feature_json(),
-                        westminster.feature_json(),
-                        three_chimes.feature_json(),
-                        btn.feature_json(), 
+                        ding_ding.get(),
+                        ding_dong.get(),
+                        westminster.get(),
+                        three_chimes.get(),
+                        btn.get(), 
                         )
 
 async def raw_messages(client):  # Respond to all incoming messages 
@@ -79,6 +78,7 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         await client.subscribe(three_chimes.topic())  
 
 async def main(client):
+    button_press = button.button(cfg.button_pin)
     while True:
         print("checking connection")
         try:
@@ -93,7 +93,7 @@ async def main(client):
     #
     # was a IRQ handler to report button.
     # 
-    #
+    # Loop
     while True:
         await asyncio.sleep(0.3)
         if (button_press.test() == 0):
@@ -111,7 +111,7 @@ mqtt_as.config['server']  = cfg.server
 mqtt_as.config["queue_len"] = 1  # Use event interface with default queue size
 
 mqtt_as.DEBUG = True  # Optional: print diagnostic messages
-client = mqtt_as.Client(mqtt_as.config)
+client = mqtt_as.MQTTClient(mqtt_as.config)
 try:
     asyncio.run(main(client))
 finally:
