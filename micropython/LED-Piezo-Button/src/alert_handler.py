@@ -7,9 +7,9 @@ class alert_handler:
     # this is a visual and sound notification
     
     def __init__(self, led_pin, piezo_pin):
-        self.led = machine.Pin(led_pin,machine.Pin.OUT)
+        self.led =   machine.Pin(led_pin, machine.Pin.OUT)
         self.led.value(0)
-        self.piezo = machine.Pin(piezo_pin,machine.Pin.OUT)
+        self.piezo = machine.Pin(piezo_pin, machine.Pin.OUT)
         self.piezo.value(0)
 
     def turn_on(self):

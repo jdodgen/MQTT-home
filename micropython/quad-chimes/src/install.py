@@ -15,6 +15,7 @@ test_ssid = ''
 test_wifi_password = '' 
 #
 tty_port = "/dev/ttyACM0" 
+#micropython_bin = "/home/jim/Downloads/ESP32_GENERIC_S2-20240105-v1.22.1.bin"
 micropython_bin = "/home/jim/Downloads/ESP32_GENERIC_S2-20240602-v1.23.0.bin"
 # current defaults, no changes required
 #
@@ -34,7 +35,8 @@ server = "%s"
 #
 mp_lib_offset="../../library/"
 all_lib_offset="../../../library/"
-code = [
+
+lib_code = [
     mp_lib_offset+"main.py",
     mp_lib_offset+"mqtt_as.py",
     mp_lib_offset+"boot.py",
@@ -45,6 +47,8 @@ code = [
     all_lib_offset+"feature_ding_dong.py",
     all_lib_offset+"feature_three_chimes.py",
     all_lib_offset+"feature_westminster.py",
+]
+app_code = [
     "button.py",
     "chime.py",
     "mqtt_cfg.py",
@@ -100,7 +104,13 @@ if micropython_bin:
 ## sending code    
 # ans = input("any key, to continue: ") 
 print("current directory: ", os.system("pwd"))
-for c in code:
+ans = input("install library code? (y,N): ")
+if (ans.upper() == "Y"):
+    for c in lib_code:
+        print("installing [%s]" % (c,))
+        os.system("ampy --port "+tty_port+" put "+files_dir+c)
+
+for c in app_code:
     print("installing [%s]" % (c,))
     os.system("ampy --port "+tty_port+" put "+files_dir+c)
 ##

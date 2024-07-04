@@ -1,6 +1,7 @@
 # this execsizes the door_bell IoT
 # Copyright Jim Dodgen 2023 MIT License
 import path_fix
+
 import feature_ding_ding
 import feature_ding_dong
 import feature_westminster
@@ -28,7 +29,7 @@ class door_bell:
         client.loop_start()
         
         try:
-            print(name, broker, "mqtt connecting")
+            print(cfg.name, broker, "mqtt connecting")
             client.connect(broker) 
         except:
             print ("MQTT could not connect",  broker)
@@ -39,17 +40,17 @@ class door_bell:
             print('enter "i", "w", "a" or "o"')
             action = input()
             if action == "o":
-                print("simulator: publishing topic[%s] payload [%s]" % (ding_dong.topic,ding_dong.payload_on,))
-                client.publish(ding_dong.topic,ding_dong.payload_on)
+                print("simulator: publishing topic[%s] payload [%s]" % (ding_dong.topic(),ding_dong.payload_on(),))
+                client.publish(ding_dong.topic(), ding_dong.payload_on())
             elif action == "i":
-                print("simulator: publishing topic[%s] payload [%s]" % (ding_ding.topic,ding_ding.payload_on,))
-                client.publish(ding_ding.topic,ding_ding.payload_on)
+                print("simulator: publishing topic[%s] payload [%s]" % (ding_ding.topic(),ding_ding.payload_on(),))
+                client.publish(ding_ding.topic(), ding_ding.payload_on())
             elif action == 'w':
-                print("simulator: publishing topic[%s] payload [%s]" % (westminster.topic,westminster.payload_on,))
-                client.publish(westminster.topic,westminster.payload_on)
+                print("simulator: publishing topic[%s] payload [%s]" % (westminster.topic(),westminster.payload_on(),))
+                client.publish(westminster.topic(), westminster.payload_on())
             elif action == 'a':
-                print("simulator: publishing topic[%s] payload [%s]" % (westminster.topic,westminster.payload_on,))
-                client.publish(three_chimes.topic,three_chimes.payload_on)
+                print("simulator: publishing topic[%s] payload [%s]" % (westminster.topic(),westminster.payload_on(),))
+                client.publish(three_chimes.topic(), three_chimes.payload_on())
 
     def on_button_press(self, client, userdata, message):
         print("button press [%s]" % (message.payload.decode("utf-8"),))
@@ -60,7 +61,7 @@ class door_bell:
         client.subscribe(button.topic())
 
 # for testing
-print("exercise [%s] Iot\n" % cfg.(name,))
+print("exercise [%s] Iot\n" % (cfg.name,))
 time.sleep(5)
 door_bell()
     

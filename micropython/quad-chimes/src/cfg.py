@@ -9,15 +9,10 @@
 
 play_all_pin          = 35  # D1
 ding_dong_pin         = 33  # D2
-ding_ding_pin         = 16  # D3
-westminster_pin       = 18  # D4
+ding_ding_pin         = 18  # D3
+westminster_pin       = 16  # D4
+
 button_pin            = 12  # D8
 
 name = "door_bell"
-time_to_trigger = 0.5  # how long to hold down for a chime
-
-# user specific stuff:
-ssid="JEDguest"
-wifi_password = "9098673852"
-# note: It is best to use firewalled router/wifi for IoT things
-server = "home-broker.local"
+time_to_trigger = 1  # how long to hold down for a chime

@@ -5,7 +5,9 @@
 import uasyncio as asyncio  # micropython version 
 import mqtt_as
 import time
+import machine
 import cfg
+import mqtt_cfg
 # library stuff
 import feature_ding_ding
 import feature_ding_dong
@@ -14,7 +16,7 @@ import feature_button
 import feature_three_chimes
 import mqtt_hello
 # our code
-import chime
+#import chime
 import button
 
 ding_ding =    feature_ding_ding.feature(cfg.name,         subscribe=True)
@@ -22,9 +24,6 @@ ding_dong =    feature_ding_dong.feature(cfg.name,         subscribe=True)
 westminster =  feature_westminster.feature(cfg.name,       subscribe=True)
 three_chimes = feature_three_chimes.feature(cfg.name,      subscribe=True)
 btn =          feature_button.feature(cfg.name,            publish=True)
-
-
-c = chime.chime()
 
 # conditional print
 xprint = print # copy print
@@ -44,25 +43,51 @@ async def say_hello(client):
                         three_chimes.get(),
                         btn.get(), 
                         )
-
+#quad_chime = chime.chime()
+pin_play_all      = machine.Pin(cfg.play_all_pin,     machine.Pin.OUT)
+pin_ding_dong     = machine.Pin(cfg.ding_dong_pin,    machine.Pin.OUT)
+pin_ding_ding     = machine.Pin(cfg.ding_ding_pin,    machine.Pin.OUT)
+pin_west          = machine.Pin(cfg.westminster_pin,  machine.Pin.OUT)  
+pin_play_all.value(1)
+pin_ding_dong.value(1)
+pin_ding_ding.value(1)
+pin_west.value(1)
 async def raw_messages(client):  # Respond to all incoming messages 
-    global open_close
+    
     # loop on message queue
     async for btopic, bmsg, retained in client.queue:
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
         print("raw_messages topic[%s] payload[%s]" % (topic, msg,))
-        if topic == ding_ding.topic():    
-               c.ding_ding()
+        if topic == ding_ding.topic(): 
+            print("chiming ...ding_ding")    
+            pin_ding_ding.value(0)
+            await asyncio.sleep(1)
+            pin_ding_ding.value(1)
+            print("... chimed")
         elif topic == ding_dong.topic():    
-               c.ding_dong()
-        elif topic == westminster.topic():    
-               c.westminster()
-        elif topic == three_chimes.topic():    
-               c.play_all()
+            print("chiming ...ding_dong")    
+            pin_ding_dong.value(0)
+            await asyncio.sleep(1)
+            pin_ding_dong.value(1)
+            print("... chimed")
+        elif (topic == westminster.topic()): 
+            print("chiming ...westminster")    
+            pin_west.value(0)
+            await asyncio.sleep(1)
+            pin_west.value(1)
+            print("... chimed")
+        elif (topic == three_chimes.topic()):    
+            print("chiming ...play_all")     
+            pin_play_all.value(0)
+            await asyncio.sleep(1)
+            pin_play_all.value(1)
+            print("... chimed")
         elif (topic == mqtt_hello.hello_request_topic):
             print("callback hello_request")
             await say_hello(client)
+        else:
+             print("unknown message")
     print("should never get here, messages exiting?")
 
 hardcoded_generic_description ="Four different chimes and a button" 
@@ -76,6 +101,7 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         await client.subscribe(ding_dong.topic())
         await client.subscribe(westminster.topic())
         await client.subscribe(three_chimes.topic())  
+        await client.subscribe(mqtt_hello.hello_request_topic)  
 
 async def main(client):
     button_press = button.button(cfg.button_pin)
@@ -84,7 +110,8 @@ async def main(client):
         try:
             await client.connect()
         except:
-            pass
+            #pass
+            time.sleep(1)
         else:
             break
     # these are loops and run forever
@@ -97,17 +124,17 @@ async def main(client):
     while True:
         await asyncio.sleep(0.3)
         if (button_press.test() == 0):
-            await client.publish(button.topic(), button.payload_on())
+            await client.publish(btn.topic(), btn.payload_on())
 #
 # start up
 #
 time.sleep(5)
-print("starting: ssid[%s] pw[%s] broker[%s]" % (cfg.ssid, cfg.wifi_password, cfg.server,))
+print("starting: ssid[%s] pw[%s] broker[%s]" % (mqtt_cfg.ssid, mqtt_cfg.wifi_pw, mqtt_cfg.server,))
 
 # Local mqtt_as configuration
-mqtt_as.config['ssid']    = cfg.ssid  
-mqtt_as.config['wifi_pw'] = cfg.wifi_password
-mqtt_as.config['server']  = cfg.server 
+mqtt_as.config['ssid']    = mqtt_cfg.ssid  
+mqtt_as.config['wifi_pw'] = mqtt_cfg.wifi_pw
+mqtt_as.config['server']  = mqtt_cfg.server 
 mqtt_as.config["queue_len"] = 1  # Use event interface with default queue size
 
 mqtt_as.DEBUG = True  # Optional: print diagnostic messages
