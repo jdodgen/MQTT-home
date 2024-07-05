@@ -20,7 +20,7 @@ Linux IoT, typicaly RPI servers, linux projects live here
 ## MQTT-home/micropython
 Currently ESP32-S2 projects. Anything else using micropython goes here.
 ### MQTT-home/micropython/library
-libray of code specific to micropython devices
+libray of shared code specific to micropython devices
 
 # Operational Notes
 [home-broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker) runs the show:    
