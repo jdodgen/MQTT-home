@@ -12,14 +12,14 @@ Micropython:
 [Button with LED and buzzer](https://github.com/jdodgen/MQTT-home/tree/main/micropython/LED-Piezo-Button)   
 [Motorized Ball Valve controller](https://github.com/jdodgen/MQTT-home/tree/main/micropython/ball_valve_controller)   
 
-# Organization
-# MQTT-home/Library
+# Directory organization
+## MQTT-home/Library
 Code shared by both micropython and linux
-# MQTT-home/linux
-Linux IoT, typicaly RPI servers
-# MQTT-home/micropython
-mostly ESP32-S2 projects
-# MQTT-home/micropython/library
+## MQTT-home/linux
+Linux IoT, typicaly RPI servers, linux projects live here
+## MQTT-home/micropython
+Currently ESP32-S2 projects. Anything else using micropython goes here.
+### MQTT-home/micropython/library
 libray of code specific to micropython devices
 
 # Operational Notes
