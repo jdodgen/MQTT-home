@@ -24,7 +24,9 @@ ding_dong =    feature_ding_dong.feature(cfg.name,         subscribe=True)
 westminster =  feature_westminster.feature(cfg.name,       subscribe=True)
 three_chimes = feature_three_chimes.feature(cfg.name,      subscribe=True)
 btn =          feature_button.feature(cfg.name,            publish=True)
-
+# set this to None if you do not want a default sound for the button press
+# default_chime = None
+default_chime = westminster
 # conditional print
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
@@ -83,6 +85,12 @@ async def raw_messages(client):  # Respond to all incoming messages
             await asyncio.sleep(1)
             pin_play_all.value(1)
             print("... chimed")
+        elif (topic == btn.topic() and default_chime):
+            print("chiming ...default_chime")     
+            default_chime.value(0)
+            await asyncio.sleep(1)
+            default_chime.value(1)
+            print("... chimed")  
         elif (topic == mqtt_hello.hello_request_topic):
             print("callback hello_request")
             await say_hello(client)
@@ -100,7 +108,9 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         await client.subscribe(ding_ding.topic())
         await client.subscribe(ding_dong.topic())
         await client.subscribe(westminster.topic())
-        await client.subscribe(three_chimes.topic())  
+        await client.subscribe(three_chimes.topic()) 
+        if  default_chime:
+            await client.subscribe(default_chime.topic())   
         await client.subscribe(mqtt_hello.hello_request_topic)  
 
 async def main(client):
@@ -125,6 +135,7 @@ async def main(client):
         await asyncio.sleep(0.3)
         if (button_press.test() == 0):
             await client.publish(btn.topic(), btn.payload_on())
+            print("button pressed")
 #
 # start up
 #

@@ -50,7 +50,6 @@ lib_code = [
 ]
 app_code = [
     "button.py",
-    "chime.py",
     "mqtt_cfg.py",
     "run.py",
     "cfg.py",
@@ -83,7 +82,7 @@ while not cfg :
 with open(files_dir+"mqtt_cfg.py", "w") as f: 
     f.write(cfg)
 ##
-
+did_bin=False
 ## micropython bin 
 if micropython_bin:
     ans = input("install micropython_bin? (y,N): ")
@@ -99,12 +98,16 @@ if micropython_bin:
         os.system("esptool.py --port /dev/ttyACM0 erase_flash")
         os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 "+micropython_bin)
         input("\nPress RST (button in notched area)\npress any key to continue: ")
+        did_bin = True
 ## 
 
 ## sending code    
 # ans = input("any key, to continue: ") 
 print("current directory: ", os.system("pwd"))
-ans = input("install library code? (y,N): ")
+if did_bin:
+    ans="Y"  
+else:    
+    ans = input("install library code? (y,N): ")
 if (ans.upper() == "Y"):
     for c in lib_code:
         print("installing [%s]" % (c,))
