@@ -24,9 +24,17 @@ ding_dong =    feature_ding_dong.feature(cfg.name,         subscribe=True)
 westminster =  feature_westminster.feature(cfg.name,       subscribe=True)
 three_chimes = feature_three_chimes.feature(cfg.name,      subscribe=True)
 btn =          feature_button.feature(cfg.name,            publish=True)
+pin_play_all      = machine.Pin(cfg.play_all_pin,     machine.Pin.OUT)
+pin_ding_dong     = machine.Pin(cfg.ding_dong_pin,    machine.Pin.OUT)
+pin_ding_ding     = machine.Pin(cfg.ding_ding_pin,    machine.Pin.OUT)
+pin_west          = machine.Pin(cfg.westminster_pin,  machine.Pin.OUT)  
+pin_play_all.value(1)
+pin_ding_dong.value(1)
+pin_ding_ding.value(1)
+pin_west.value(1)
 # set this to None if you do not want a default sound for the button press
 # default_chime = None
-default_chime = westminster
+default_chime = pin_west
 # conditional print
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
@@ -46,14 +54,7 @@ async def say_hello(client):
                         btn.get(), 
                         )
 #quad_chime = chime.chime()
-pin_play_all      = machine.Pin(cfg.play_all_pin,     machine.Pin.OUT)
-pin_ding_dong     = machine.Pin(cfg.ding_dong_pin,    machine.Pin.OUT)
-pin_ding_ding     = machine.Pin(cfg.ding_ding_pin,    machine.Pin.OUT)
-pin_west          = machine.Pin(cfg.westminster_pin,  machine.Pin.OUT)  
-pin_play_all.value(1)
-pin_ding_dong.value(1)
-pin_ding_ding.value(1)
-pin_west.value(1)
+
 async def raw_messages(client):  # Respond to all incoming messages 
     
     # loop on message queue
@@ -109,8 +110,8 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         await client.subscribe(ding_dong.topic())
         await client.subscribe(westminster.topic())
         await client.subscribe(three_chimes.topic()) 
-        if  default_chime:
-            await client.subscribe(default_chime.topic())   
+        if default_chime:
+            await client.subscribe(btn.topic())   
         await client.subscribe(mqtt_hello.hello_request_topic)  
 
 async def main(client):
