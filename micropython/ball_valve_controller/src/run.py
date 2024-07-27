@@ -56,41 +56,6 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         await client.subscribe(open_close.topic())
         await client.subscribe(mqtt_hello.hello_request_topic)   
 
-# async def raw_messages(client, water):  # Respond to all incoming messages 
-#     global open_close
-#     # loop on message queue
-#     async for btopic, bmsg, retained in client.queue:
-#         topic = btopic.decode('utf-8')
-#         msg = bmsg.decode('utf-8')
-#         print("raw_messages topic[%s] payload[%s]" % (topic, msg,))
-#         if topic == open_close.topic():  # a command to turn valve on or off
-#             if msg == open_close.payload_on():
-#                 await water.open() 
-#             else:
-#                 await water.close()
-#     print("should never get here, messages exiting?")
-
-# hardcoded_generic_valve_description ="motor valve controller, with feedback" 
-# async def check_if_up(client):  # Respond to connectivity being (re)established
-#     while True:
-#         await client.up.wait()  # Wait on an Event
-#         client.up.clear()
-#         print("check_if_up: subscribing  valve")
-#         await client.subscribe(open_close.topic())
-#         print("check_if_up: publishing hello")
-#         await mqtt_hello.send_hello(client, cfg.valve_name, 
-#                         hardcoded_generic_valve_description, 
-#                         open_close.feature_json(), 
-#                         valve_state.feature_json(),
-#                         problem.feature_json())
-                         
-        # h = hello(cfg.valve_name, "motor valve controler, with feedback")
-        # h.add_feature(valve.feature_json())
-        # h.add_feature(valve_state.feature_json())
-        # h.payload()
-        # print("hello topic[%s] payload[%s]" % (h.topic(), h.payload()))
-        # await client.publish(h.topic(), h.payload()) 
-
 async def main(client):
     water = water_valve.water_valve(client, valve_state, cfg.max_motor_on_time, problem)
     while True:
@@ -98,17 +63,20 @@ async def main(client):
         try:
             await client.connect()
         except:
-            pass
+            time.sleep(1)
         else:
             break
     # these are loops and run forever
     asyncio.create_task(check_if_up(client))
     asyncio.create_task(raw_messages(client, water))
+    last_state = "unknown"
     while True:
         payload = await water.current_state()
-        topic = valve_state.topic()
-        print("publish topic [%s] payload [%s]" % (topic, payload,))
-        await client.publish(topic, payload) 
+        if (last_state != payload):
+            last_state = payload
+            topic = valve_state.topic()
+            print("publish topic [%s] payload [%s]" % (topic, payload,))
+            await client.publish(topic, payload, retain=True) 
         await asyncio.sleep(cfg.time_to_sleep_publish)
 
 time.sleep(5)
