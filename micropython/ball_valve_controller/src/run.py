@@ -12,9 +12,9 @@ import feature_anomaly
 import mqtt_hello
 import mqtt_cfg
 
-valve_state = feature_state.feature(  cfg.valve_name, publish=True)
-open_close  = feature_toggle.feature( cfg.valve_name, subscribe=True)
-problem     = feature_anomaly.feature(cfg.valve_name, publish=True)
+valve_state = feature_state.feature(  mqtt_cfg.valve_name, publish=True)
+open_close  = feature_toggle.feature( mqtt_cfg.valve_name, subscribe=True)
+problem     = feature_anomaly.feature(mqtt_cfg.valve_name, publish=True)
 
 # conditional print
 xprint = print # copy print
@@ -26,7 +26,7 @@ hardcoded_generic_valve_description ="motor valve controller, with feedback"
 async def say_hello(client):
  # who am I sends a hello 
     print("say_hello: sending hello")
-    await mqtt_hello.send_hello(client, cfg.valve_name, 
+    await mqtt_hello.send_hello(client, mqtt_cfg.valve_name, 
                         hardcoded_generic_valve_description, 
                         open_close.feature_json(), 
                         valve_state.feature_json(),

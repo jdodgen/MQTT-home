@@ -10,5 +10,4 @@ led_gpio = 3  # "D3" on D1-Mini proto card
 
 time_to_sleep_publish = 30
 max_motor_on_time = 20
-valve_name = "main_valve"
-valve_desc = "main water valve behind wine celler"
+
