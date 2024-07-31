@@ -5,18 +5,25 @@
 # 
 import os 
 import datetime
+import json
 # configuration area:
-server = 'home-broker.local'
-ssid = 'JEDguest'
-wifi_password = '9098673852'
 # 
 test_server = ''
 test_ssid = ''
 test_wifi_password = '' 
 #
 tty_port = "/dev/ttyACM0" 
+mp_lib_offset="../../library/"
+all_lib_offset="../../../library/"
 #micropython_bin = "/home/jim/Downloads/ESP32_GENERIC_S2-20240105-v1.22.1.bin"
 micropython_bin = "/home/jim/Downloads/ESP32_GENERIC_S2-20240602-v1.23.0.bin"
+network_json = "../../../network.json"
+
+net = json.load(open(network_json))
+server = 'home-broker.local'
+ssid = net["ssid]"]
+wifi_password = net["password"]
+#
 # current defaults, no changes required
 #
 mqtt_cfg_boilerplate = '''
@@ -33,9 +40,6 @@ server = "%s"
 #
 # list of files being installed
 #
-mp_lib_offset="../../library/"
-all_lib_offset="../../../library/"
-
 lib_code = [
     mp_lib_offset+"main.py",
     mp_lib_offset+"mqtt_as.py",
@@ -76,7 +80,7 @@ while not cfg :
     else:
         wifi = "S"
     if wifi == "T":
-        cfg = mqtt_cfg_boilerplate % (ssid, wifi_password, server, now,)
+        cfg = mqtt_cfg_boilerplate % (test_ssid, test_wifi_password, test_server, now,)
     elif wifi == 'S':
         cfg = mqtt_cfg_boilerplate % (ssid, wifi_password,server, now,)
 with open(files_dir+"mqtt_cfg.py", "w") as f: 
