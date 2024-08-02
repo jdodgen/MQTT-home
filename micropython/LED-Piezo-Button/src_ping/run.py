@@ -42,13 +42,8 @@ async def raw_messages(client):  # Respond to all incoming messages
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
         print("callback: topic[%s]" % (topic,))
-        if (topic == alert.topic()):  # just getting the published message means utility outlet is powered, payload not important
-            print((topic, msg, retained))
-            if (msg == alert.payload_on()):
-                ah.turn_on()
-            else:
-                ah.turn_off()
-        elif (topic == mqtt_hello.hello_request_topic):
+     
+        if (topic == mqtt_hello.hello_request_topic):
             print("callback hello_request")
             await say_hello(client)
 
@@ -62,9 +57,9 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         await client.subscribe(mqtt_hello.hello_request_topic)                  
 
 async def main(client):
-    btn=button.button(button_pin, client)
+    
         
-    ah.flash(count=2) # lets you know it has booted
+    ah.flash(count=4) # lets you know it has booted
 
     while True:
         print("checking connection")
@@ -82,10 +77,10 @@ async def main(client):
     await client.subscribe(alert.topic())
     await client.subscribe(mqtt_hello.hello_request_topic)                  
     while True:
-        await asyncio.sleep(0.3)
-        if (btn.test() == 0):
-            print("button pressed")
-            await client.publish(butt.topic(), butt.payload_on())
+        await asyncio.sleep(1)
+        await client.publish(alert.topic(), alert.topic().payload_on())
+        ah.flash(count=1)
+        a.beep()
 
 time.sleep(5)
 print("starting")
