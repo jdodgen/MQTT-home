@@ -1,7 +1,7 @@
 # install script to
 # Push/flash system into MCU and attach console for testing
 # MIT License Copyright Jim Dodgen 2024
-# customized for LED piezo buzzer
+# customized for ping tool
 # 
 import os 
 import datetime
@@ -51,28 +51,12 @@ lib_code = [
     all_lib_offset+"feature_alert.py",
 ]
 app_code = [
-    "button.py",
+    "alert_handler.py",
     "mqtt_cfg.py",
     "run.py",
     "cfg.py",
 ]
 
-'''
-"../../library/main.py",
-"../../library/boot.py",
-"../../library/uuid.py",
-"../../library/mqtt_as.py",
-"../../../library/feature_alert.py",
-"../../../library/feature_button.py",
-"../../../library/mqtt_hello.py",
-"run.py",
-"button.py",
-"mqtt_cfg.py",
-"alert_handler.py",
-
-"universal_machine.py",
-"universal_mqtt_as.py",
-'''
 # 
 # raw code below 
 #
