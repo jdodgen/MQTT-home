@@ -6,21 +6,18 @@ import alert_handler
 from mqtt_as import MQTTClient, config
 import uasyncio as asyncio   # version for micropython
 import feature_alert
-import feature_button
 import mqtt_cfg
 import time
 import mqtt_hello
-import button
 
-our_name = "Alarm_button"
+our_name = "ping_tool"
 
 # esp32-s2 mini pins
 led_pin = 3
 piezo_pin = 11
 button_pin = 7
 
-alert  = feature_alert.feature("hot_water_controller",subscribe = True)
-butt   = feature_button.feature(our_name, publish=True)
+alert  = feature_alert.feature("hot_water_controller",publish = True)
 ah     = alert_handler.alert_handler(led_pin=led_pin, piezo_pin=piezo_pin)
  
 # conditional print
@@ -35,9 +32,8 @@ async def say_hello(client):
  # who am I sends a hello 
     print("say_hello: sending hello")
     await mqtt_hello.send_hello(client, our_name, 
-            "visual and \"audio\" notifier with push button", 
-            alert.get(), 
-            butt.get(),
+            "flash and beep when pinging", 
+            alert.get(),
             )
 
 async def raw_messages(client):  # Respond to all incoming messages 
