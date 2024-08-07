@@ -1,6 +1,5 @@
 # MIT License copyright Jim Dodgen 2024
-# MQTT motorized valve controller.  5 wire version (on, off, sense_open, sense_closed, ground)
-#
+# MQTT quad chimes HK422 
 #from  universal_mqtt_as import MQTTClient, config,  asyncio 
 import uasyncio as asyncio  # micropython version 
 import mqtt_as
