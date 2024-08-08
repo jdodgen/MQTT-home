@@ -19,10 +19,12 @@ all_lib_offset="../../../library/"
 micropython_bin = "/home/jim/Downloads/ESP32_GENERIC_S2-20240602-v1.23.0.bin"
 network_json = "../../../network.json"
 
+
+
 net = json.load(open(network_json))
-server = 'home-broker.local'
-ssid = net["ssid]"]
+ssid = net["ssid"]
 wifi_password = net["password"]
+server = 'home-broker.local'
 #
 # current defaults, no changes required
 #

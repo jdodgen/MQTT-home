@@ -28,9 +28,9 @@ async def say_hello(client):
     print("say_hello: sending hello")
     await mqtt_hello.send_hello(client, mqtt_cfg.valve_name, 
                         hardcoded_generic_valve_description, 
-                        open_close.feature_json(), 
-                        valve_state.feature_json(),
-                        problem.feature_json())
+                        open_close.get(), 
+                        valve_state.get(),
+                        problem.get())
 
 async def raw_messages(client, water):  # Respond to all incoming messages 
     # loop on message queue
