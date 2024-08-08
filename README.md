@@ -1,5 +1,5 @@
 # MQTT-home
-This is a "hierarchical development environment" used for creation of both micropython and linux "things".  
+This is a "hierarchical development environment" used for creation of both micropython and linux "things". The hierarchy exists so common code can be shared. See: the libraries.    
 All communication using MQTT messages.
 
 Larger/more complex are using linux on small devices like a "Raspberry pi"
