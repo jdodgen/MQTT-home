@@ -1,22 +1,13 @@
 #inside const.py constants and configurable items
-version = 0.3
+#system wide stuff 
+version = 0.4
 
-import os
-if os.name =="nt": # testing under Windows
-   db_name = 'C:\\Users\jim\devices.db'
-   log_path = 'C:\\Users\\jim\\log\\'
-   error_log_path = 'C:\\Users\\jim\\log\\error\\'
-   windows_broker = "home-broker.local"
-   #windows_broker = "192.168.0.193"
-   mosquitto_file_path = "mosquitto.conf"
-   fauxmo_default_dir = "fauxmo"
-else: # running as a system under Linux
-   db_name = 'devices.db'
-   log_path = "/dev/shm/log/"
-   error_log_path = "log/"
-   windows_broker = None
-   mosquitto_file_path = "/etc/mosquitto/mosquitto.conf"
-   fauxmo_default_dir = "/etc/fauxmo"  
+db_name = 'devices.db'
+log_path = "/dev/shm/log/"
+error_log_path = "log/"
+windows_broker = None
+mosquitto_file_path = "/etc/mosquitto/mosquitto.conf"
+fauxmo_default_dir = "/etc/fauxmo"  
 
 ifname = b"eth0"  #our network interface, see "ip a" 
 
@@ -37,7 +28,8 @@ mqtt_service_q_timeout = 60*60*4   # seconds every four hours if it times out th
 watch_dog_queue_timeout = 20
 db_timeout = 120 # we have nothing that would cause a long lock
 #
-zigbee2mqtt_bridge_devices = "zigbee2mqtt/bridge/devices"  # this subscribe gets all the zigbee devices from z2m 
+# https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-bridge-state
+zigbee2mqtt_bridge_devices = "zigbee2mqtt/bridge/devices"  # this subscribe gets all the  devices
 # 
 # home_MQTTdevices_get = "home/MQTTdevices/get"  # topic requests a fresh MQTTDevices 
 #

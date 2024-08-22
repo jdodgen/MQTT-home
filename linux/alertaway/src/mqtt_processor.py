@@ -1,4 +1,5 @@
 from ipcqueue import posixmq
+import const
 import time
 import threading
 import message
@@ -35,12 +36,13 @@ def device_features_task():  # keep device features updated in the data base
     import queue 
     q = queue.Queue() # callbacks are sent here
     msg = message.message(q) # MQTT connection tool# 
-    current_devices = "home/MQTTdevices/configuration"  # current devices
-    msg.subscribe(current_devices)
+
+    msg.subscribe(const.home_MQTT_devices)
+    msg.publish(const.zigbee2mqtt_bridge_devices, 
     while True:
         (action, topic, payload) = q.get()
         if (action == "callback"):
-            if (topic == current_devices):
+            if (topic == const.home_MQTT_devices):
                 check_and_refresh_devices(payload)
             else:
                 update_device_state(topic,payload)
