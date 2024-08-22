@@ -1,4 +1,5 @@
 # client test program to retreve zigbee22mqtt devices jason and display it
+# developmental code 
 import message # from home-broker
 import zlib
 import queue
@@ -14,7 +15,7 @@ def print(*args, **kwargs): # replace print
 #
 #
 
-# publish this to CAUSE a refresh of the device data
+# publish this to CAUSE a refresh of the device data note that all servers 
 request_MQTT_Devices = "home/MQTTdevices/get"   # must be == to config version
 publish_payload = "server_test_example"  # payload is used to indicate who did the request
 

@@ -41,7 +41,7 @@ zigbee2mqtt_bridge_devices = "zigbee2mqtt/bridge/devices"  # this subscribe gets
 # 
 # home_MQTTdevices_get = "home/MQTTdevices/get"  # topic requests a fresh MQTTDevices 
 #
-home_MQTT_devices = "home/MQTTdevices/configuration"  # Normaized json of ALL devices.  home-broker "publish reatain"s this for other apps it has all the zb and ip devices unified
+home_MQTT_devices = "home/MQTTdevices/configuration"  # Normalized json of ALL devices.  home-broker "publish reatain"s this for other apps it has all the zb and ip devices unified
 #
 # hello_subscribe = "home/+/hello" # tgis is a subscribe to capture IP device configs
 # 
