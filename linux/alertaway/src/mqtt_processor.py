@@ -2,6 +2,7 @@ from ipcqueue import posixmq
 import time
 import threading
 import message
+import json
 
 
 
@@ -33,7 +34,7 @@ def device_features_task():  # keep device features updated in the data base
     import message
     import queue 
     q = queue.Queue() # callbacks are sent here
-    msg = message(q) # MQTT connection tool# 
+    msg = message.message(q) # MQTT connection tool# 
     current_devices = "home/MQTTdevices/configuration"  # current devices
     msg.subscribe(current_devices)
     while True:
@@ -51,8 +52,28 @@ def device_features_task():  # keep device features updated in the data base
     # this handles callbacks from above
 
 def check_and_refresh_devices(payload):
-    
-    pass
+    unzipped = zlib.decompress(payload)
+    devices_dictionary = json.loads(unzipped)
+    all_devices(devices_dictionary)
+
+
+# simple device dump/print
+# # designed to load/update two tables
+# a devices table and a features table
+# a device has 1 or more features.
+# Each feature contains the proper pub/sub strings
+# no status information is included or ever will be.  
+def all_devices(jason_bytes):
+    all_devices = dev["devices"]
+    for d in all_devices:
+        print(d)
+    all_features = dev["features"]
+    for f in all_features:
+        print(f)
+
 
 def update_device_state(topic,state):
     pass
+
+if __name__ == "__main__":
+    device_features_task()
