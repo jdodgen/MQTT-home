@@ -2,35 +2,12 @@ from ipcqueue import posixmq
 import const
 import time
 import threading
-import message
+import zlib
 import json
-
-
-
-
-# testing Perl QueueManger.pm to have it handle python pickled messages  as well as perl "Storable"
-# send to perl example 
-# rq= posixmq.Queue('/ReceiveQueue')
-# while True:
-#     print("sending message")
-#     rq.put({"name": "python water_sensor_2", "value": "foobar to you"})
-#     print(rq.qsize())
-#     time.sleep(4)
-
-# receive from perl example
-# rq= posixmq.Queue('/SendQueue')
-# while True:
-#     print("sending message")
-#     try:
-#         msg = rq.get(timeout=None)
-#     except:
-#         print("problem getting message")
-#     print(rq.qsize())
-#     print(msg)
 
 def device_features_task():  # keep device features updated in the data base 
     # handle the subscribe to the home-broker devices
-    # for each subscribe callback compare to last
+    # for each subscribe callback compare to previous
     # update differences only NO state information
     import message
     import queue 
@@ -38,7 +15,7 @@ def device_features_task():  # keep device features updated in the data base
     msg = message.message(q) # MQTT connection tool# 
 
     msg.subscribe(const.home_MQTT_devices)
-    msg.publish(const.zigbee2mqtt_bridge_devices, 
+    #msg.publish(const.zigbee2mqtt_bridge_devices, 
     while True:
         (action, topic, payload) = q.get()
         if (action == "callback"):
@@ -52,11 +29,18 @@ def device_features_task():  # keep device features updated in the data base
     msg.subscribe("message_unit_test/demo_wall/#")
     time.sleep(2) # prettier  output
     # this handles callbacks from above
+previous_devices_dictionary = None
+
 
 def check_and_refresh_devices(payload):
+    global previous_devices_dictionary
     unzipped = zlib.decompress(payload)
     devices_dictionary = json.loads(unzipped)
-    all_devices(devices_dictionary)
+    if previous_devices_dictionary == None:
+        previous_devices_dictionary = devices_dictionary
+    compare_and_update(devices_dictionary, previous_devices_dictionary)
+
+    #list_all_devices(devices_dictionary)
 
 
 # simple device dump/print
@@ -65,14 +49,43 @@ def check_and_refresh_devices(payload):
 # a device has 1 or more features.
 # Each feature contains the proper pub/sub strings
 # no status information is included or ever will be.  
-def all_devices(jason_bytes):
+def list_all_devices(dev):
     all_devices = dev["devices"]
+    print("\nDEVICES\n")
     for d in all_devices:
         print(d)
+    print("\nFEATURES\n")
     all_features = dev["features"]
     for f in all_features:
         print(f)
 
+def compare_and_update(current, previous):
+    print(current)
+    for d in (current.keys()):
+        print(d)
+        continue
+        got_match = False
+        for l in previous["devices"]:
+            if l['friendly_name'] == d['friendly_name']:
+                got_match = True    
+                if (l['description'] != d['description'] or
+                   l['date'] != d['date']):
+                    print("different", d['friendly_name'])
+                    changed_device(d)
+                else:
+                    #print("no diff",d['friendly_name'])
+                    pass
+                previous
+        if got_match == False:
+            print("found new one")
+            new_device(d)
+
+def new_device(device):
+    print(device)
+    
+def changed_device(device):
+    print(device)                 
+    
 
 def update_device_state(topic,state):
     pass

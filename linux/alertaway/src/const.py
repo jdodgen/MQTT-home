@@ -5,7 +5,7 @@ version = 0.4
 db_name = 'devices.db'
 log_path = "/dev/shm/log/"
 error_log_path = "log/"
-windows_broker = None
+mqtt_broker = "home-broker.local"   # None  # if None then we use our IP address
 mosquitto_file_path = "/etc/mosquitto/mosquitto.conf"
 fauxmo_default_dir = "/etc/fauxmo"  
 

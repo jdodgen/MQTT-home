@@ -9,7 +9,7 @@ import time
 #     print(rq.qsize())
 #     time.sleep(4)
 
-receive from perl example
+# receive from perl example
 rq= posixmq.Queue('/SendQueue')
 while True:
     print("sending message")

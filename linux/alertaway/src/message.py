@@ -46,8 +46,8 @@ def print(*args, **kwargs): # replace print
 #print("hello [%s]" % ("x",))
 
 def our_ip_address():
-    if const.windows_broker:
-        ip = const.windows_broker
+    if const.mqtt_broker:
+        ip = const.mqtt_broker
     else:
         import fcntl
         import struct
