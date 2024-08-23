@@ -26,7 +26,7 @@ def devices_to_json():
 			true_value,  
 			false_value,
 			) = feat
-        print(feat)
+        #print(feat)
         if current_friendly_name == None:
             current_friendly_name = friendly_name       
         if current_friendly_name == friendly_name:
@@ -40,7 +40,7 @@ def devices_to_json():
                 }
         else:
             devices_dict[current_friendly_name]["features"] = features_dictionary
-            print(json.dumps( devices_dict, sort_keys=True, indent=4) )
+            #print(json.dumps( devices_dict, sort_keys=True, indent=4) )
             features_dictionary = {}
         current_friendly_name = friendly_name
         # print(feat)
