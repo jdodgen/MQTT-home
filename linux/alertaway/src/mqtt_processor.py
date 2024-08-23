@@ -58,11 +58,25 @@ def list_all_devices(dev):
     all_features = dev["features"]
     for f in all_features:
         print(f)
-
+FEATURES = "features"
 def compare_and_update(current, previous):
     print(current)
-    for d in (current.keys()):
-        print(d)
+    for friendly_name in (current.keys()):
+        print(friendly_name)
+        if friendly_name in previous:  # it exists
+            if (current[friendly_name]['description'] != previous[friendly_name]['description'] or
+               current[friendly_name]['date'] != previous[friendly_name]['date'] or
+               current[friendly_name]['source'] != previous[friendly_name]['source']):
+               # it changed so update device and features
+               pass
+            elif FEATURES in current[friendly_name]:  # now check features for changes, ignoring devices without features 
+                for feature in (current[friendly_name][FEATURES].keys()):
+                    print("\t", feature)
+                    print(current[friendly_name][FEATURES][feature])
+
+        else:
+            # insert it
+            pass
         continue
         got_match = False
         for l in previous["devices"]:
