@@ -104,6 +104,7 @@ class database:
 			true_value,  
 			false_value
 		from mqtt_feature
+		order by friendly_name, property
 		"""
 		cur.execute(query)
 		all = cur.fetchall()

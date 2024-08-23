@@ -37,7 +37,7 @@ my_name = os.path.basename(__file__).split(".")[0]
 parent = None
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
-    return
+    #return
     tag = "["+my_name+"("+parent+")]" if parent else my_name 
     xprint("["+tag+"]", *args, **kwargs) # the copied real print
 #
