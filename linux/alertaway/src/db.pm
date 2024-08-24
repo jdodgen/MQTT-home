@@ -1,5 +1,5 @@
 package db;
-# Copyright 2011 - 2015 by James E Dodgen Jr.  All rights reserved.
+# Copyright 2011 - 2024 by James E Dodgen Jr.  MIT Licence.
 
 use DBI;
 use DBTOOLS;
@@ -727,6 +727,13 @@ sub dumpDB
         }
     }
 
+}
+
+main() if not caller();
+
+sub main {
+    my $dt = db::open("test.db",{debug => 0}); 
+    $dt->create_tables()
 }
 
 1;
