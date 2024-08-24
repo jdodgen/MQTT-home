@@ -67,13 +67,16 @@ def compare_and_update(current, previous):
             if (current[friendly_name]['description'] != previous[friendly_name]['description'] or
                current[friendly_name]['date'] != previous[friendly_name]['date'] or
                current[friendly_name]['source'] != previous[friendly_name]['source']):
-               # it changed so update device and features
-               pass
-            elif FEATURES in current[friendly_name]:  # now check features for changes, ignoring devices without features 
-                for feature in (current[friendly_name][FEATURES].keys()):
+               update_device_and_features(current);
+            elif FEATURES in current[friendly_name]:  # has features check for changes
+                for feature in (current[friendly_name][FEATURES].keys()):  # each feature
                     print("\t", feature)
                     print(current[friendly_name][FEATURES][feature])
-
+                    for tag in (current[friendly_name][FEATURES][feature].keys():
+                        if current[friendly_name][FEATURES][feature][tag] != previous[friendly_name][FEATURES][feature][tag]:
+                            update_device_and_features(current);
+                        
+                    
         else:
             # insert it
             pass
@@ -97,7 +100,7 @@ def compare_and_update(current, previous):
 def new_device(device):
     print(device)
     
-def changed_device(device):
+def update_device_and_features(device):
     print(device)                 
     
 
