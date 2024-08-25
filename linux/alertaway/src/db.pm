@@ -71,7 +71,8 @@ CREATE TABLE mqtt_devices (
 friendly_name PRIMARY KEY,
 description,
 source,
-last_time ,
+last_time
+);
 
 drop table if exists wireless_devices;
 CREATE TABLE wireless_devices (
