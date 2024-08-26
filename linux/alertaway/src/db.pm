@@ -1,6 +1,7 @@
 package db;
 # Copyright 2011 - 2024 by James E Dodgen Jr.  MIT Licence.
-# work in progress moving to home-broker from internal xbee/zigbee code
+# work in progress: moving alertaway internal IOT handling to home-broker
+#
 use DBI;
 use DBTOOLS;
 use strict;
