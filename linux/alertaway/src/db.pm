@@ -1,6 +1,6 @@
 package db;
 # Copyright 2011 - 2024 by James E Dodgen Jr.  MIT Licence.
-
+# work in progress moving to home-broker from internal xbee/zigbee code
 use DBI;
 use DBTOOLS;
 use strict;
@@ -74,6 +74,7 @@ source,
 last_time
 );
 
+/* OLD */
 drop table if exists wireless_devices;
 CREATE TABLE wireless_devices (
 ah CHAR(8) NOT NULL ,
@@ -92,14 +93,15 @@ endpoint,
 profile_id,
 trace,
 PRIMARY KEY (al, ah)
-
-
 );
+
+
 drop table if exists subscribed_features;
 CREATE TABLE subscribed_features (
+/* message_processor maintains the existance */
 friendly_name,
 feature,
-
+/* subscribed feature activity arrives to a queue */
 description,
 type,
 adjustment,
@@ -116,6 +118,7 @@ port_name,
 PRIMARY KEY (friendly_name, feature)
 );
 
+/* OLD */
 drop table if exists sensor;
 CREATE TABLE sensor (
 id INTEGER PRIMARY KEY,
@@ -137,8 +140,8 @@ validated /* NO, or IODS what validates the current value */
 );
 CREATE UNIQUE INDEX out_sensorx1 ON sensor (ah, al, port);
 
-drop table if exists publish_to_feature;
-CREATE TABLE publish_to_feature ( /* these are from 0x92 packets reporting current value of sent items, also set by positive ack */
+drop table if exists publish_feature;
+CREATE TABLE publish_feature (
 friendly_name,
 feature,
 
@@ -729,9 +732,9 @@ sub dumpDB
     }
 
 }
-
+#
+# test area
 main() if not caller();
-
 sub main {
     my $dt = db::open("test.db",{debug => 0}); 
     $dt->create_tables()
