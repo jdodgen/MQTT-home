@@ -15,7 +15,7 @@ class mqtt_task():
     import message
     import queue   # python queue not POSIX
     db = sqlite3.connect(const.db_name, timeout=const.db_timeout)
-		
+	check = check_and_refresh_devices(db)	
     q = queue.Queue() # callbacks are sent here
     msg = message.message(q) # MQTT connection tool# 
 
@@ -25,7 +25,7 @@ class mqtt_task():
         (action, topic, payload) = q.get()
         if (action == "callback"):
             if (topic == const.home_MQTT_devices):
-                check_and_refresh_devices(db,payload)
+                check.compare_and_update(payload)
             else: # other topics are from device subscribes
                 update_device_state(db,topic,payload)
 
@@ -35,18 +35,64 @@ class mqtt_task():
     msg.subscribe("message_unit_test/demo_wall/#")
     time.sleep(2) # prettier  output
     # this handles callbacks from above
-previous_devices_dictionary = None
 
+class check_and_refresh_devices():
+    def __init__(self, db):
+		self.db = db
+	    self.previous = None
+		self.topic_to_device_feature = {}
+		self.FEATURES = "features"
 
-def check_and_refresh_devices(db,payload):
-    global previous_devices_dictionary
-    unzipped = zlib.decompress(payload)
-    devices_dictionary = json.loads(unzipped)
-    if previous_devices_dictionary == None:
-        previous_devices_dictionary = devices_dictionary
-    compare_and_update(db,devices_dictionary, previous_devices_dictionary)
+	def compare_and_update(self, payload):
+		unzipped = zlib.decompress(payload)
+		self.current = json.loads(unzipped)
+		if previous_devices_dictionary == None:
+			self.previous = self.current
+		print(self.current)
+		for friendly_name in (self.current.keys()):
+			print(friendly_name)
+			if friendly_name in self.previous:  # exists
+				if (self.current[friendly_name]['description'] != self.previous[friendly_name]['description'] or
+				   self.current[friendly_name]['date']         != self.previous[friendly_name]['date'] or
+				   self.current[friendly_name]['source']       != self.previous[friendly_name]['source']):
+				   update_device(friendly_name, self.current);
+				if FEATURES in self.current[friendly_name]:  # has features check for changes
+					for feature in (self.current[friendly_name][FEATURES].keys()):  # each feature
+						print("\t", feature)
+						current_feature =   self.current[friendly_name][FEATURES][feature]
+						previous_feature = self.previous[friendly_name][FEATURES][feature]
+						print(current_feature)
+						for tag in (current_feature.keys():
+							if current_feature[tag] != previous_feature[tag]:
+								update_feature(friendly_name, feature, current_feature);
+			else:
+				insert_device(friendly_name, self.current)
 
-    #list_all_devices(devices_dictionary)
+	def insert_device(self,friendly_name, current):
+		print(device)
+		
+	def update_device(self,friendly_name, current):
+		print(device)                 
+		
+	def update_feature(self, friendly_name, feature, current_feature);
+		# we build/rebuild the subscribed topic_to_device_feature
+		# used when subscribe callbacks arrive
+		targets = []
+		if (current_feature["access"] == "sub":
+			if current_feature["topic"] in self.topic_to_device_feature: 
+				targets = self.topic_to_device_feature[current_feature["topic"]]
+			targets.append([friendly_name, feature])
+			self.topic_to_device_feature[current_feature["topic"]] = targets
+		print(friendly_name, current_feature)
+		# now update feature
+
+class device_state(db):
+    def __init__(self, db):
+		self.db = db	
+	def update(self, topic, state):
+    	pass
+		
+#list_all_devices(devices_dictionary)
 
 
 # simple device dump/print
@@ -64,39 +110,5 @@ def list_all_devices(dev):
     all_features = dev["features"]
     for f in all_features:
         print(f)
-
-
-FEATURES = "features"
-def compare_and_update(db,current, previous):
-    print(current)
-    for friendly_name in (current.keys()):
-        print(friendly_name)
-        if friendly_name in previous:  # different
-            if (current[friendly_name]['description'] != previous[friendly_name]['description'] or
-               current[friendly_name]['date'] != previous[friendly_name]['date'] or
-               current[friendly_name]['source'] != previous[friendly_name]['source']):
-               update_device(db, friendly_name, current);
-            elif FEATURES in current[friendly_name]:  # has features check for changes
-                for feature in (current[friendly_name][FEATURES].keys()):  # each feature
-                    print("\t", feature)
-                    current_feature =   current[friendly_name][FEATURES][feature]
-                    previous_feature = previous[friendly_name][FEATURES][feature]
-                    print(current_feature)
-                    for tag in (current_feature.keys():
-                        if current_feature[tag] != previous_feature[tag]:
-                            update_feature(db, friendly_name, current_feature);           
-        else:
-            insert_device(db, current)
-
-def insert_device(device):
-    print(device)
-    
-def update_device(device):
-    print(device)                 
-    
-
-def update_device_state(db,topic,state):
-    pass
-
 if __name__ == "__main__":
     mqtt_task()
