@@ -149,9 +149,8 @@ feature,
 type,
 description,
 true_value,
-false_value",
+false_value,
 topic,
-type, 
 default_state,
 override_state,
 external_override,  /* this is a toggle to tell if the override came from wemo or other outside event */
@@ -737,8 +736,8 @@ sub dumpDB
 # test area
 main() if not caller();
 sub main {
-    my $dt = db::open("test.db",{debug => 0}); 
-    $dt->create_tables()
+    my $dt = db::open("test.db"); 
+    create_tables($dt);
 }
 
 1;
