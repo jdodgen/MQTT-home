@@ -11,18 +11,24 @@ import copy
 
 current = None
 previous = None
-print("None", type(previous), type(current))
+#print("None", type(previous), type(current))
 topic_to_device_feature = {}
+
+# conditional print
+xprint = print # copy print
+def print(*args, **kwargs): # replace print
+    # return
+    xprint("[mqtt_processor]", *args, **kwargs) # the copied real print 
 
 def mqtt_task():
     global previous
-    print("mt", type(previous), type(current))
+    #print("mt", type(previous), type(current))
     # keep device features updated in the data base 
     # handle the subscribe to the home-broker devices
     # for each subscribe callback compare to previous
     # update differences only NO state information
-    previous = None
-    print("mt2", type(previous), type(current))
+    #previous = None
+    #print("mt2", type(previous), type(current))
     db = sqlite3.connect(const.db_name, timeout=const.db_timeout)
     check = check_and_refresh_devices(db)	
     updates = device_state(db)
@@ -52,23 +58,25 @@ class check_and_refresh_devices():
     def compare_and_update(self, payload):
         global current
         global previous
-        print("glob", type(previous), type(current))
+        #print("glob", type(previous), type(current))
         unzipped = zlib.decompress(payload)
         current = json.loads(unzipped)
+        check_current_against_database = False
         print("loaded", type(previous), type(current))
         if previous is None:
             previous = copy.deepcopy(current)
-            print("set previous",type(previous), type(current))
-            self.check_current_against_database()
-        print("check friendly name", type(previous), type(current),type(None))
+            #print("compare_and_update set previous",type(previous), type(current))
+            check_current_against_database = True # first time after starting so we check/update if needed
+        #print("check friendly name", type(previous), type(current),type(None))
         for friendly_name in (current.keys()):
-            print(friendly_name)
+            print("compare_and_update[%s]" % (friendly_name))
             if friendly_name in previous:  # exists
-                print(friendly_name, type(previous), type(current))
+                #print(friendly_name, type(previous), type(current))
                 #print("prev", previous[friendly_name] )
                 if (current[friendly_name]['description'] != previous[friendly_name]['description'] or
                    current[friendly_name]['date']         != previous[friendly_name]['date'] or
-                   current[friendly_name]['source']       != previous[friendly_name]['source']):
+                   current[friendly_name]['source']       != previous[friendly_name]['source'] or
+                   check_current_against_database):
                     self.update_device(friendly_name, current);
                 if self.FEATURES in current[friendly_name]:  # has features check for changes
                     for feature in (current[friendly_name][self.FEATURES].keys()):  # each feature
@@ -77,9 +85,9 @@ class check_and_refresh_devices():
                         previous_feature =  copy.deepcopy(previous[friendly_name][self.FEATURES][feature])
                         # print(current_feature)
                         for tag in current_feature.keys():
-                            if current_feature[tag] != previous_feature[tag]:
+                            if (current_feature[tag] != previous_feature[tag] or
+                                check_current_against_database):
                                 self.update_feature(friendly_name, feature, current_feature);
-                                break
             else:
                 self.insert_device(friendly_name)
 
@@ -114,27 +122,37 @@ class check_and_refresh_devices():
                 self.now)
                 cur.close()
                 self.db.commit()
-        
+       
     def update_device(self,friendly_name, current):
-        print(friendly_name)                 
+        print("update_device",friendly_name) 
+        desc = current[friendly_name]['description'] 
+        date = current[friendly_name]['date']        
+        src = current[friendly_name]['source'] 
+        print("update_device",friendly_name, desc, date, src)  
+
         
     def update_feature(self, friendly_name, feature, current_feature):
         global topic_to_device_feature
+        access = current_feature["access"]
+        description = current_feature["description"]
+        topic = current_feature["topic"]
+        type = current_feature["type"]
+        false_value = current_feature["false_value"]
+        true_value = current_feature["true_value"]
+        print("update_feature[%s][%s][%s][%s]\n[%s]\n[%s]\n[%s][%s]" % (friendly_name, feature, access, type, description,topic, false_value, true_value))
         # we build/rebuild the subscribed topic_to_device_feature
         # used when subscribe callbacks arrive
-        print(type(current_feature))
+        # print(type(current_feature))
+        # topic_to_device_feature dictionary is to speed up the callbacks from subscribes
+        # 
         targets = []
         if (current_feature["access"] == "sub"):
             if current_feature["topic"] in topic_to_device_feature: 
                 targets = topic_to_device_feature[current_feature["topic"]]
             targets.append([friendly_name, feature])
             topic_to_device_feature[current_feature["topic"]] = targets
-        print(friendly_name, current_feature)
+        #print("update_feature", friendly_name, current_feature)
         # now update feature
-    
-    def check_current_against_database(self):
-        print("check_current_against_database called")
-        pass
 
 class device_state():
     def __init__(self, db):
@@ -180,6 +198,7 @@ if __name__ == "__main__":
     print("\n\n test 1  check if equal")
     check.compare_and_update(payload_1)  
     print("\n\n test 2  check differences")
+    
     # test 2 check when differences      
     previous  = json.loads(json_2)
     check.compare_and_update(payload_1)  
