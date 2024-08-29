@@ -194,14 +194,17 @@ if __name__ == "__main__":
     # sample payload 
     payload_1 = zlib.compress(bytes(json_1,'utf-8'))
     print(">>>>>>%s<<<<<<" % (json_1))
-    previous = json.loads(json_1)
+    
     print("\n\n test 1  check if equal")
-    check.compare_and_update(payload_1)  
+    previous = json.loads(json_1)
+    check.compare_and_update(payload_1) 
+    
     print("\n\n test 2  check differences")
     
     # test 2 check when differences      
     previous  = json.loads(json_2)
     check.compare_and_update(payload_1)  
+    
     print("\n\n test 3  check differences")
     # test 3 check when None previous, starting up for example
     # need to check against database, slower      
