@@ -147,7 +147,7 @@ drop table if exists publish_feature;
 CREATE TABLE publish_feature (
 friendly_name,
 feature,
-
+last_mqtt_time
 type,
 description,
 true_value,
