@@ -72,7 +72,8 @@ CREATE TABLE mqtt_devices (
 friendly_name PRIMARY KEY,
 description,
 source,
-last_time
+last_mqtt_time
+
 );
 
 /* OLD */
@@ -105,6 +106,7 @@ feature,
 /* subscribed feature activity arrives to a queue */
 description,
 type,
+last_mqtt_time
 adjustment,
 location,
 alarm_value_low,

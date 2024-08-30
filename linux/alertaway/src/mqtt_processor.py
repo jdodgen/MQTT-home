@@ -55,18 +55,21 @@ class check_and_refresh_devices():
         self.db = db
         self.FEATURES = "features"
 
+
     def compare_and_update(self, payload):
         global current
         global previous
+        global topic_to_device_feature
         #print("glob", type(previous), type(current))
+        topic_to_device_feature = {}
         unzipped = zlib.decompress(payload)
         current = json.loads(unzipped)
-        check_current_against_database = False
+        force_db_check = False
         print("loaded", type(previous), type(current))
         if previous is None:
             previous = copy.deepcopy(current)
             #print("compare_and_update set previous",type(previous), type(current))
-            check_current_against_database = True # first time after starting so we check/update if needed
+            force_db_check = True # first time after starting so we check/update if needed
         #print("check friendly name", type(previous), type(current),type(None))
         for friendly_name in (current.keys()):
             print("compare_and_update[%s]" % (friendly_name))
@@ -76,23 +79,28 @@ class check_and_refresh_devices():
                 if (current[friendly_name]['description'] != previous[friendly_name]['description'] or
                    current[friendly_name]['date']         != previous[friendly_name]['date'] or
                    current[friendly_name]['source']       != previous[friendly_name]['source'] or
-                   check_current_against_database):
-                    self.update_device(friendly_name, current);
+                   force_db_check):
+                    self.update_mqtt_device(friendly_name);
                 if self.FEATURES in current[friendly_name]:  # has features check for changes
                     for feature in (current[friendly_name][self.FEATURES].keys()):  # each feature
                         #print("\t", feature)
                         current_feature =   copy.deepcopy(current[friendly_name][self.FEATURES][feature])
                         previous_feature =  copy.deepcopy(previous[friendly_name][self.FEATURES][feature])
                         # print(current_feature)
+                        update_needed = False
                         for tag in current_feature.keys():
-                            if (current_feature[tag] != previous_feature[tag] or
-                                check_current_against_database):
-                                self.update_feature(friendly_name, feature, current_feature);
+                            print("feature tag [%s]"% (tag,))
+                            if (current_feature[tag] != previous_feature[tag]):
+                                update_needed = True
+                                break
+                        if update_needed == True or force_db_check:
+                            self.update_feature(friendly_name, feature, current_feature)
             else:
                 self.insert_device(friendly_name)
 
     def insert_device(self,friendly_name):
         global current
+        print("---------------insert_device--------------------")
         cur = self.db.cursor()
         cur.execute('''insert into mqtt_devices (friendly_name, description, source, last_time)"
         values (?,?,?,?)''',
@@ -112,7 +120,8 @@ class check_and_refresh_devices():
                     table = "subscribed_features"
 
                 cur = self.db.cursor()
-                cur.execute('''insert into mqtt_devices (friendly_name, description, source, last_time)"
+                cur.execute('''insert into mqtt_devices (friendly_name, description, source, last_mqtt_time
+)"
                         values (?,?,?,?)''',
                 friendly_name,
                 feature,
@@ -123,14 +132,19 @@ class check_and_refresh_devices():
                 cur.close()
                 self.db.commit()
        
-    def update_device(self,friendly_name, current):
-        print("update_device",friendly_name) 
+    def update_mqtt_device(self,friendly_name):
+        global current
         desc = current[friendly_name]['description'] 
-        date = current[friendly_name]['date']        
+        self.date = int(current[friendly_name]['date'])        
         src = current[friendly_name]['source'] 
-        print("update_device",friendly_name, desc, date, src)  
+        print("update_mqtt_device[%s][%s][%s]\n\t[%s]" % (friendly_name, time.ctime(self.date), src, desc,))
+        cur = self.db.cursor()
+        cur.execute('''insert or replace into mqtt_devices 
+                    (friendly_name, description, source, last_mqtt_time)
+                    values (?,?,?,?)''', (friendly_name, desc, src, self.date,))
+        cur.close()
+        self.db.commit()
 
-        
     def update_feature(self, friendly_name, feature, current_feature):
         global topic_to_device_feature
         access = current_feature["access"]
@@ -139,18 +153,22 @@ class check_and_refresh_devices():
         type = current_feature["type"]
         false_value = current_feature["false_value"]
         true_value = current_feature["true_value"]
-        print("update_feature[%s][%s][%s][%s]\n[%s]\n[%s]\n[%s][%s]" % (friendly_name, feature, access, type, description,topic, false_value, true_value))
+        print("update_feature[%s][%s][%s][%s][%s]\n\t[%s]\n\t[%s]\n\t[%s][%s]" % 
+              (friendly_name, feature, access, type, self.date, description, topic, false_value, true_value,))
         # we build/rebuild the subscribed topic_to_device_feature
         # used when subscribe callbacks arrive
         # print(type(current_feature))
+        #
         # topic_to_device_feature dictionary is to speed up the callbacks from subscribes
         # 
-        targets = []
-        if (current_feature["access"] == "sub"):
+        topics = []
+        if (current_feature["access"] == "pub"):
+            print("topic_to_device_feature",current_feature["topic"])
             if current_feature["topic"] in topic_to_device_feature: 
-                targets = topic_to_device_feature[current_feature["topic"]]
-            targets.append([friendly_name, feature])
-            topic_to_device_feature[current_feature["topic"]] = targets
+                print("topic_to_device_feature >> adding more",current_feature["topic"], topic_to_device_feature[current_feature["topic"]])
+                topics = topic_to_device_feature[current_feature["topic"]]
+            topics.append([friendly_name, feature])
+            topic_to_device_feature[current_feature["topic"]] = topics
         #print("update_feature", friendly_name, current_feature)
         # now update feature
 
@@ -182,6 +200,7 @@ def list_all_devices(dev):
 
 # test area        
 if __name__ == "__main__":
+    import pprint
     #mqtt_task()
     db = sqlite3.connect("test.db", timeout=const.db_timeout)
     check = check_and_refresh_devices(db)	
@@ -205,8 +224,11 @@ if __name__ == "__main__":
     previous  = json.loads(json_2)
     check.compare_and_update(payload_1)  
     
-    print("\n\n test 3  check differences")
+    print("\n\n test 3  check against database")
     # test 3 check when None previous, starting up for example
-    # need to check against database, slower      
+    # need to check against database, slower  
+    previous = None    
     check.compare_and_update(payload_1)  
+
+    pprint.pprint(topic_to_device_feature)
                     
