@@ -97,6 +97,7 @@ class check_and_refresh_devices():
                             self.update_feature(friendly_name, feature, current_feature)
             else:
                 self.insert_device(friendly_name)
+        self.db.commit()
 
     def insert_device(self,friendly_name):
         global current
@@ -139,11 +140,11 @@ class check_and_refresh_devices():
         src = current[friendly_name]['source'] 
         print("update_mqtt_device[%s][%s][%s]\n\t[%s]" % (friendly_name, time.ctime(self.date), src, desc,))
         cur = self.db.cursor()
-        cur.execute('''insert or replace into mqtt_devices 
-                    (friendly_name, description, source, last_mqtt_time)
-                    values (?,?,?,?)''', (friendly_name, desc, src, self.date,))
+        cur.execute('''INSERT INTO mqtt_devices(friendly_name, description, source, last_mqtt_time) values (?,?,?,?)
+              ON CONFLICT(friendly_name) DO UPDATE SET description=?, source =?, last_mqtt_time=?''',
+                    (friendly_name, desc, src, self.date, desc, src, self.date,))
         cur.close()
-        self.db.commit()
+        
 
     def update_feature(self, friendly_name, feature, current_feature):
         global topic_to_device_feature
@@ -153,24 +154,65 @@ class check_and_refresh_devices():
         type = current_feature["type"]
         false_value = current_feature["false_value"]
         true_value = current_feature["true_value"]
+        
         print("update_feature[%s][%s][%s][%s][%s]\n\t[%s]\n\t[%s]\n\t[%s][%s]" % 
-              (friendly_name, feature, access, type, self.date, description, topic, false_value, true_value,))
-        # we build/rebuild the subscribed topic_to_device_feature
-        # used when subscribe callbacks arrive
-        # print(type(current_feature))
-        #
-        # topic_to_device_feature dictionary is to speed up the callbacks from subscribes
-        # 
-        topics = []
-        if (current_feature["access"] == "pub"):
-            print("topic_to_device_feature",current_feature["topic"])
-            if current_feature["topic"] in topic_to_device_feature: 
-                print("topic_to_device_feature >> adding more",current_feature["topic"], topic_to_device_feature[current_feature["topic"]])
-                topics = topic_to_device_feature[current_feature["topic"]]
-            topics.append([friendly_name, feature])
-            topic_to_device_feature[current_feature["topic"]] = topics
-        #print("update_feature", friendly_name, current_feature)
-        # now update feature
+              (friendly_name, feature, access, type, self.date, description, topic, false_value, false_value,))
+        if (current_feature["access"] == "sub"):  # we publish using these
+            cur = self.db.cursor()
+            cur.execute('''INSERT INTO publish_feature(friendly_name, feature, topic, type, description, true_value, false_value, last_mqtt_time) values (?,?,?,?,?,?,?,?)
+                  ON CONFLICT(friendly_name,feature) DO UPDATE SET topic =?, description=?, true_value=?, false_value=?, last_mqtt_time=?''',
+                        (friendly_name,
+                        feature,
+                        topic,
+                        type,
+                        description,
+                        true_value,
+                        false_value,
+                        last_mqtt_time,
+                        topic,
+                        type,
+                        description,
+                        true_value,
+                        false_value,
+                        last_mqtt_time,))
+            cur.close()
+        elif (current_feature["access"] == "pub"):  # we subscribed to this
+            #
+            # we build the subscribed topic_to_device_feature dictionary
+            # used when subscribe callbacks arrive
+            # print(type(current_feature))
+            #
+            # topic_to_device_feature dictionary is to speed up the callbacks from subscribes
+            # 
+            topics = []
+           
+                print("topic_to_device_feature",current_feature["topic"])
+                if current_feature["topic"] in topic_to_device_feature: 
+                    print("topic_to_device_feature >> adding more",current_feature["topic"], topic_to_device_feature[current_feature["topic"]])
+                    topics = topic_to_device_feature[current_feature["topic"]]
+                topics.append([friendly_name, feature])
+                topic_to_device_feature[current_feature["topic"]] = topics
+            #print("update_feature", friendly_name, current_feature)
+            cur = self.db.cursor()
+            cur.execute('''INSERT INTO subscribed_features(friendly_name, feature, topic, type, description, true_value, false_value, last_mqtt_time) values (?,?,?,?,?,?,?,?)
+                  ON CONFLICT(friendly_name,feature) DO UPDATE SET topic =?, description=?, true_value=?, false_value=?, last_mqtt_time=?''',
+                        (friendly_name,
+                        feature,
+                        topic,
+                        type,
+                        description,
+                        true_value,
+                        false_value,
+                        last_mqtt_time,
+                        topic,
+                        type,
+                        description,
+                        true_value,
+                        false_value,
+                        last_mqtt_time,))
+            cur.close()
+        else:
+            Print("update_feature invalid access[%s]" % (current_feature["access"]))
 
 class device_state():
     def __init__(self, db):
