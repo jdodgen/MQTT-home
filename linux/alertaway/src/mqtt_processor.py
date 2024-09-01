@@ -228,15 +228,17 @@ class manage_subscriptions():
                 sub_topics.append((topic,1))
             pprint.pprint(sub_topics)
             self.msg.subscribe(sub_topics)
+
 #
 #
+# test area, leave test code behind for future  use  
 #
 #
-# test area        
 if __name__ == "__main__":
     import pprint
     mqtt_task()
-
+    exit()
+    # more tests
     db = sqlite3.connect("test.db", timeout=const.db_timeout)
     check = check_and_refresh_devices(db)	
     with open("test_json.js", 'r') as file:
