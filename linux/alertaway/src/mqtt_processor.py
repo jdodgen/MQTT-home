@@ -103,42 +103,18 @@ class check_and_refresh_devices():
                                 break
                         if update_needed == True or force_db_check:
                             self.update_feature(friendly_name, feature, current_feature)
-            else:
+            else: # we picked up a new one
                 self.insert_device(friendly_name)
         self.db.commit()
 
     def insert_device(self,friendly_name):
         global current
-        print("---------------insert_device--------------------")
-        cur = self.db.cursor()
-        cur.execute('''insert into mqtt_devices (friendly_name, description, source, last_time)"
-        values (?,?,?,?)''',
-        friendly_name,
-        current[friendly_name]['description'], 
-        current[friendly_name]['date'],         
-        current[friendly_name]['source'],
-        self.now)
-        cur.close()
-        self.db.commit()
+        print("insert a new device[%s]" % (frendly_name))
+        self.update_mqtt_device(riendly_name)
         if self.FEATURES in current[friendly_name]:  # has features check for changes
             for feature in (current[friendly_name][self.FEATURES].keys()):  # each feature
-                f = current[friendly_name][self.FEATURES][feature]
-                if f["access"] == "sub":  #device subscribes 
-                    table = "publish_feature"
-                else:
-                    table = "subscribed_features"
-
-                cur = self.db.cursor()
-                cur.execute('''insert into mqtt_devices (friendly_name, description, source, last_mqtt_time)"
-                        values (?,?,?,?)''',
-                friendly_name,
-                feature,
-                f[friendly_name]['description'], 
-                f[friendly_name]['date'],         
-                f[friendly_name]['source'],
-                self.now)
-                cur.close()
-                self.db.commit()
+                current_feature = copy.deepcopy(current[friendly_name][self.FEATURES][feature])
+                self.update_feature(friendly_name, feature, current_feature):
        
     def update_mqtt_device(self,friendly_name):
         global current
