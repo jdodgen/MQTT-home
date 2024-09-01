@@ -1,3 +1,9 @@
+# Copyright Jim Dodgen 2024 MIT licence
+# this is an interface between home-broker/mqtt and alertaway
+# It maintains the device database tables configuration
+# as well as handling the messages from subscribes
+# and updating the device database tables current values
+#
 from ipcqueue import posixmq
 import const
 import time
@@ -45,10 +51,6 @@ def mqtt_task():
                 check.compare_and_update(payload)
                 ms.subscribe()
             else: # other topics are from device subscribes
-                updates.update(topic,payload)
-        elif (action == "connected"): # on re/connection best to redo subscriptions
-            ms.subscribe()
-        else: # other topics are from device subscribes
                 updates.update(topic,payload)
 
     # example code
@@ -210,14 +212,14 @@ class device_state():
         print("update from a subscribed [%s][%s]" % (topic, state))
         # using topic_to_device_feature topic gives us a list of friendly_names and features
         # so  ...
-        # We need to parse the state and update the correct device/feature 
+        # We need to parse the state and update the correct device/feature
+        # This code will need to be updated over time as device stuff changes
         pass
 
 class manage_subscriptions():
     def __init__(self, db, msg):
         self.db = db
         self.msg= msg
-
     def subscribe(self):
         print(manage_subscriptions)
         if topic_to_device_feature :  # at startup this has not been loaded yet so when loaded it will be called
