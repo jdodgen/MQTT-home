@@ -106,7 +106,10 @@ feature,
 /* subscribed feature activity arrives to a queue */
 description,
 type,
-last_mqtt_time
+topic,
+true_value_or_data,
+false_value,
+last_mqtt_time,
 adjustment,
 location,
 alarm_value_low,
@@ -147,10 +150,10 @@ drop table if exists publish_feature;
 CREATE TABLE publish_feature (
 friendly_name,
 feature,
-last_mqtt_time
+last_mqtt_time,
 type,
 description,
-true_value,
+true_value_or_data,
 false_value,
 topic,
 default_state,
@@ -738,7 +741,7 @@ sub dumpDB
 # test area
 main() if not caller();
 sub main {
-    my $dt = db::open("test.db"); 
+    my $dt = db::open("devices.db"); 
     create_tables($dt);
 }
 

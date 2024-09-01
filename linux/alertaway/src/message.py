@@ -64,10 +64,10 @@ def our_ip_address():
     # return ip_address
 
 class message():
-    def __init__(self, queue=None, my_parent=None):
+    def __init__(self, queue=None, my_parent=None, client_id=None, clean_session=True):
         global parent
         parent = my_parent
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=client_id, clean_session=clean_session)
         self.q = queue
         self.unacked_publish = set()
         self.client.user_data_set(self.unacked_publish)
@@ -104,7 +104,7 @@ class message():
     # def on_connect(self, client, userdata, flags, rc ):
         """Subscribe to state command on connect (or reconnect)."""
         #print("message: client[%s] connected" % client)
-        #when reconnect existing subscribes must be re-subscribed
+        # when reconnect existing subscribes must be re-subscribed
         print("on_connect reason_code[%s]" % (reason_code,))
         if self.q != None:
              self.q.put(("connected",None,None))

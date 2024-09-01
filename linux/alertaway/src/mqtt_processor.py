@@ -8,11 +8,12 @@ import sqlite3
 import message
 import queue   # python queue not POSIX
 import copy
+import pprint
 
 current = None
 previous = None
 #print("None", type(previous), type(current))
-topic_to_device_feature = {}
+topic_to_device_feature = None
 
 # conditional print
 xprint = print # copy print
@@ -30,10 +31,11 @@ def mqtt_task():
     #previous = None
     #print("mt2", type(previous), type(current))
     db = sqlite3.connect(const.db_name, timeout=const.db_timeout)
+    q = queue.Queue() # callbacks are sent here
+    msg = message.message(queue=q, client_id="alertaway") # MQTT connection tool
     check = check_and_refresh_devices(db)	
     updates = device_state(db)
-    q = queue.Queue() # callbacks are sent here
-    msg = message.message(q) # MQTT connection tool# 
+    ms = manage_subscriptions(db, msg)
     msg.subscribe(const.home_MQTT_devices)
     while True:
         (action, topic, payload) = q.get()
@@ -41,7 +43,12 @@ def mqtt_task():
             print("callback",type(topic), type(payload))
             if (topic == const.home_MQTT_devices):
                 check.compare_and_update(payload)
+                ms.subscribe()
             else: # other topics are from device subscribes
+                updates.update(topic,payload)
+        elif (action == "connected"): # on re/connection best to redo subscriptions
+            ms.subscribe()
+        else: # other topics are from device subscribes
                 updates.update(topic,payload)
 
     # example code
@@ -54,6 +61,7 @@ class check_and_refresh_devices():
     def __init__(self, db):
         self.db = db
         self.FEATURES = "features"
+        # consider moving current and previous here 
 
 
     def compare_and_update(self, payload):
@@ -121,8 +129,7 @@ class check_and_refresh_devices():
                     table = "subscribed_features"
 
                 cur = self.db.cursor()
-                cur.execute('''insert into mqtt_devices (friendly_name, description, source, last_mqtt_time
-)"
+                cur.execute('''insert into mqtt_devices (friendly_name, description, source, last_mqtt_time)"
                         values (?,?,?,?)''',
                 friendly_name,
                 feature,
@@ -154,13 +161,15 @@ class check_and_refresh_devices():
         type = current_feature["type"]
         false_value = current_feature["false_value"]
         true_value = current_feature["true_value"]
-        
         print("update_feature[%s][%s][%s][%s][%s]\n\t[%s]\n\t[%s]\n\t[%s][%s]" % 
               (friendly_name, feature, access, type, self.date, description, topic, false_value, false_value,))
         if (current_feature["access"] == "sub"):  # we publish using these
             cur = self.db.cursor()
-            cur.execute('''INSERT INTO publish_feature(friendly_name, feature, topic, type, description, true_value, false_value, last_mqtt_time) values (?,?,?,?,?,?,?,?)
-                  ON CONFLICT(friendly_name,feature) DO UPDATE SET topic =?, description=?, true_value=?, false_value=?, last_mqtt_time=?''',
+            cur.execute('''INSERT INTO publish_feature
+                (friendly_name, feature, topic, type, description, true_value_or_data, false_value, last_mqtt_time) 
+                values (?,?,?,?,?,?,?,?)
+                ON CONFLICT(friendly_name,feature) DO UPDATE 
+                SET topic=?, type=?, description=?, true_value_or_data=?, false_value=?, last_mqtt_time=?''',
                         (friendly_name,
                         feature,
                         topic,
@@ -168,13 +177,13 @@ class check_and_refresh_devices():
                         description,
                         true_value,
                         false_value,
-                        last_mqtt_time,
+                        self.date,
                         topic,
                         type,
                         description,
                         true_value,
                         false_value,
-                        last_mqtt_time,))
+                        self.date,))
             cur.close()
         elif (current_feature["access"] == "pub"):  # we subscribed to this
             #
@@ -186,16 +195,17 @@ class check_and_refresh_devices():
             # 
             topics = []
            
-                print("topic_to_device_feature",current_feature["topic"])
-                if current_feature["topic"] in topic_to_device_feature: 
-                    print("topic_to_device_feature >> adding more",current_feature["topic"], topic_to_device_feature[current_feature["topic"]])
-                    topics = topic_to_device_feature[current_feature["topic"]]
-                topics.append([friendly_name, feature])
-                topic_to_device_feature[current_feature["topic"]] = topics
+            print("topic_to_device_feature",current_feature["topic"])
+            if current_feature["topic"] in topic_to_device_feature: 
+                print("topic_to_device_feature >> adding more",current_feature["topic"], topic_to_device_feature[current_feature["topic"]])
+                topics = topic_to_device_feature[current_feature["topic"]]
+            topics.append([friendly_name, feature])
+            topic_to_device_feature[current_feature["topic"]] = topics
             #print("update_feature", friendly_name, current_feature)
             cur = self.db.cursor()
-            cur.execute('''INSERT INTO subscribed_features(friendly_name, feature, topic, type, description, true_value, false_value, last_mqtt_time) values (?,?,?,?,?,?,?,?)
-                  ON CONFLICT(friendly_name,feature) DO UPDATE SET topic =?, description=?, true_value=?, false_value=?, last_mqtt_time=?''',
+            cur.execute('''INSERT INTO subscribed_features(friendly_name, feature, topic, type, description, true_value_or_data, false_value, last_mqtt_time) values (?,?,?,?,?,?,?,?)
+                  ON CONFLICT(friendly_name,feature) DO UPDATE 
+                        SET topic =?, type=?, description=?, true_value_or_data=?, false_value=?, last_mqtt_time=?''',
                         (friendly_name,
                         feature,
                         topic,
@@ -203,26 +213,49 @@ class check_and_refresh_devices():
                         description,
                         true_value,
                         false_value,
-                        last_mqtt_time,
+                        self.date,
                         topic,
                         type,
                         description,
                         true_value,
                         false_value,
-                        last_mqtt_time,))
+                        self.date,))
             cur.close()
         else:
-            Print("update_feature invalid access[%s]" % (current_feature["access"]))
+            print("update_feature invalid access[%s] only pub and sub currently" % (current_feature["access"]))
 
+# this handles the callbacks from subscribes 
+# the topic is looked up in topic_to_device_feature dictionary 
+# and the resultant friendly_name, features will be updated
+# if the topic does not exist then the topic is unsubscribed
+# just to clean things up
 class device_state():
     def __init__(self, db):
         self.db = db	
     def update(self, topic, state):
+        print("update from a subscribed [%s][%s]" % (topic, state))
         pass
+
+
+class manage_subscriptions():
+    def __init__(self, db, msg):
+        self.db = db
+        self.msg= msg
+
+    def subscribe(self):
+        print(manage_subscriptions)
+        if topic_to_device_feature :  # at startup this has not been loaded yet so when loaded it will be called
+            sub_topics = []
+            for topic in topic_to_device_feature.keys():
+                sub_topics.append((topic,1))
+            pprint.pprint(sub_topics)
+            self.msg.subscribe(sub_topics)
+
+
+
         
+    
 #list_all_devices(devices_dictionary)
-
-
 # simple device dump/print
 # # designed to load/update two tables
 # a devices table and a features table
@@ -243,7 +276,8 @@ def list_all_devices(dev):
 # test area        
 if __name__ == "__main__":
     import pprint
-    #mqtt_task()
+    mqtt_task()
+
     db = sqlite3.connect("test.db", timeout=const.db_timeout)
     check = check_and_refresh_devices(db)	
     with open("test_json.js", 'r') as file:
@@ -255,7 +289,7 @@ if __name__ == "__main__":
     # sample payload 
     payload_1 = zlib.compress(bytes(json_1,'utf-8'))
     print(">>>>>>%s<<<<<<" % (json_1))
-    
+    '''
     print("\n\n test 1  check if equal")
     previous = json.loads(json_1)
     check.compare_and_update(payload_1) 
@@ -265,12 +299,14 @@ if __name__ == "__main__":
     # test 2 check when differences      
     previous  = json.loads(json_2)
     check.compare_and_update(payload_1)  
-    
-    print("\n\n test 3  check against database")
+  '''
+    print("\n\n test 3 startup no previous so check against database")
     # test 3 check when None previous, starting up for example
     # need to check against database, slower  
     previous = None    
     check.compare_and_update(payload_1)  
-
+    print("\ntopic_to_device_feature\n")
     pprint.pprint(topic_to_device_feature)
+    ms = manage_subscriptions(db,None)
+    ms.subscribe()
                     
