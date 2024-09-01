@@ -201,7 +201,7 @@ class check_and_refresh_devices():
             print("update_feature invalid access[%s] only pub and sub currently" % (current_feature["access"]))
 
 # this handles the callbacks from subscribes 
-# the topic is looked up in topic_to_device_feature dictionary 
+# the topic is looked up in  current_feature =   copy.deepcopy(current[friendly_name][self.FEATURES][feature]) dictionary 
 # and the resultant friendly_name, features will be updated
 # if the topic does not exist then the topic is unsubscribed
 # just to clean things up
@@ -209,7 +209,11 @@ class device_state():
     def __init__(self, db):
         self.db = db	
     def update(self, topic, state):
+        global topic_to_device_feature
         print("update from a subscribed [%s][%s]" % (topic, state))
+        # using topic_to_device_feature topic gives us a list of friendly_names and features
+        # so  ...
+        # We need to parse the state and update the correct device/feature 
         pass
 
 
