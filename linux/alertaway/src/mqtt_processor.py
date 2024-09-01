@@ -24,7 +24,7 @@ def print(*args, **kwargs): # replace print
 def mqtt_task():
     global previous
     #print("mt", type(previous), type(current))
-    # keep device features updated in the data base 
+    # keep device features updated in the database 
     # handle the subscribe to the home-broker devices
     # for each subscribe callback compare to previous
     # update differences only NO state information
@@ -62,7 +62,6 @@ class check_and_refresh_devices():
         self.db = db
         self.FEATURES = "features"
         # consider moving current and previous here 
-
 
     def compare_and_update(self, payload):
         global current
@@ -128,7 +127,6 @@ class check_and_refresh_devices():
                     (friendly_name, desc, src, self.date, desc, src, self.date,))
         cur.close()
         
-
     def update_feature(self, friendly_name, feature, current_feature):
         global topic_to_device_feature
         access = current_feature["access"]
@@ -170,7 +168,6 @@ class check_and_refresh_devices():
             # topic_to_device_feature dictionary is to speed up the callbacks from subscribes
             # 
             topics = []
-           
             print("topic_to_device_feature",current_feature["topic"])
             if current_feature["topic"] in topic_to_device_feature: 
                 print("topic_to_device_feature >> adding more",current_feature["topic"], topic_to_device_feature[current_feature["topic"]])
@@ -216,7 +213,6 @@ class device_state():
         # We need to parse the state and update the correct device/feature 
         pass
 
-
 class manage_subscriptions():
     def __init__(self, db, msg):
         self.db = db
@@ -230,29 +226,10 @@ class manage_subscriptions():
                 sub_topics.append((topic,1))
             pprint.pprint(sub_topics)
             self.msg.subscribe(sub_topics)
-
-
-
-        
-    
-#list_all_devices(devices_dictionary)
-# simple device dump/print
-# # designed to load/update two tables
-# a devices table and a features table
-# a device has 1 or more features.
-# Each feature contains the proper pub/sub strings
-# no status information is included or ever will be.  
-def list_all_devices(dev):
-    all_devices = dev["devices"]
-    print("\nDEVICES\n")
-    for d in all_devices:
-        print(d)
-    print("\nFEATURES\n")
-    all_features = dev["features"]
-    for f in all_features:
-        print(f)
-
-
+#
+#
+#
+#
 # test area        
 if __name__ == "__main__":
     import pprint
