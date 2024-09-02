@@ -114,7 +114,7 @@ class check_and_refresh_devices():
         if self.FEATURES in current[friendly_name]:  # has features check for changes
             for feature in (current[friendly_name][self.FEATURES].keys()):  # each feature
                 current_feature = copy.deepcopy(current[friendly_name][self.FEATURES][feature])
-                self.update_feature(friendly_name, feature, current_feature):
+                self.update_feature(friendly_name, feature, current_feature)
        
     def update_mqtt_device(self,friendly_name):
         global current
@@ -128,7 +128,6 @@ class check_and_refresh_devices():
                     (friendly_name, desc, src, self.date, desc, src, self.date,))
         cur.close()
         
-
     def update_feature(self, friendly_name, feature, current_feature):
         global topic_to_device_feature
         access = current_feature["access"]
@@ -208,16 +207,39 @@ class check_and_refresh_devices():
 class device_state():
     def __init__(self, db):
         self.db = db	
-    def update(self, topic, state):
-        print("update from a subscribed [%s][%s]" % (topic, state))
-        pass
-
+    def update(self, topic, payload_in):
+        tod_features = topic_to_device_feature[topic]
+        print("features for [%s]" % (topic))
+        pprint.pp(tod_features)
+        try:
+            payload = json.loads(payload_in)
+        except:
+            print("simple [%s][%s]" % (topic, payload_in))
+            value=payload_in
+            for f in tod_features: 
+                friendly_name = f[0]
+                feat = f[1] 
+                print("found a match value[%s] to be updated to friendly_name[%s] feature[%s]" %
+                        (value, friendly_name, feat))
+        else:
+            print("json payload [%s]" % (topic))
+            pprint.pp(payload)
+            for f in payload:
+                value=payload[f]
+                print("topic[%s]feat[%s]value[%s]" % (topic, f, value)) 
+                for f in tod_features: 
+                    friendly_name = f[0]
+                    feat = f[1]
+                    if (feat in payload):
+                        value=payload[feat]
+                        print("found a match value[%s] to be updated to friendly_name[%s] feature[%s]" %
+                            (value, friendly_name, feat))
+            
 
 class manage_subscriptions():
     def __init__(self, db, msg):
         self.db = db
         self.msg= msg
-
     def subscribe(self):
         print(manage_subscriptions)
         if topic_to_device_feature :  # at startup this has not been loaded yet so when loaded it will be called
@@ -226,6 +248,7 @@ class manage_subscriptions():
                 sub_topics.append((topic,1))
             pprint.pprint(sub_topics)
             self.msg.subscribe(sub_topics)
+
 
 
 
