@@ -1,3 +1,9 @@
+# Copyright Jim Dodgen 2024 MIT licence
+# this is an interface between home-broker/mqtt and alertaway
+# It maintains the device database tables configuration
+# as well as handling the messages from subscribes
+# and updating the device database tables current values
+#
 from ipcqueue import posixmq
 import const
 import time
@@ -24,7 +30,7 @@ def print(*args, **kwargs): # replace print
 def mqtt_task():
     global previous
     #print("mt", type(previous), type(current))
-    # keep device features updated in the data base 
+    # keep device features updated in the database 
     # handle the subscribe to the home-broker devices
     # for each subscribe callback compare to previous
     # update differences only NO state information
@@ -46,10 +52,6 @@ def mqtt_task():
                 ms.subscribe()
             else: # other topics are from device subscribes
                 updates.update(topic,payload)
-        elif (action == "connected"): # on re/connection best to redo subscriptions
-            ms.subscribe()
-        else: # other topics are from device subscribes
-                updates.update(topic,payload)
 
     # example code
     msg.publish("message_unit_test/demo_wall/set", '{"state": "on"}')
@@ -62,7 +64,6 @@ class check_and_refresh_devices():
         self.db = db
         self.FEATURES = "features"
         # consider moving current and previous here 
-
 
     def compare_and_update(self, payload):
         global current
@@ -169,7 +170,6 @@ class check_and_refresh_devices():
             # topic_to_device_feature dictionary is to speed up the callbacks from subscribes
             # 
             topics = []
-           
             print("topic_to_device_feature",current_feature["topic"])
             if current_feature["topic"] in topic_to_device_feature: 
                 print("topic_to_device_feature >> adding more",current_feature["topic"], topic_to_device_feature[current_feature["topic"]])
@@ -200,7 +200,7 @@ class check_and_refresh_devices():
             print("update_feature invalid access[%s] only pub and sub currently" % (current_feature["access"]))
 
 # this handles the callbacks from subscribes 
-# the topic is looked up in topic_to_device_feature dictionary 
+# the topic is looked up in  current_feature =   copy.deepcopy(current[friendly_name][self.FEATURES][feature]) dictionary 
 # and the resultant friendly_name, features will be updated
 # if the topic does not exist then the topic is unsubscribed
 # just to clean things up
@@ -249,34 +249,15 @@ class manage_subscriptions():
             pprint.pprint(sub_topics)
             self.msg.subscribe(sub_topics)
 
-
-
-
-        
-    
-#list_all_devices(devices_dictionary)
-# simple device dump/print
-# # designed to load/update two tables
-# a devices table and a features table
-# a device has 1 or more features.
-# Each feature contains the proper pub/sub strings
-# no status information is included or ever will be.  
-def list_all_devices(dev):
-    all_devices = dev["devices"]
-    print("\nDEVICES\n")
-    for d in all_devices:
-        print(d)
-    print("\nFEATURES\n")
-    all_features = dev["features"]
-    for f in all_features:
-        print(f)
-
-
-# test area        
+#
+#
+# test area, leave test code behind for future  use  
+#
 if __name__ == "__main__":
     import pprint
     mqtt_task()
-
+    exit()
+    # more tests
     db = sqlite3.connect("test.db", timeout=const.db_timeout)
     check = check_and_refresh_devices(db)	
     with open("test_json.js", 'r') as file:
