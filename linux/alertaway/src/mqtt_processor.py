@@ -98,7 +98,7 @@ class check_and_refresh_devices():
                         # print(current_feature)
                         update_needed = False
                         for tag in current_feature.keys():
-                            print("feature tag [%s]"% (tag,))
+                            print("feature[%s]"% (tag,))
                             if (current_feature[tag] != previous_feature[tag]):
                                 update_needed = True
                                 break
@@ -226,6 +226,10 @@ class device_state():
             pprint.pp(payload)
             for f in payload:
                 value=payload[f]
+                if (f == "state"):
+                    print("found a [%s]" % f)
+                    # print update "current" in publish
+
                 print("topic[%s]feat[%s]value[%s]" % (topic, f, value)) 
                 for f in tod_features: 
                     friendly_name = f[0]
