@@ -215,7 +215,7 @@ class device_state():
         pprint.pp(tod_features)
         try:
             payload = json.loads(payload_in)
-        except:
+        except:  # not json, simple string
             print("simple [%s][%s]" % (topic, payload_in))
             value=payload_in
             for f in tod_features: 
@@ -223,19 +223,18 @@ class device_state():
                 feat = f[1] 
                 print("found a match value[%s] to be updated to friendly_name[%s] feature[%s]" %
                         (value, friendly_name, feat))
-        else:
+        else: # process json, can have multiple values affecting both subscribes as well as status from state changes
             print("json payload [%s]" % (topic))
             pprint.pp(payload)
-            for f in payload:
+            for payload_feature in payload: 
                 value=payload[f]
-                if (f == "state"):
-                    print("found a [%s]" % f)
+                if (payload_feature == "state"): # this can  be the result of a publish 
+                    print("found a [%s]=[%s]" % (payload_feature, value)
                     # print update "current" in publish
-
-                print("topic[%s]feat[%s]value[%s]" % (topic, f, value)) 
-                for f in tod_features: 
-                    friendly_name = f[0]
-                    feat = f[1]
+                print("payload topic[%s]feat[%s]value[%s]" % (topic, payload_featuref, value)) 
+                for topic_to_device_feature in tod_features: 
+                    friendly_name = topic_to_device_feature[0]
+                    feat = topic_to_device_feature[1]
                     if (feat in payload):
                         value=payload[feat]
                         print("found a match value[%s] to be updated to friendly_name[%s] feature[%s]" %
