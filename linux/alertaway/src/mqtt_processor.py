@@ -3,6 +3,8 @@
 # It maintains the device database tables configuration
 # as well as handling the messages from subscribes
 # and updating the device database tables current values
+# most work is done using the in-memory structure from home-broker to
+# reduce the activity on the database.
 #
 from ipcqueue import posixmq
 import const
