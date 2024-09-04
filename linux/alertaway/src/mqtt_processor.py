@@ -2,7 +2,7 @@
 # this is an interface between home-broker/mqtt and alertaway
 # It maintains the device database tables configuration
 # as well as handling the messages from subscribes
-# and updating the device database tables current values
+# updating the device database tables with current values
 # most work is done using the in-memory structure from home-broker to
 # reduce the activity on the database.
 #
@@ -235,7 +235,7 @@ class device_state():
                 for topic_to_device_feature in tod_features: 
                     friendly_name = topic_to_device_feature[0]
                     feat = topic_to_device_feature[1]
-                    if (feat in payload):
+                    if (feat == payload_feature):
                         value=payload[feat]
                         print("found a match value[%s] to be updated to friendly_name[%s] feature[%s]" %
                             (value, friendly_name, feat))
