@@ -203,7 +203,7 @@ sub do
       $sql = $rsql;
    }
 
-   #print "do [".$sql."]\n";
+   print "do [".$sql."]\n";
    $self->{login_comments} .= "do [".$sql."]\n" if (exists($self->{trace}));
    for (my $i = 0; $i < 10; $i++)
    {

@@ -167,7 +167,7 @@ port_name,  /* was unique */
 PRIMARY KEY (friendly_name, feature)
 );
 
-# OLD 
+/* OLD  */
 drop table if exists devices;
 CREATE TABLE devices ( /* these are from 0x92 packets reporting current value of sent items, also set by positive ack */
 ah CHAR(8),
