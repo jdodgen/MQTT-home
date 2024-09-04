@@ -1,2 +1,4 @@
 micropython/ball_valve_controller/src/__pycache__/universal_mqtt_as.cpython-310.pyc
 micropython/ball_valve_controller/src/mqtt_cfg.py
+*.db
+*.pyc
