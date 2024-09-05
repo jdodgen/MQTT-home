@@ -276,7 +276,7 @@ class manage_subscriptions():
 #
 if __name__ == "__main__":
     db = sqlite3.connect("devices.db", timeout=const.db_timeout)
-    rebuild = True
+    rebuild = False
     if rebuild == True:
         with open("test_json.js", 'r') as file:
             json_1 = file.read()

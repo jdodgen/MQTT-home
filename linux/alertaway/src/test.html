@@ -1,0 +1,185 @@
+<html>
+<tmpl_var name=form_action>
+<tmpl_loop name=hidden>
+  <input type=hidden name="<tmpl_var name=name>" value="<tmpl_var name=value>">
+</tmpl_loop>
+<tmpl_var name=menu>
+<div class="body">
+<div class=border>
+    <div>
+    <div><tmpl_var name=sysid></div>
+    <tmpl_if name=version>
+       <div>Your Version = <tmpl_var name=version></div>
+    </tmpl_if>
+    <div>Restart reason - <tmpl_var name=restart_descr> (<tmpl_var name=restart_code>)</div>
+    <div>Process run time <tmpl_var name=run_time></div>
+    </div>
+      <table class="tbody">
+        <tr>
+          <td colspan=100% align=left>
+            <font color=red><tmpl_var name=msg></font>
+          </td>
+        </tr>
+        <tr  class="dark">
+          <th colspan=12 align=center>
+            <font color=green size=+1>DEVICE STATUS</font>
+          </th>
+        </tr>
+        <tr class="dark">
+          <th>
+            <input type=submit name="state" value="Update"><br>
+            <input type=submit name="state" value="Commission ON"><br>
+            <input type=submit name="state" value="Commission OFF"><br>
+            <input type=submit name="state" value="Broadcast Node Discovery">
+          </th>
+          <th>Unit<br>Type</th>
+          <th>Location</th>
+          <th>Last</th>
+          <th>Prev</th>
+          <th>Signal<br>Strength</th>
+          <th>Router<br><input type=submit name="state" value="Refresh"></th>
+          <th>Device<br>and<br>Name</th>
+          <th>Default<br>State<br></th>
+          <th>Manual<br>Override<br></th>
+          <th>WeMo<br>Emulation</th>
+          <th>Status</th>
+          <!-- <th><font color=red>Last<br>Change</font></th>  -->
+        </tr>
+
+        <tmpl_loop name=wireless_devices>
+        <tmpl_unless name=supress_row>
+        <tr <tmpl_if name=alert>class="alert"</tmpl_if>>
+          <tmpl_if name=display>
+          <td>
+            <input type=submit name="state" value="Remove <tmpl_var name=drowid>" onClick="return confirm('are you sure you want to delete <tmpl_var name=physical_location> if it is still around it will return?')">
+            <br>
+            <input type=submit name="state" value="Update">
+            <!-- <input type="hidden" name="<tmpl_var name=drowid>:trace" value="nothing">
+            <br>Trace<input type="checkbox" name="<tmpl_var name=drowid>:trace" value="checked" <tmpl_var name=trace>> -->
+
+          </td>
+        <!-- <tmpl_var name=ah>   <tmpl_var name=al> <tmpl_var name=na> -->
+          <td align=left>
+
+          <abbr  title="Address: <tmpl_var name=addr_high_hex>:<tmpl_var name=addr_low_hex>:<tmpl_var name=na_hex> Device type: <tmpl_var name=part_nbr> Net addr: <tmpl_var name=na> Parent addr: <tmpl_var name=parent_network_address>"><tmpl_var name=part_desc></abbr>
+
+          </td>
+          <td align=left>
+
+               <tmpl_if name=allow_loc>
+                  <input size=12 value="<tmpl_var name=physical_location>" name="<tmpl_var name=drowid>:loc">
+               <tmpl_else>
+                  <b><tmpl_var name=physical_location></b>
+               </tmpl_if>
+
+          </td>
+          <td align=center>
+            <tmpl_if name=red_time> <font color=red> </tmpl_if>
+            <tmpl_var name=last_time_in_cooked>
+            <tmpl_if name=red_time> </font> </tmpl_if>
+          </td>
+          <td align=center>
+            <tmpl_var name=previous_time_in_cooked>
+          </td>
+          <td align=center>
+            <abbr  title="-dB level: <tmpl_var name=db_level>"><tmpl_var name=strength></abbr>
+          </td>
+          <td>
+            <tmpl_var name=router>
+          </td>
+        <tmpl_else>
+          <td></td> <td></td> <td></td> <td></td> <td></td> <td></td> <td></td>
+        </tmpl_if>
+          <td align=left>
+
+            <tmpl_if name=red_time> <font color=red> </tmpl_if>
+            <abbr  title="Port: <tmpl_var name=port>"><tmpl_var name=port_desc></abbr>
+            <tmpl_if name=red_time> </font> </tmpl_if>
+            <tmpl_if name=wemo_device>
+             <br>
+             <input size=12 value="<tmpl_var name=port_name>" name="<tmpl_var name=srowid>:port_name">
+            </tmpl_if>
+          </td>
+
+
+          <td>
+             <tmpl_if name=default_can_change>
+               <abbr  title="On/Off force the state. None ignores any manual setting of device">
+               <input type="radio" name="<tmpl_var name=srowid>:default_state" value="-1" <tmpl_var name=default_none_checked>><tmpl_var name=port_none><br>
+               <input type="radio" name="<tmpl_var name=srowid>:default_state" value="1" <tmpl_var name=default_on_checked>><tmpl_var name=port_on><br>
+               <input type="radio" name="<tmpl_var name=srowid>:default_state" value="0" <tmpl_var name=default_off_checked>><tmpl_var name=port_off>
+             </tmpl_if>
+          </td>
+           <td>
+             <tmpl_if name=default_can_change>
+               <abbr  title="Overrides remain in effect until another action like a Timed event or default takes place">
+               <input type="radio" name="<tmpl_var name=srowid>:override_state" value="-1" <tmpl_var name=override_none_checked>><tmpl_var name=override_none><br>
+               <input type="radio" name="<tmpl_var name=srowid>:override_state" value="1" <tmpl_var name=override_on_checked>><tmpl_var name=override_on><br>
+               <input type="radio" name="<tmpl_var name=srowid>:override_state" value="0" <tmpl_var name=override_off_checked>><tmpl_var name=override_off><br>
+               <tmpl_var name=external_override>
+               </abbr>
+             </tmpl_if>
+          </td>
+          <td align=left>
+            <tmpl_if name=adjustable_device>
+             Adjustment <input size=8 value="<tmpl_var name=adjustment>" name="<tmpl_var name=srowid>:adj"> <br>
+             Alarm Low <input size=8 value="<tmpl_var name=alarm_low>" name="<tmpl_var name=srowid>:low">  <br>
+             Alarm High <input size=8 value="<tmpl_var name=alarm_high>" name="<tmpl_var name=srowid>:high">
+            </tmpl_if>
+            <tmpl_if name=wemo_device>
+             <input type="hidden" name="<tmpl_var name=srowid>:allow_wemo" value="nothing">
+             <input type="checkbox" name="<tmpl_var name=srowid>:allow_wemo" value="checked" <tmpl_var name=allow_wemo_checked>>Emulate<br>
+             <input type="hidden" name="<tmpl_var name=srowid>:invert_wemo" value="nothing">
+             <input type="checkbox" name="<tmpl_var name=srowid>:invert_wemo" value="checked" <tmpl_var name=invert_wemo_checked>>Invert
+            </tmpl_if>
+          </td>
+          <td align=center>
+          <tmpl_if name=red_time> <font color=red> </tmpl_if>
+           <!-- <tmpl_var name=value>  <tmpl_var name=current> -->
+           <abbr  title="Raw value: <tmpl_var name=raw_value>"><tmpl_var name=value></abbr>
+           <tmpl_if name=red_time> </font> </tmpl_if>
+          </td>
+         <!--  <td align=center>
+            <abbr  title="<tmpl_var name=problem_date>"><font color=red><tmpl_var name=problem_time></font></abbr>
+          </td> -->
+        </tr>
+        </tmpl_unless>
+        </tmpl_loop>
+      </table>
+<table class="tbody">
+  <tr class="dark">
+    <th>
+        <input type=submit name="state" value="Clear log">
+    </th>
+    <th>
+      Message Log
+    </th>
+  </tr>
+  <tr class="dark">
+    <th>
+      Date
+    </th>
+    <th>
+      Message
+    </th>
+  </tr>
+  <tmpl_loop name=error_log>
+  <tr>
+    <td>
+      <tmpl_var name=time>
+    </td>
+    <td>
+      <tmpl_var name=message>
+    </td>
+  </tr>
+  </tmpl_loop>
+</table>
+</div>
+</div>
+
+<pre>
+<tmpl_var name=email_string>
+<tmpl_var name=login_comments>
+</pre>
+<!-- <tmpl_var name=login_comments> -->
+</html>
