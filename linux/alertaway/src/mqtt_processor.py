@@ -6,7 +6,11 @@
 # most work is done using the in-memory structure from home-broker to
 # reduce the activity on the database.
 #
-from ipcqueue import posixmq
+import os
+
+if os.name != 'nt':
+    from ipcqueue import posixmq
+
 import const
 import time
 import threading
@@ -42,7 +46,7 @@ def mqtt_task():
     q = queue.Queue() # callbacks are sent here
     msg = message.message(queue=q, client_id="alertaway") # MQTT connection tool
     check = check_and_refresh_devices(db)	
-    updates = device_state(db)
+    submsg = subscribe_messages(db)
     ms = manage_subscriptions(db, msg)
     msg.subscribe(const.home_MQTT_devices)
     while True:
@@ -53,7 +57,7 @@ def mqtt_task():
                 check.compare_and_update(payload)
                 ms.subscribe()
             else: # other topics are from device subscribes
-                updates.update(topic,payload)
+                submsg.update(topic,payload)
 
     # example code
     msg.publish("message_unit_test/demo_wall/set", '{"state": "on"}')
@@ -206,10 +210,12 @@ class check_and_refresh_devices():
 # and the resultant friendly_name, features will be updated
 # if the topic does not exist then the topic is unsubscribed
 # just to clean things up
-class device_state():
+class subscribe_messages():
     def __init__(self, db):
         self.db = db	
     def update(self, topic, payload_in):
+        global topic_to_device_feature
+        now = str(int(time.time())) # standard unix time in a string
         tod_features = topic_to_device_feature[topic]
         print("features for [%s]" % (topic))
         pprint.pp(tod_features)
@@ -223,23 +229,31 @@ class device_state():
                 feat = f[1] 
                 print("found a match value[%s] to be updated to friendly_name[%s] feature[%s]" %
                         (value, friendly_name, feat))
+                cur = self.db.cursor()
+                cur.execute('''update subscribed_features set current_value=?,last_report_time=?
+                            where friendly_name=? and feature=?''', (value, now, friendly_name, feat))
+                cur.close()
         else: # process json, can have multiple values affecting both subscribes as well as status from state changes
             print("json payload [%s]" % (topic))
             pprint.pp(payload)
             for payload_feature in payload: 
-                value=payload[f]
+                value=payload[payload_feature]
                 if (payload_feature == "state"): # this can  be the result of a publish 
-                    print("found a [%s]=[%s]" % (payload_feature, value)
+                    print("found a [%s]=[%s]" % (payload_feature, value))
                     # print update "current" in publish
-                print("payload topic[%s]feat[%s]value[%s]" % (topic, payload_featuref, value)) 
-                for topic_to_device_feature in tod_features: 
-                    friendly_name = topic_to_device_feature[0]
-                    feat = topic_to_device_feature[1]
+                print("payload topic[%s]feat[%s]value[%s]" % (topic, payload_feature, value)) 
+                for topic_to_device_feat in tod_features: 
+                    friendly_name = topic_to_device_feat[0]
+                    feat = topic_to_device_feat[1]
                     if (feat == payload_feature):
                         value=payload[feat]
                         print("found a match value[%s] to be updated to friendly_name[%s] feature[%s]" %
                             (value, friendly_name, feat))
-            
+                        cur = self.db.cursor()
+                        cur.execute('''update subscribed_features set current_value=?,last_report_time=?
+                            where friendly_name=? and feature=?''', (value, now, friendly_name, feat))
+                        cur.close()
+        db.commit()
 
 class manage_subscriptions():
     def __init__(self, db, msg):
@@ -253,26 +267,34 @@ class manage_subscriptions():
                 sub_topics.append((topic,1))
             pprint.pprint(sub_topics)
             self.msg.subscribe(sub_topics)
-
 #
 #
 # test area, leave test code behind for future  use  
 #
 if __name__ == "__main__":
-    import pprint
-    mqtt_task()
+    db = sqlite3.connect("devices.db", timeout=const.db_timeout)
+    rebuild = True
+    if rebuild == True:
+        with open("test_json.js", 'r') as file:
+            json_1 = file.read()
+        # sample payload 
+        payload_1 = zlib.compress(bytes(json_1,'utf-8'))
+        check = check_and_refresh_devices(db)
+        check.compare_and_update(payload_1)
+    sm=subscribe_messages(db)
+    print("\n\nTesting update\n")
+    sm.update("home/main_valve/state","on")
+    sm.update("home/main_valve/state","on")
+    sm.update("zigbee2mqtt/corded_leak","{\"linkquality\": \"98\", \"water_leak\": \"True\", \"battery_low\": \"False\"}")
+    sm.update("home/main_valve/state","on")
+   
     exit()
+
     # more tests
+     #mqtt_task()
     db = sqlite3.connect("test.db", timeout=const.db_timeout)
     check = check_and_refresh_devices(db)	
-    with open("test_json.js", 'r') as file:
-        json_1 = file.read()
-        #print(type(json_1))
-        #print(json_1)
-    with open("test_json_with_changes.js", 'r', encoding='utf-8-sig') as file:
-        json_2 = file.read()
-    # sample payload 
-    payload_1 = zlib.compress(bytes(json_1,'utf-8'))
+    
     print(">>>>>>%s<<<<<<" % (json_1))
     '''
     print("\n\n test 1  check if equal")
@@ -294,4 +316,3 @@ if __name__ == "__main__":
     pprint.pprint(topic_to_device_feature)
     ms = manage_subscriptions(db,None)
     ms.subscribe()
-                    
