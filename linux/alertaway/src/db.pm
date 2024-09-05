@@ -153,6 +153,7 @@ feature,
 last_mqtt_time,
 type,
 description,
+current_value, /* this is the reported back value, not always set */
 true_value_or_data,
 false_value,
 topic,
@@ -162,7 +163,7 @@ external_override,  /* this is a toggle to tell if the override came from wemo o
 override_expire_time INTEGER,
 last_report_time,
 try_count,
-current,
+current,  /* this is what we want the feature to be at */
 port_name,  /* was unique */
 PRIMARY KEY (friendly_name, feature)
 );

@@ -238,9 +238,12 @@ class subscribe_messages():
             pprint.pp(payload)
             for payload_feature in payload: 
                 value=payload[payload_feature]
-                if (payload_feature == "state"): # this can  be the result of a publish 
+                if (payload_feature[:5] == "state"): # this can  be the result of a publish 
                     print("found a [%s]=[%s]" % (payload_feature, value))
-                    # print update "current" in publish
+                    cur = self.db.cursor()
+                    cur.execute('''update publish_feature set current_value=?
+                        where friendly_name=? and feature=?''', (value, friendly_name, feat))
+                    cur.close()
                 print("payload topic[%s]feat[%s]value[%s]" % (topic, payload_feature, value)) 
                 for topic_to_device_feat in tod_features: 
                     friendly_name = topic_to_device_feat[0]
