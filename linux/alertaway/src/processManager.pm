@@ -8,7 +8,7 @@ use tools;
 use process_packet;
 use LANserver;
 use client;
-use xbee_reader;
+# use xbee_reader;
 ## use #DVRserver;
 use email;
 use XBeeXmitProcessor;
@@ -61,16 +61,16 @@ sub startAllNoXbee
   }
 }
 
-sub startAllWithXbee
-{
-  my ($dt, $api_in) = @_;
-  my $WorkerBeeQueue = QueueManager::WorkerBeeQueue();
-  $api=$api_in;
-  foreach my $server (@xbee_servers)
-  {
-    startSingle($dt, $server->{process}, $server->{pgm}, $server->{nice}, $server->{autorestart}, $WorkerBeeQueue);
-  }
-}
+# sub startAllWithXbee
+# {
+#   my ($dt, $api_in) = @_;
+#   my $WorkerBeeQueue = QueueManager::WorkerBeeQueue();
+#   $api=$api_in;
+#   foreach my $server (@xbee_servers)
+#   {
+#     startSingle($dt, $server->{process}, $server->{pgm}, $server->{nice}, $server->{autorestart}, $WorkerBeeQueue);
+#   }
+# }
 
 sub startSingle
 {
