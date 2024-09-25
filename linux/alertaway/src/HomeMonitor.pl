@@ -66,7 +66,7 @@ my $fp = filterPrint->new({modules => ["upload_database", "download_database"]})
 
     # Now spawn off the worker processes
 
-    processManager::startAllNoXbee($dt, $starting_config->{trace}, $WorkerBeeQueue);
+    processManager::startAll($dt, $starting_config->{trace}, $WorkerBeeQueue);
 
     $WorkerBeeQueue->enqueue({request => 'REASON_STARTED', code => 0, descr => "Unknown, Possible crash"});
     $WorkerBeeQueue->enqueue({request => 'STARTUP'});

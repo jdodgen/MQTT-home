@@ -13,8 +13,6 @@ use ip_tools;
 use http_processor;
 use cfg;
 use filterPrint;
-
-#use ImpactVCB;
 use tools qw (:debug);
 use constant DBG => 1;
 my $fp;
@@ -141,5 +139,15 @@ sub process_request
         close $client;
     }
 }
+
+
+
+# test area
+main() if not caller();
+sub main {
+    print("running LANserver");
+    task();   
+}
+
 
 1;

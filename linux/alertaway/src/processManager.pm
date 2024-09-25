@@ -13,6 +13,7 @@ use client;
 use email;
 use XBeeXmitProcessor;
 use fauxmo_manager;
+use mqtt_manager;
 use POSIX ":signal_h";
 use QueueManager;
 use cfg;
@@ -34,12 +35,13 @@ my @no_xbee_servers = (
                {process => 'email', pgm => \&email::task, nice => 3},
                {process => 'worker_bee', pgm => \&HomeMonitor::worker_bee, nice => 5},
                {process => 'SSH client', pgm => \&client::task, nice => 0, autorestart => 1},
+               {process => 'mqtt manager (Python)', pgm => \&mqtt_manager::task, nice => 0, autorestart => 1},
                );
 
-my @xbee_servers = ({process => 'xbee_reader', pgm => \&xbee_reader::xbee_reader, nice => 0},
-                    {process => 'xbee_dispatch', pgm => \&xbee_reader::xbee_dispatch, nice => 0},
-                    {process => 'XBeeXmitProcessor', pgm => \&XBeeXmitProcessor::task, nice => -1}
-                    );
+# my @xbee_servers = ({process => 'xbee_reader', pgm => \&xbee_reader::xbee_reader, nice => 0},
+#                     {process => 'xbee_dispatch', pgm => \&xbee_reader::xbee_dispatch, nice => 0},
+#                     {process => 'XBeeXmitProcessor', pgm => \&XBeeXmitProcessor::task, nice => -1}
+#                     );
 
 my %running_processes;
 my %running_names;
@@ -49,7 +51,7 @@ my %running_names;
 my $trace;
 my $api;
 
-sub startAllNoXbee
+sub startAll
 {
   my ($dt, $trace_in) = @_;
   my $WorkerBeeQueue = QueueManager::WorkerBeeQueue();
@@ -181,5 +183,12 @@ sub killsingle
     }
     delete($running_processes{$pid});
 }
+
+# test area
+main() if not caller();
+sub main {
+    startAll()   
+}
+
 
 1;

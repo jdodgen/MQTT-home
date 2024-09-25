@@ -256,7 +256,7 @@ class subscribe_messages():
                         cur.execute('''update subscribed_features set current_value=?,last_report_time=?
                             where friendly_name=? and feature=?''', (value, now, friendly_name, feat))
                         cur.close()
-        db.commit()
+        self.db.commit()
 
 class manage_subscriptions():
     def __init__(self, db, msg):
