@@ -21,9 +21,13 @@ my $fp = filterPrint->new();
 sub task
 {
     use Inline Python => <<'...';
-import  mqtt_processor
-mqtt_processor.mqtt_task()
+
+def run_task():
+	from  mqtt_processor import mqtt_task
+	mqtt_task()
+	print("mqtt_task ran")	
 ...
+	run_task()	
 }
 
 1;

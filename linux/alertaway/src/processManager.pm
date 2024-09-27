@@ -1,5 +1,5 @@
 package processManager;
-# Copyright 2011, 2012 by James E Dodgen Jr.  All rights reserved.
+# Copyright 2011, 2012, 2024 by James E Dodgen Jr.  MIT
 use strict;
 use Data::Dumper;
 use POSIX ":sys_wait_h";
@@ -184,11 +184,12 @@ sub killsingle
     delete($running_processes{$pid});
 }
 
-# test area
-main() if not caller();
-sub main {
-    startAll()   
-}
+# # test area
+# main() if not caller();
+# sub main {
+#     print(">>>>>>>>>>>> processManager running <<<<<<<<<<<<<<<<<<<<");
+#     startAll();   
+# }
 
 
 1;

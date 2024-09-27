@@ -274,48 +274,48 @@ class manage_subscriptions():
 #
 # test area, leave test code behind for future  use  
 #
-if __name__ == "__main__":
-    db = sqlite3.connect("devices.db", timeout=const.db_timeout)
-    rebuild = False
-    if rebuild == True:
-        with open("test_json.js", 'r') as file:
-            json_1 = file.read()
-        # sample payload 
-        payload_1 = zlib.compress(bytes(json_1,'utf-8'))
-        check = check_and_refresh_devices(db)
-        check.compare_and_update(payload_1)
-    sm=subscribe_messages(db)
-    print("\n\nTesting update\n")
-    sm.update("home/main_valve/state","on")
-    sm.update("home/main_valve/state","on")
-    sm.update("zigbee2mqtt/corded_leak","{\"linkquality\": \"98\", \"water_leak\": \"True\", \"battery_low\": \"False\"}")
-    sm.update("home/main_valve/state","on")
+# if __name__ == "__main__":
+#     db = sqlite3.connect("devices.db", timeout=const.db_timeout)
+#     rebuild = False
+#     if rebuild == True:
+#         with open("test_json.js", 'r') as file:
+#             json_1 = file.read()
+#         # sample payload 
+#         payload_1 = zlib.compress(bytes(json_1,'utf-8'))
+#         check = check_and_refresh_devices(db)
+#         check.compare_and_update(payload_1)
+#     sm=subscribe_messages(db)
+#     print("\n\nTesting update\n")
+#     sm.update("home/main_valve/state","on")
+#     sm.update("home/main_valve/state","on")
+#     sm.update("zigbee2mqtt/corded_leak","{\"linkquality\": \"98\", \"water_leak\": \"True\", \"battery_low\": \"False\"}")
+#     sm.update("home/main_valve/state","on")
    
-    exit()
+#     exit()
 
-    # more tests
-     #mqtt_task()
-    db = sqlite3.connect("test.db", timeout=const.db_timeout)
-    check = check_and_refresh_devices(db)	
+#     # more tests
+#      #mqtt_task()
+#     db = sqlite3.connect("test.db", timeout=const.db_timeout)
+#     check = check_and_refresh_devices(db)	
     
-    print(">>>>>>%s<<<<<<" % (json_1))
-    '''
-    print("\n\n test 1  check if equal")
-    previous = json.loads(json_1)
-    check.compare_and_update(payload_1) 
+#     print(">>>>>>%s<<<<<<" % (json_1))
+#     '''
+#     print("\n\n test 1  check if equal")
+#     previous = json.loads(json_1)
+#     check.compare_and_update(payload_1) 
     
-    print("\n\n test 2  check differences")
+#     print("\n\n test 2  check differences")
     
-    # test 2 check when differences      
-    previous  = json.loads(json_2)
-    check.compare_and_update(payload_1)  
-  '''
-    print("\n\n test 3 startup no previous so check against database")
-    # test 3 check when None previous, starting up for example
-    # need to check against database, slower  
-    previous = None    
-    check.compare_and_update(payload_1)  
-    print("\ntopic_to_device_feature\n")
-    pprint.pprint(topic_to_device_feature)
-    ms = manage_subscriptions(db,None)
-    ms.subscribe()
+#     # test 2 check when differences      
+#     previous  = json.loads(json_2)
+#     check.compare_and_update(payload_1)  
+#   '''
+#     print("\n\n test 3 startup no previous so check against database")
+#     # test 3 check when None previous, starting up for example
+#     # need to check against database, slower  
+#     previous = None    
+#     check.compare_and_update(payload_1)  
+#     print("\ntopic_to_device_feature\n")
+#     pprint.pprint(topic_to_device_feature)
+#     ms = manage_subscriptions(db,None)
+#     ms.subscribe()
