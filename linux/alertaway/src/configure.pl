@@ -246,11 +246,5 @@ sub make_fauxmo
     system('python3 -m pip install fauxmo');
 }
 
-#sub make_posix_mq
-#{
-    #system 'tar -xvf POSIX-RT-MQ.tar.gz';
-    #system ("cd POSIX-RT-MQ*;yes \"\" | perl Makefile.PL;yes \"\" | make;make install;cd ..");
-#}
-
 
 
