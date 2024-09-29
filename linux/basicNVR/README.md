@@ -1,5 +1,7 @@
-This is raw code from a working system.    
-I placed the code here to open source under MIT licence.       
+# basicNVR a symplified low overhead recorder
+## A wrapper around  [motion](https://motion-project.github.io/index.html) which does the heavy lifting
+This is raw code from a working system.     
+I placed the code here to move it under MIT licence.       
 Also a github is a better place for source_verson control.   
    
 Planned changes:      
