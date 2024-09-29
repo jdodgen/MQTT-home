@@ -1,32 +1,34 @@
 # basicNVR a symplified low overhead recorder
-## A wrapper around  [motion](https://motion-project.github.io/index.html) which does the heavy lifting
-This is raw code from a working system.     
-I placed the code here to move it under MIT licence.       
-Also a github is a better place for source_verson control.   
+      
+### Summary:
+
+basicNVR is a lightweight Network Video Recorder (NVR) built around the popular motion software.    
+It simplifies recording and managing video streams from IP cameras.    
+It offers features like:    
+Motion detection recording    
+File management with automatic deletion    
+SQLite database for recording information    
+User interface for browsing recordings    
+Admin interface for configuration    
+HTTP access for streaming JPEGs (used by AlertAway)    
    
-Planned changes:      
-implement pass through streaming in ["motion"](https://motion-project.github.io/index.html)  including
-An upgrade of [motion](https://motion-project.github.io/index.html) to [motionplus](https://github.com/Motion-Project/motionplus)    
-Find or make a html tool to build a "motion control mask" used by "motion".      
-Convert internal communication from http to mqtt.      
-Make the http interfaces prettier.  
-Create cool html stuff for basicNVR.com.
+### Current Status:
+
+The system is currently running successfully for several years on an Intel J5005 machine with Ubuntu 18.04.   
+It manages 7 PoE IP cameras.   
+The website (basicNVR.com) is registered but not yet active.    
    
-The current system has been running solid for years, only rebooting when being updated.    
-current system is 7 IP cameras most PoE.        
-running on a Intel J5005 8Gb,  Ubuntu 18.04. 
+### Planned Changes:
 
+Implement pass-through streaming in motion (possibly using motionplus)     
+Develop a tool (HTML) for creating "motion control masks"    
+Switch internal communication from HTTP to MQTT (a lightweight messaging protocol)    
+Improve the user interface    
+Design website content for basicNVR.com    
+### Additional Notes:
 
-basicNVR.com domain is registered.  Note that he web site is not active, see: "planned changes". 
+The system has gone through several iterations, starting with USB webcams and coaxial CCTV cameras before transitioning to fully utilizing ONVIF/RTSP cameras.   
 
-The system has evolved from using USB webcams and COAX connected surplus CCTV cameras to now only ONVIF/RTSP cameras.   
-"motion" is doing the heavy lifting. basicNVR configures "motion" where to drop the files and how to record the location in a sqlite database.
-It automaticly deletes old stuff when the disk gets full.
-Simple user interface for browsing cameras over time.
-Admin has a different interface for configuration.    
-It serves jpgs via HTTP to alertaway as well as a web page.
-
-to be continued ...
 
 
 
