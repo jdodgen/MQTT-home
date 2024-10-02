@@ -5,13 +5,14 @@ All communication using MQTT messages.
 Larger/more complex are using linux on small devices like a "Raspberry pi"
 smaller are using microcontrollers that support [micropython](https://micropython.org/)
 
-# Current things inside:
-linux:   
-[home-broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker)  mqtt,zigbee and wemo server     
-[Tankless water heater recirculation system](https://github.com/jdodgen/MQTT-home/tree/main/linux/hot-water-recirc)   
-Micropython:   
-[Button with LED and buzzer](https://github.com/jdodgen/MQTT-home/tree/main/micropython/LED-Piezo-Button)   
-[Motorized Ball Valve controller](https://github.com/jdodgen/MQTT-home/tree/main/micropython/ball_valve_controller)   
+# Some things inside:
+### linux:         
+[home-broker A mqtt,zigbee and wemo server](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker)       
+[Tankless water heater recirculation system](https://github.com/jdodgen/MQTT-home/tree/main/linux/hot-water-recirc)       
+[basicNVR simple low overhead NVR](https://github.com/jdodgen/MQTT-home/tree/main/linux/basicNVR)       
+### Micropython:          
+[Button with LED and buzzer](https://github.com/jdodgen/MQTT-home/tree/main/micropython/LED-Piezo-Button)         
+[Motorized Ball Valve controller](https://github.com/jdodgen/MQTT-home/tree/main/micropython/ball_valve_controller)          
 
 # Directory organization
 ## MQTT-home/Library
@@ -22,15 +23,7 @@ This is a "hierarchical development environment" used for creation of both micro
 All communication using MQTT messages.
 
 Larger/more complex are using linux on small devices like a "Raspberry pi"
-smaller are using microcontrollers that support [micropython](https://micropython.org/)
-
-# Current things inside:
-linux:   
-[home-broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker)  mqtt,zigbee and wemo server     
-[Tankless water heater recirculation system](https://github.com/jdodgen/MQTT-home/tree/main/linux/hot-water-recirc)   
-Micropython:   
-[Button with LED and buzzer](https://github.com/jdodgen/MQTT-home/tree/main/micropython/LED-Piezo-Button)   
-[Motorized Ball Valve controller](https://github.com/jdodgen/MQTT-home/tree/main/micropython/ball_valve_controller)   
+smaller are using microcontrollers that support [micropython](https://micropython.org/)   
 
 # Directory organization
 ## MQTT-home/Library
@@ -59,14 +52,6 @@ This is a hierarchical development environment used for creation of both micropy
 All comnicating using MQTT messages.
 Larger/more complex are using linux on devices like a "Raspbery pi"
 smaller are using microcontrollers that support [micropython](https://micropython.org/)
-
-# Current things inside:
-linux:   
-[home-broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker)  mqtt,zigbee and wemo server     
-[Tankless water heater recirculation system](https://github.com/jdodgen/MQTT-home/tree/main/linux/hot-water-recirc)   
-Micropython:   
-[Button with LED and buzzer](https://github.com/jdodgen/MQTT-home/tree/main/micropython/LED-Piezo-Button)   
-[Motorized Ball Valve controller](https://github.com/jdodgen/MQTT-home/tree/main/micropython/ball_valve_controller)   
 
 # Directory organization
 ## MQTT-home/Library
