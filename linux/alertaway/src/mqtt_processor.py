@@ -116,8 +116,8 @@ class check_and_refresh_devices():
 
     def insert_device(self,friendly_name):
         global current
-        print("insert a new device[%s]" % (frendly_name))
-        self.update_mqtt_device(riendly_name)
+        print("insert a new device[%s]" % (friendly_name))
+        self.update_mqtt_device(friendly_name)
         if self.FEATURES in current[friendly_name]:  # has features check for changes
             for feature in (current[friendly_name][self.FEATURES].keys()):  # each feature
                 current_feature = copy.deepcopy(current[friendly_name][self.FEATURES][feature])
@@ -275,8 +275,9 @@ class manage_subscriptions():
 # test area, leave test code behind for future  use  
 #
 if __name__ == "__main__":
+    print("\n\n------Testing------\n")
     db = sqlite3.connect("devices.db", timeout=const.db_timeout)
-    rebuild = False
+    rebuild = True
     if rebuild == True:
         with open("test_json.js", 'r') as file:
             json_1 = file.read()
@@ -285,7 +286,7 @@ if __name__ == "__main__":
         check = check_and_refresh_devices(db)
         check.compare_and_update(payload_1)
     sm=subscribe_messages(db)
-    print("\n\nTesting update\n")
+    print("Testing update")
     sm.update("home/main_valve/state","on")
     sm.update("home/main_valve/state","on")
     sm.update("zigbee2mqtt/corded_leak","{\"linkquality\": \"98\", \"water_leak\": \"True\", \"battery_low\": \"False\"}")
