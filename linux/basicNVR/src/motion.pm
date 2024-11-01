@@ -1,5 +1,5 @@
 package motion;
-# Copyright 2011, 2015 by James E Dodgen Jr.  All rights reserved.
+# Copyright 2011, 2015 by James E Dodgen Jr.  MIT Licence
 
 ## Sending email with attachments is a little trickier since we have to construct multi-part messages.
 ## The Net::SMTP::Multipart module provides a wrapper around Net::SMTP (but not Net::SMTP::SSL)
