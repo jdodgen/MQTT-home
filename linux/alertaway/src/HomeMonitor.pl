@@ -1,7 +1,7 @@
 
 #!/usr/bin/perl -w
 package HomeMonitor;
-# Copyright 2011-2018 by James E Dodgen Jr.  All rights reserved.
+# Copyright 2011,2018,2024 by James E Dodgen Jr.  MIT License
 use lib '.';
 use Data::Dumper;
 #use forkQueue;
