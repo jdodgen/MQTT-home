@@ -1,5 +1,5 @@
 package cfg;
-# Copyright 2011-2021 by James E Dodgen Jr.  All rights reserved.
+# Copyright 2011-2024 by James E Dodgen Jr.  MIT Licence
 use strict;
 
 use constant TIMEDATECTL => "/usr/bin/timedatectl";
@@ -11,10 +11,16 @@ use constant DEFAULT_EMAIL => 'jim@dodgen.us';
 use constant DEFAULT_FROM => 'AlertAway@gmail.com';
 use constant DEFAULT_PASSWORD => "zutgxiuoslillkkj"; #'rikandjed';'rikandjed';rikandjed';
 # FTP/SSH stuff
-use constant FTP_SITE     => 'alertaway.com';
-use constant FTP_USER     => 'alerta';
-use constant FTP_PASSWORD => 'R1kjed';
-use constant FTP_PORT     => 9005;
+# the upgraded versions are downloaded from your cloud.
+# the system is designed to have central support with many aa systems in operation.
+# upon boot the latest version in a tar.gz like aa123.tar.gz. is pulled down, if a newer.
+# provision for  automatic updates based on time als use these.
+# 
+use constant FTP_SITE     => 'sompe place in the cloud.com';
+use constant FTP_USER     => '';
+use constant FTP_PASSWORD => '';
+use constant FTP_PORT     => 22;
+#
 
 #use constant CONFIG_FRESH_READ => 1;
 

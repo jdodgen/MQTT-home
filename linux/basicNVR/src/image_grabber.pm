@@ -1,5 +1,5 @@
 package image_grabber;
-# Copyright 2011,2012 by James E Dodgen Jr.  All rights reserved.
+# Copyright 2011,2012 by James E Dodgen Jr.  MIT licence.
 use Data::Dumper;
 use strict;
 #use IPcam;
