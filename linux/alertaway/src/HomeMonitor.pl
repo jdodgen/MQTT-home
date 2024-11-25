@@ -51,17 +51,11 @@ my $fp = filterPrint->new({modules => ["upload_database", "download_database"]})
 {
     ###  watchdogTimer();  ## Just for testing
     # ip_tools::set_ip_dhcp();
-
     my $WorkerBeeQueue = QueueManager::WorkerBeeQueue();
-
     my $PacketQueue = QueueManager::PacketQueue();
-
     my ($starting_config, $dt) = initialize($WorkerBeeQueue);
-
     # Now spawn off the worker processes
-
     processManager::startAll($dt, $starting_config->{trace}, $WorkerBeeQueue);
-
     $WorkerBeeQueue->enqueue({request => 'REASON_STARTED', code => 0, descr => "Unknown, Possible crash"});
     $WorkerBeeQueue->enqueue({request => 'STARTUP'});
 }
@@ -79,17 +73,9 @@ sub watchdogTimer
     my $WorkerBeeQueue = QueueManager::WorkerBeeQueue({nowait => 1});
     my $EvaluateQueue = QueueManager::EvaluateQueue({nowait => 1});
     my $XbeeSendQueue = QueueManager::XbeeSendQueue({nowait => 1});
-
-    #my $ProcessMsgQueue = QueueManager::ProcessMsgQueue();
-    #my $PacketQueue = QueueManager::PacketQueue();
-    #my $XbeeSendQueue = QueueManager::XbeeSendQueue();
-    #my $TraceQueue = QueueManager::TraceQueue();
-
-
     my $start = time;
     my $every5seconds = timer->new(5, $start);
     my $every10seconds = timer->new(10, $start);
-    #my $every20seconds = timer->new(20, $start);
     while (1)
     {
         my $req = {request => 'TIMED_OUT'};
@@ -159,14 +145,13 @@ sub shutDown
   DBG&&$fp->prt("exitcode 1");
   exit 1;
 }
-# this runs as a seperate process, it is non real-time in that provessing messages can take various amounts of time.
 
+# this runs as a seperate process, it is non real-time in that processing  messages can take various amounts of time.
 sub worker_bee
 {
     my ($trace_in) = @_;
     my $WorkerBeeQueue = QueueManager::WorkerBeeQueue({reader => 1});
     my $WorkerBeeQueue_enqueue = QueueManager::WorkerBeeQueue({nowait => 1});
-    #my $XbeeSendQueue = QueueManager::XbeeSendQueue({nowait => 1});
     my $ProcessMsgQueue = QueueManager::ProcessMsgQueue({nowait => 1});
     my $EvaluateQueue = QueueManager::EvaluateQueue({nowait => 1});
     my $PacketQueue = QueueManager::PacketQueue({nowait => 1});
@@ -183,7 +168,6 @@ sub worker_bee
     my $dt = db::open(cfg::DBNAME);
     my $current_ip_address;
     my $primary_email="";
-    #my $notXbees = 1;
     my $queue_timeout = 60;  # in seconds
     my $email_status_hour = 8;
     my $email_status_sent = 0;
@@ -240,7 +224,6 @@ sub worker_bee
             # need to decide to reset the IP address,
             # most likly if we are already DHCP we will just ignore
             # best check would be to see if it was ever good?
-            # so when setting a IP we should then
         }
         elsif ($q->{request} eq 'WAN_ACTIVITY')
         {
@@ -274,11 +257,6 @@ sub worker_bee
                 $backup_db_frequency = 0;
                 $db_changed=0;
             }
-            # if ($get_network_frequency > 200)
-            # {
-            #     $get_network_frequency = 0;
-            #     route_collection::get($dt,$XbeeSendQueue);
-            # }
             my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($now);
             #DBG&&$fp->prt("hm:worker_bee Daily checks current hour = %d > magic hour %d",  $hour, $email_status_hour);
             if ($hour == $email_status_hour)  # magic hour to send the daily status email as well as a few other late night tasks
@@ -459,7 +437,6 @@ sub worker_bee
         $delay_time=0;
         if ($now > $delay_time)
         {
-
             DBG&&$fp->prt("hm:worker_bee: checking for lost devices");
             my @devices =  $dt->tmpl_loop_query(<<EOF, (qw(rowid addr_h addr_l na last_time_in loc desc allowed_away_time time_reported_gone parent_addr part_nbr)));
             SELECT wireless_devices.rowid, wireless_devices.ah, wireless_devices.al,  wireless_devices.na, wireless_devices.last_time_in,
@@ -478,26 +455,13 @@ EOF
 
             foreach my $d (@devices)
             {
-                # DBG&&$fp->prt("hm:worker_bee: lost check time is = $now\n";  DBG&&$fp->prt("\t %s [%s]\n", $_, $d->{$_}||'?' for (keys $d) if DEBUG;
-                # if (!$d->{na}) # while we are here lets do this
-                # {
-                #     route_collection::single($XbeeSendQueue, $d->{part_nbr}, $d->{addr_h}, $d->{addr_l});
-                # }
-
                 if ($d->{allowed_away_time} > 0 && $d->{last_time_in} < ($now - $d->{allowed_away_time})) # looks like a device has gone away
                 {
                     DBG&&$fp->prt("hm:worker_bee: lost check gone too long");
                     if ($d->{time_reported_gone})  # it has been reported gone
                     {
-                       #DBG&&$fp->prt("hm:worker_bee: lost check and has been reported");
-                       #my $seconds_since_last_report = $now - $d->{time_reported_gone};
-                       #my $how_long_gone = $now - $d->{last_time_in}||$now;
-                       #if (($seconds_since_last_report < $allowed_prf_seconds) || ($how_long_gone > $its_time_to_ignore))
-                       #{
-
-                            DBG&&$fp->prt("hm:worker_bee: lost check recent enough");
-                            next; #  ignore for now, no need to bug them
-                       #}
+                        DBG&&$fp->prt("hm:worker_bee: lost check recent enough");
+                        next; #  ignore for now, no need to bug them
                     }
                     # else # Has not been reported yet yet
                     {
@@ -530,22 +494,6 @@ EOF
                 }
                 #DBG&&$fp->prt("");
             }
-            undef @devices;
-            # we are now checking for a proble where we are not getting back any acks for a device
-            #my @devices =  $dt->tmpl_loop_query(<<EOF, (qw(rowid al ah loc desc)));
-            #SELECT devices.rowid, devices.al, devices.ah, wireless_devices.physical_location, port_types.desc
-            #FROM devices
-            #JOIN wireless_devices ON wireless_devices.ah = devices.ah AND wireless_devices.al = devices.al
-            #JOIN port_types ON wireless_devices.part_nbr = port_types.part_nbr AND port_types.port = devices.port
-            #WHERE devices.try_count > 10
-#EOF
-            #foreach my $p (@devices)
-            #{
-                     #my $loc =  tools::location_string($d->{loc}, $d->{al});
-                     #my $msg = sprintf"%s @ %s is back\n", $d->{desc}, $loc;
-                     #my $force =1;
-                     #evaluate::email_to_contacts($dt, $d->{desc}.'@'.$loc." now reconnected", $msg, $d->{ah}, $d->{al}, undef, $force);
-            #}
         }
         else
         {
@@ -556,8 +504,6 @@ EOF
     }
     DBG&&$fp->prt("exiting");
 }
-
-
 
 sub update_reason_started
 {
