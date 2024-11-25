@@ -1,5 +1,5 @@
 package LANserver;
-# Copyright 2011,2012 by James E Dodgen Jr.  All rights reserved.
+# Copyright 2011,2012, 2024 by James E Dodgen Jr. MIT Licence
 use Data::Dumper;
 use IO::Socket;
 use HTML::Template;
@@ -13,8 +13,6 @@ use ip_tools;
 use http_processor;
 use cfg;
 use filterPrint;
-
-#use ImpactVCB;
 use tools qw (:debug);
 use constant DBG => 1;
 my $fp;
@@ -141,5 +139,15 @@ sub process_request
         close $client;
     }
 }
+
+
+
+# test area
+main() if not caller();
+sub main {
+    print("------------------------------ running LANserver ------------------------------");
+    task();   
+}
+
 
 1;

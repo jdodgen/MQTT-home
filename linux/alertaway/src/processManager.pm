@@ -1,5 +1,5 @@
 package processManager;
-# Copyright 2011, 2012 by James E Dodgen Jr.  All rights reserved.
+# Copyright 2011, 2012, 2024 by James E Dodgen Jr.  MIT
 use strict;
 use Data::Dumper;
 use POSIX ":sys_wait_h";
@@ -8,11 +8,12 @@ use tools;
 use process_packet;
 use LANserver;
 use client;
-use xbee_reader;
+# use xbee_reader;
 ## use #DVRserver;
 use email;
 use XBeeXmitProcessor;
 use fauxmo_manager;
+use mqtt_manager;
 use POSIX ":signal_h";
 use QueueManager;
 use cfg;
@@ -34,12 +35,13 @@ my @no_xbee_servers = (
                {process => 'email', pgm => \&email::task, nice => 3},
                {process => 'worker_bee', pgm => \&HomeMonitor::worker_bee, nice => 5},
                {process => 'SSH client', pgm => \&client::task, nice => 0, autorestart => 1},
+               {process => 'mqtt manager (Python)', pgm => \&mqtt_manager::task, nice => 0, autorestart => 1},
                );
 
-my @xbee_servers = ({process => 'xbee_reader', pgm => \&xbee_reader::xbee_reader, nice => 0},
-                    {process => 'xbee_dispatch', pgm => \&xbee_reader::xbee_dispatch, nice => 0},
-                    {process => 'XBeeXmitProcessor', pgm => \&XBeeXmitProcessor::task, nice => -1}
-                    );
+# my @xbee_servers = ({process => 'xbee_reader', pgm => \&xbee_reader::xbee_reader, nice => 0},
+#                     {process => 'xbee_dispatch', pgm => \&xbee_reader::xbee_dispatch, nice => 0},
+#                     {process => 'XBeeXmitProcessor', pgm => \&XBeeXmitProcessor::task, nice => -1}
+#                     );
 
 my %running_processes;
 my %running_names;
@@ -49,7 +51,7 @@ my %running_names;
 my $trace;
 my $api;
 
-sub startAllNoXbee
+sub startAll
 {
   my ($dt, $trace_in) = @_;
   my $WorkerBeeQueue = QueueManager::WorkerBeeQueue();
@@ -61,16 +63,16 @@ sub startAllNoXbee
   }
 }
 
-sub startAllWithXbee
-{
-  my ($dt, $api_in) = @_;
-  my $WorkerBeeQueue = QueueManager::WorkerBeeQueue();
-  $api=$api_in;
-  foreach my $server (@xbee_servers)
-  {
-    startSingle($dt, $server->{process}, $server->{pgm}, $server->{nice}, $server->{autorestart}, $WorkerBeeQueue);
-  }
-}
+# sub startAllWithXbee
+# {
+#   my ($dt, $api_in) = @_;
+#   my $WorkerBeeQueue = QueueManager::WorkerBeeQueue();
+#   $api=$api_in;
+#   foreach my $server (@xbee_servers)
+#   {
+#     startSingle($dt, $server->{process}, $server->{pgm}, $server->{nice}, $server->{autorestart}, $WorkerBeeQueue);
+#   }
+# }
 
 sub startSingle
 {
@@ -181,5 +183,13 @@ sub killsingle
     }
     delete($running_processes{$pid});
 }
+
+# # test area
+# main() if not caller();
+# sub main {
+#     print(">>>>>>>>>>>> processManager running <<<<<<<<<<<<<<<<<<<<");
+#     startAll();   
+# }
+
 
 1;

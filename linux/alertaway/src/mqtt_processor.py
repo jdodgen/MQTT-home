@@ -256,7 +256,7 @@ class subscribe_messages():
                         cur.execute('''update subscribed_features set current_value=?,last_report_time=?
                             where friendly_name=? and feature=?''', (value, now, friendly_name, feat))
                         cur.close()
-        db.commit()
+        self.db.commit()
 
 class manage_subscriptions():
     def __init__(self, db, msg):
@@ -292,31 +292,31 @@ if __name__ == "__main__":
     sm.update("zigbee2mqtt/corded_leak","{\"linkquality\": \"98\", \"water_leak\": \"True\", \"battery_low\": \"False\"}")
     sm.update("home/main_valve/state","on")
    
-    exit()
+#     exit()
 
-    # more tests
-     #mqtt_task()
-    db = sqlite3.connect("test.db", timeout=const.db_timeout)
-    check = check_and_refresh_devices(db)	
+#     # more tests
+#      #mqtt_task()
+#     db = sqlite3.connect("test.db", timeout=const.db_timeout)
+#     check = check_and_refresh_devices(db)	
     
-    print(">>>>>>%s<<<<<<" % (json_1))
-    '''
-    print("\n\n test 1  check if equal")
-    previous = json.loads(json_1)
-    check.compare_and_update(payload_1) 
+#     print(">>>>>>%s<<<<<<" % (json_1))
+#     '''
+#     print("\n\n test 1  check if equal")
+#     previous = json.loads(json_1)
+#     check.compare_and_update(payload_1) 
     
-    print("\n\n test 2  check differences")
+#     print("\n\n test 2  check differences")
     
-    # test 2 check when differences      
-    previous  = json.loads(json_2)
-    check.compare_and_update(payload_1)  
-  '''
-    print("\n\n test 3 startup no previous so check against database")
-    # test 3 check when None previous, starting up for example
-    # need to check against database, slower  
-    previous = None    
-    check.compare_and_update(payload_1)  
-    print("\ntopic_to_device_feature\n")
-    pprint.pprint(topic_to_device_feature)
-    ms = manage_subscriptions(db,None)
-    ms.subscribe()
+#     # test 2 check when differences      
+#     previous  = json.loads(json_2)
+#     check.compare_and_update(payload_1)  
+#   '''
+#     print("\n\n test 3 startup no previous so check against database")
+#     # test 3 check when None previous, starting up for example
+#     # need to check against database, slower  
+#     previous = None    
+#     check.compare_and_update(payload_1)  
+#     print("\ntopic_to_device_feature\n")
+#     pprint.pprint(topic_to_device_feature)
+#     ms = manage_subscriptions(db,None)
+#     ms.subscribe()
