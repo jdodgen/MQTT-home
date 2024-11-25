@@ -50,12 +50,6 @@ my $fp = filterPrint->new({modules => ["upload_database", "download_database"]})
 
 {
     ###  watchdogTimer();  ## Just for testing
-
-    # my $handshake = "rts";
-    # my $api_mode_escape;
-    # my @xbee_serial_ports = ('/dev/ttyUSB0','/dev/ttyUSB1');
-    # my $baud = 115200; # 38400;
-
     # ip_tools::set_ip_dhcp();
 
     my $WorkerBeeQueue = QueueManager::WorkerBeeQueue();
@@ -70,103 +64,6 @@ my $fp = filterPrint->new({modules => ["upload_database", "download_database"]})
 
     $WorkerBeeQueue->enqueue({request => 'REASON_STARTED', code => 0, descr => "Unknown, Possible crash"});
     $WorkerBeeQueue->enqueue({request => 'STARTUP'});
-    # my $xbee_serial_port;
-    # my $serial_port_device;
-    # foreach $xbee_serial_port (@xbee_serial_ports)
-    # {
-    #     $serial_port_device = Device::SerialPort->new($xbee_serial_port);
-    #     if ($serial_port_device)
-    #     {
-    #         DBG&&$fp->prt("xbee using $xbee_serial_port");
-    #         last;
-    #     }
-    #     DBG&&$fp->prt("HomeMonitor: Could not open xbee serial port [$xbee_serial_port] [%s]", $!);
-
-    # }
-    # if (!$serial_port_device)
-    # {
-    #     die "possable ports exhausted";
-    # }
-    # $serial_port_device->baudrate( $baud );
-    # $serial_port_device->databits( 8 );
-    # $serial_port_device->stopbits( 1 );
-    # $serial_port_device->parity( 'none' );
-    # $serial_port_device->read_char_time( 0 );        # don't wait for each character
-    # $serial_port_device->read_const_time( 2000 );    # 1000 == 1 second per unfulfilled "read" call
-    # $serial_port_device->handshake( $handshake );
-    # $api = API->new( { fh => $serial_port_device, api_mode_escape => 1 } ) || die " could not open XBee API ", $!;
-    # #my $api = Device::XBee::API->new( { fh => $serial_port_device, auto_reuse_frame_id => 1 } ) || die " could not open XBee API ", $!;
-    # #DBG&&$fp->prt("HomeMonitor: \n");
-
-
-    # my $reset_count = 0;
-    # while (1)
-    # {
-    #     DBG&&$fp->prt("flusing queue:");
-    #     my @saved_packets;
-    #     while (1) # flush input queue
-    #     {
-    #       my ($t, $packet) = $api->read_packet();
-    #       if ($t)
-    #       {
-    #           last;
-    #       }
-    #       DBG&&$fp->prt("read_packet timed out");
-    #       push @saved_packets, $packet;
-    #     }
-    #     DBG&&$fp->prt("queue flushed");
-    #     # now request the ID and wait for a reply
-    #     die "Failed to transmit PAN_ID READ  request"
-    #          unless $api->at('ID');    # echo back pan_id
-    #     my ($t, $packet) = $api->read_packet();
-    #     if ($t)
-    #     {
-    #          exit if ($reset_count++ > 30);
-    #          DBG&&$fp->prt("Unable to access Xbee");
-    #          next;
-    #     }
-    #     my ($error, $rxin) = $api->parse_packet($packet);
-    #     $PacketQueue->enqueue($packet);
-    #     DBG&&$fp->prt("XBee communicating, packet returned");
-    #     foreach my $p (@saved_packets)
-    #     {
-    #         $PacketQueue->enqueue($p);
-    #     }
-    #     last;
-    # }
-    # my $XbeeSendQueue = QueueManager::XbeeSendQueue();
-    # if ($ARGV[0] && $ARGV[1] && $ARGV[2] && $ARGV[3]) # are we resetting the PAN ID?
-    # {
-    #    DBG&&$fp->prt("setting coordinator values");
-    #    my $pan_id = hex $ARGV[0];
-    #    my $pan_id_16 = hex $ARGV[1];
-    #    my $operating_channel = hex $ARGV[2];
-    #    my $stack_profile = hex $ARGV[3];
-
-    #    tools::set_coordinator_configuration($XbeeSendQueue,
-    #         $pan_id, $pan_id_16, $operating_channel, $stack_profile);
-    # }
-
-    # $serial_port_device->read_const_time( 20000 );    # 1000 == 1 second per unfulfilled "read" call
-
-    # #my constant $all_nodes = pack( 'C', 1);
-    # #$XbeeSendQueue->enqueue({request => 'XBEE_AT', cmd => 'NR'});
-    # #die "Failed to reset network request"
-    # #    unless $api->at('NR', $all_nodes);    # network reset
-    # #sleep 4;pan
-
-    # $XbeeSendQueue->enqueue({request => 'XBEE_AT', cmd => 'SL'}); # lo part of id
-
-    # #die "Failed to transmit SL request"
-    # #    unless $api->at('SL');    # echo back pan_id
-    # $XbeeSendQueue->enqueue({request => 'XBEE_AT', cmd => 'SH'});
-    # #die "Failed to transmit SH requwatchdogTimer();est"
-    # #    unless $api->at('SH');    # echo back pan_id
-
-    # $XbeeSendQueue->enqueue({request => 'BROADCAST_NODE_DISCOVERY'});
-
-    # processManager::startAllWithXbee($dt, $api, $WorkerBeeQueue);
-    # sample_all_devices($dt, $XbeeSendQueue);
 }
 my $shut_down_in_progress = 0;
 watchdogTimer();
