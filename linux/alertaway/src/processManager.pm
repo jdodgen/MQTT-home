@@ -29,7 +29,7 @@ my $readWrite = 3;
 
 my @no_xbee_servers = (
                {process => 'evaluate', pgm => \&evaluate::task, nice => 0},
-               {process => 'fauxmo_manager', pgm => \&fauxmo_manager::task, nice => -1, autorestart => 1},
+               # handled by home-broker #{process => 'fauxmo_manager', pgm => \&fauxmo_manager::task, nice => -1, autorestart => 1},
                {process => 'LANserver', pgm => \&LANserver::task, nice => 0},
                {process => 'process_packet', pgm => \&process_packet::task, nice => 0},
                {process => 'email', pgm => \&email::task, nice => 3},
