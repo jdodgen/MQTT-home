@@ -89,7 +89,7 @@ sub fix_bashrc
 echo
 echo '********************************************'
 echo 'this is the AlertAway start up'
-echo 'Copyright 2012-2020 Jim Dodgen'
+echo 'Copyright 2012,2020,2024 Jim Dodgen MIT License'
 echo 'control C to interupt now'
 umask 0000
 preload
