@@ -5,7 +5,7 @@ print "auto run all steps (Yn)?";
 my $runall = <STDIN>;
 get_packages();
 build_pm();
-#make_python();
+#make_python();  # in the past needed newer version
 make_fauxmo();
 fix_bashrc();
 enlarge_msg_queues();
@@ -226,7 +226,7 @@ EOF
     }
 }
 
-sub make_python
+sub make_python # not needed anymore, obsolite 
 {
     chdir '/root';
     system 'tar -xvf Python-3.8.2.tgz*';
