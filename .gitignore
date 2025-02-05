@@ -4,3 +4,4 @@ micropython/ball_valve_controller/src/mqtt_cfg.py
 *.pyc
 *.pydat
 *.inl
+install.py
