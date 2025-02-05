@@ -1,4 +1,6 @@
 # MIT license copyright 2024 Jim Dodgen
+# this is a fresh port into git and will need changes to run
+# 
 import os
 import datetime
 import json
