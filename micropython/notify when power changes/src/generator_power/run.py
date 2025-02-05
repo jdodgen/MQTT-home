@@ -107,12 +107,12 @@ async def main(client):
     if done == False:  # we have recieved a "utl" message before the time-out
         print("timed out, sending on generator sms/email(s)")
         on_generator = True
-        await send_email("%s seconds without utility power \"notification\", I assume generator is ON" % (cfg.number_of_seconds_to_wait,))
+        await send_email("No utility power: Now on secondary power")
     while True: # loop forever
         await asyncio.sleep(1000)
         # waiting for subscribe to callback 
 
-time.sleep(5)
+time.sleep(cfg.start_delay)
 print("starting")
 # Local configuration, "config" came from mqtt_as
 config['ssid'] = cfg.ssid  
