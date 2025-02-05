@@ -8,14 +8,10 @@ import json
 # Y N defalts are designed for development 
 
 # change wifi and message list to match your environment
-#ssid="testwifi" # test area
-#wifi_password = "foobartest"
-#send_messages_to = ["9097472800@tmomail.net", "jim@dodgen.us"]  # note a python list inside quotes
-
 
 ssid = 'guest' # guest wifi
 wifi_password = 'foo'
-send_messages_to = ["9097472800@tmomail.net", "jim@dodgen.us"]  # note a python list only
+send_messages_to = ["???@tmomail.net", "XXX@YYYYY.foo"]  # note a python list only
 
 # ceja's
 #ssid = '??' 
