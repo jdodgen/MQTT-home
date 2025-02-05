@@ -26,7 +26,8 @@ led_gpio = 3  # "D3" on D1-Mini proto card
 # best to use firewalled router/wifi for IoT things
 ssid="%s"
 wifi_password = "%s"
-
+#
+start_delay=10
 number_of_seconds_to_wait=60
 server = 'home-broker.local'
 #
