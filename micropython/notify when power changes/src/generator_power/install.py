@@ -14,12 +14,6 @@ import json
 ssid = 'guest' # guest wifi
 wifi_password = 'foo'
 send_messages_to = ["???@tmomail.net", "XXX@YYYYY.foo"]  # note a python list only
-
-# ceja's
-#ssid = '??' 
-#wifi_password = '?'
-#send_messages_to = '["9097472800@tmomail.net", "m82002a@gmail.com"]'  # note a python list inside quotes
-#
 # this is the future cfg.py file
 cfg_template = """
 # MIT license copyright 2024 Jim Dodgen
