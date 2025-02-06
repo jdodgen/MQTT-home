@@ -1,18 +1,21 @@
+# MIT license copyright James Dodgen 2025
 import os
 # this configures and installs software
 
 # change these to match your environment
+mp_lib_offset="../../../library/"
+all_lib_offset="../../../../library/"
 
-ssid = 'asdad'
-wifi_password = 'asdasdasd'
-to_list = '["asdasdad@tmomail.net", "adsadad@emaileserver.com"]'
+ssid = '' 
+wifi_password = ''
+to_list = '["????tmomail.net", "xxx@email.com"]'
 
 cfg_template = """
 # THIS cfg.py CREATED OR REPLACED BUY install.py
 # MAKE YOUR CHANGES IN install.py
 #
 # we monitor a realy NO and NC COM is going to ground.
-led_gpio     = 3      # "D3"  white
+led_gpio     = 3      # "D3"  white 
 #
 # best to have a firewalled off wifi ssid for IoT things
 ssid="%s"
@@ -24,10 +27,10 @@ server = 'home-broker.local'
 #
 # a list of one or more email addresses ["9095551212@tmomail.net", "you@gmail.com"]
 to_list = %s
-#
+# 
 # gmail account to send emails through  see https://medium.com/@studentofbharat/send-mail-using-python-code-9ab3b1d146ef
-gmail_password = "xxx xxxx xxxx xxxx" # this can change in the future
-gmail_user = "xxxxxx@gmail.com"
+gmail_password = "xxx xxx xxx xxx" # this can change in the future
+gmail_user = "???@gmail.com"
 """
 
 with open('cfg.py', 'w') as f:
@@ -37,7 +40,7 @@ print("install micropython? (y,N)")
 ans = input()
 if (ans.upper() == "Y"):
     os.system("esptool.py --port /dev/ttyACM0 erase_flash")
-    os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ../../ESP32_GENERIC_S2-20240105-v1.22.1.bin")
+    os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ../ESP32_GENERIC_S2-20241129-v1.24.1.bin")
     print("press R on esp32-s2 to reset(Enter)")
     input()
 
@@ -45,13 +48,13 @@ print("install library code? (y,N)")
 ans = input()
 if (ans.upper() == "Y"):
     code = [
-    "../../library/main.py",
-    "../../library/mqtt_as.py",
-    "../../library/boot.py",
-    "../../library/uuid.py",
-    "../../library/alert_handler.py",
-    "../../../library/mqtt_hello.py",
-    "../../../library/feature_power.py",
+    mp_lib_offset+"main.py",
+    mp_lib_offset+"mqtt_as.py",
+    mp_lib_offset+"boot.py",
+    mp_lib_offset+"uuid.py",
+    mp_lib_offset+"alert_handler.py",
+    all_lib_offset+"mqtt_hello.py",
+    all_lib_offset+"feature_power.py",
     ]
 
     print("now pushing python support code")

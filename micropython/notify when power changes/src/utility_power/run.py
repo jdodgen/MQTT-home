@@ -2,8 +2,8 @@
 
 from mqtt_as import MQTTClient, config
 import asyncio
-from  feature_power import feature_power
-from mqtt_hello import hello
+import feature_power 
+import mqtt_hello
 import alert_handler
 import cfg
 import time
@@ -11,9 +11,10 @@ import time
 # unusual MQTT code but it works
 # this boots up and publishes a" payload_on" in a loop
 # There is no payload_off ... this device is plugged in
+our_name = "utility_power_status"  # same in generator_power
+power_status  = feature_power.feature(our_name,  publish=True)
 
-power_status  = feature_power("utility_power_status")
-led = alert_handler.alert_handler(cfg.led_gpio, None)
+led = alert_handler.alert_handler(cfg.led_gpio,None)
 
 # Local configuration
 def callback(topic_in, msg_in, retained):
@@ -25,11 +26,12 @@ def callback(topic_in, msg_in, retained):
 async def conn_han(client):
     # await client.subscribe(power_status.publish_topic()) 
     # who am I sends a hello 
-    h = hello("utility_power_status", "When running publishes \"power on\" in a loop, quits in an hour after boot")
-    h.add_feature(power_status.feature_json())
-    h.payload()
-    print("hello topic[%s] payload[%s]" % (h.topic(), h.payload()))
-    await client.publish(h.topic(), h.payload()) 
+    hardcoded_generic_valve_description ="utility power monitor, sends status when powered up" 
+ # who am I sends a hello 
+    print("conn_han: sending hello")
+    await mqtt_hello.send_hello(client, our_name, 
+                        hardcoded_generic_valve_description, 
+                        power_status.get())
   
 async def main(client):
     while True:
@@ -44,12 +46,12 @@ async def main(client):
     led.flash(3)
     for _ in range(cfg.number_of_cycles_to_run):
         led.turn_on()
-        await client.publish(power_status.publish_topic(), power_status.payload_on())
+        await client.publish(power_status.topic(), power_status.payload_on())
         led.turn_off()
-        time.sleep(1) 
+        await asyncio.sleep(1)
     led.turn_off()
     while True:
-        await client.publish(power_status.publish_topic(), power_status.payload_on())
+        await client.publish(power_status.topic(), power_status.payload_on())
         time.sleep(10*60) # ten minutes ... just for status
         # also incase gen wall wart is power cycled
      # when we exit just shutdown and turn off 
