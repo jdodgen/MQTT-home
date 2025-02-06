@@ -26,11 +26,11 @@ def callback(topic_in, msg_in, retained):
 async def conn_han(client):
     # await client.subscribe(power_status.publish_topic()) 
     # who am I sends a hello 
-    hardcoded_generic_valve_description ="utility power monitor, sends status when powered up" 
+    hardcoded_generic_description ="utility power monitor, sends status when powered up" 
  # who am I sends a hello 
     print("conn_han: sending hello")
     await mqtt_hello.send_hello(client, our_name, 
-                        hardcoded_generic_valve_description, 
+                        hardcoded_generic_description, 
                         power_status.get())
   
 async def main(client):
