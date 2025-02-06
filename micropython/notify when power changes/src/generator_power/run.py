@@ -1,15 +1,15 @@
-# MIT license copyright 2024 Jim Dodgen
-#
-# version 3 3/16/2024
+# MIT license copyright 2025 Jim Dodgen
+# Generator side
 #
 import umail
 import alert_handler
 from mqtt_as import MQTTClient, config
-from feature_power import feature
+import feature_power 
+import mqtt_hello
+import alert_handler
 import cfg
 import time
 import uasyncio as asyncio   # version for micropython
-import mqtt_hello
 
 # conditional print
 xprint = print # copy print
@@ -85,8 +85,8 @@ async def main(client):
     global on_generator
     global led
     
-    utility_status  = feature("utility_power_status", subscribe=True)
-    generator_status  = feature("generator_power_status", publish=True)  # subscribe default is False so this is a publish
+    utility_status  = feature_power.feature("utility_power_status", subscribe=True)
+    generator_status  = feature_power.feature("generator_power_status", publish=True)  # subscribe default is False so this is a publish
     on_generator = False
     led = alert_handler.alert_handler(cfg.led_gpio, None)
     led.turn_on()
