@@ -8,11 +8,15 @@ import json
 # Y N defalts are designed for development 
 
 # change wifi and message list to match your environment
+mp_lib_offset="../../../library/"
+all_lib_offset="../../../../library/"
 
-ssid = 'guest' # guest wifi
-wifi_password = 'foo'
-send_messages_to = ["????@tmomail.net", "??@gmail.com"]  # note a python list only
-
+ssid = 'xx' 
+wifi_password = 'xxx'
+to_list = '["???@tmomail.net", "??@foo.com"]'
+gmail_password = "aaaa aaaa aaaa aaaa" # gmail generates this I can change it in the future
+gmail_user = "???@gmail.com"
+# see https://medium.com/@studentofbharat/send-mail-using-python-code-9ab3b1d146ef
 
 # this is the future cfg.py file
 cfg_template = """
@@ -35,51 +39,52 @@ server = 'home-broker.local'
 send_messages_to = %s
 # 
 # gmail account to send emails through  
-# see https://medium.com/@studentofbharat/send-mail-using-python-code-9ab3b1d146ef
 #
-gmail_password = "xdom zveb qytq snms" # gmail generates this I can change it in the future
-gmail_user = "notifygenerator@gmail.com"
+gmail_password = "%s" # gmail generates this I can change it in the future
+gmail_user = "%s"
 # gen cost to run per hour https://generatorsupercenter.com/how-much-do-generators-cost-to-run/
 cost_to_run = 1.88  # in any currency 
 """
 now = datetime.datetime.now()
 with open('cfg.py', 'w') as f:
-    f.write(cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"), ssid, wifi_password, json.dumps(send_messages_to)))
+    f.write(cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"), 
+    ssid, wifi_password, to_list,
+    gmail_password, gmail_user )) #json.dumps(to_list)))
 
 print("install micropython? (y,N)")
 ans = input()
 if (ans.upper() == "Y"):
     os.system("esptool.py --port /dev/ttyACM0 erase_flash")
-    os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ../../ESP32_GENERIC_S2-20240105-v1.22.1.bin")
-    print("press R on esp32-s2 to reset(Enter)")
+    os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ../ESP32_GENERIC_S2-20241129-v1.24.1.bin")
+    print("press R on esp32-s2 (the indent) to reset\nthen press Enter")
     input()
 
 print("install library code? (y,N)")
 ans = input()
 if (ans.upper() == "Y"):
     code = [
-    "../../library/main.py",
-    "../../library/mqtt_as.py",
-    "../../library/boot.py",
-    "../../library/uuid.py",
-    "../../library/alert_handler.py",
-    "../../library/umail.py",
-    "../../../library/mqtt_hello.py",
-    "../../../library/feature_power.py",
+    mp_lib_offset+"main.py",
+    mp_lib_offset+"mqtt_as.py",
+    mp_lib_offset+"boot.py",
+    mp_lib_offset+"uuid.py",
+    mp_lib_offset+"alert_handler.py",
+    mp_lib_offset+"umail.py",
+    all_lib_offset+"mqtt_hello.py",
+    all_lib_offset+"feature_power.py",
     ]
     print("now pushing python support code")
     for c in code:
         print("installing", c)
         os.system("ampy --port /dev/ttyACM0 put "+c)
 
-print("press R to reset\ninstall IoD code? (Y,n)")
+print("install application code? (Y,n)")
 ans = input()
 if (ans.upper() != "N"):
     code = [
     "run.py",
     "cfg.py",
     ]
-    print("now pushing python IoD code")
+    print("now pushing python application code")
     for c in code:
         print("installing", c)
         os.system("ampy --port /dev/ttyACM0 put "+c)

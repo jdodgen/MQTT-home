@@ -1,4 +1,4 @@
-# MIT license copyright James Dodgen 2025
+# MIT license copyright Jim Dodgen 2025
 import os
 # this configures and installs software
 
@@ -6,15 +6,14 @@ import os
 mp_lib_offset="../../../library/"
 all_lib_offset="../../../../library/"
 
-ssid = '' 
-wifi_password = ''
-to_list = '["????tmomail.net", "xxx@email.com"]'
+ssid = '???' 
+wifi_password = '???'
 
 cfg_template = """
 # THIS cfg.py CREATED OR REPLACED BUY install.py
 # MAKE YOUR CHANGES IN install.py
 #
-# we monitor a realy NO and NC COM is going to ground.
+# we monitor a really NO and NC COM is going to ground.
 led_gpio     = 3      # "D3"  white 
 #
 # best to have a firewalled off wifi ssid for IoT things
@@ -23,18 +22,10 @@ wifi_password = "%s"
 
 number_of_cycles_to_run=120
 server = 'home-broker.local'
-
-#
-# a list of one or more email addresses ["9095551212@tmomail.net", "you@gmail.com"]
-to_list = %s
-# 
-# gmail account to send emails through  see https://medium.com/@studentofbharat/send-mail-using-python-code-9ab3b1d146ef
-gmail_password = "xxx xxx xxx xxx" # this can change in the future
-gmail_user = "???@gmail.com"
 """
 
 with open('cfg.py', 'w') as f:
-    f.write(cfg_template % (ssid, wifi_password, to_list))
+    f.write(cfg_template % (ssid, wifi_password))
 
 print("install micropython? (y,N)")
 ans = input()

@@ -68,17 +68,10 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         await client.subscribe(utility_status.topic())
         # who am I sends a MQTT_hello message
         mqtt_hello.send_hello(client, "generator_power_status", "When running publishes \"power on\" in a loop, quits in an hour after boot",
-        generator_status.feature_json(),
-        utility_status.feature_json())
+        generator_status.get(),
+        utility_status.get())
         await client.publish(generator_status.topic(), generator_status.payload_on())  
                          
-        # h = hello(cfg.valve_name, "motor valve controler, with feedback")
-        # h.add_feature(valve.feature_json())
-        # h.add_feature(valve_state.feature_json())
-        # h.payload()
-        # print("hello topic[%s] payload[%s]" % (h.topic(), h.payload()))
-        # await client.publish(h.topic(), h.payload()) 
-
 async def main(client):
     global utility_status
     global generator_status
@@ -95,6 +88,7 @@ async def main(client):
         try:
             await client.connect()
         except:
+            await asyncio.sleep(1)
             pass
         else:
             break
