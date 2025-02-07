@@ -31,10 +31,10 @@ https://www.zigbee2mqtt.io/guide/adapters/
 
 # from:
 https://github.com/n8henrie/fauxmo-plugins
-
-# download 
+# think about downloading  
 mqttplugin.py 
-# and place it here with the rest of the py codesshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
+# and place it here with the rest of the py code
+sshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
 # it might already be included
 # install raspbian lite or linux distro of your choice
 
