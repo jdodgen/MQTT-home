@@ -13,4 +13,16 @@ allow_anonymous true
 listener 1883
 log_dest none"
 ```
-Also the broker name needs to be the same as in install.py default is "home-broker.local"
+Also the broker name needs to be the same subnet. In install.py default is "home-broker.local"
+
+###  Electrical parts:
+### monitors:
+ - [ESP32-s2](https://www.wemos.cc/en/latest/s2/s2_mini.html) Mini microcontroler running micropython
+ - 3V LED 5mm
+ - 220ohm resistor
+ - 8mm wire
+### simple MQTT server
+ - [NanoPi NEO](https://wiki.friendlyelec.com/wiki/index.php/NanoPi_NEO) tiny linux server
+ - MicroSD card 8g or larger
+ - Cat5+ patch cable
+ - 
