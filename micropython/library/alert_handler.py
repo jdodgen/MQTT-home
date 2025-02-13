@@ -28,16 +28,16 @@ class alert_handler:
             self.beep(count=1)
         self.led.value(0)
 
-    def flash(self, count=0):
+    def flash(self, count=0, duration=1, ontime=1):
         self.led.value(0)
         while True:
             self.led.value(1)
-            time.sleep(1)
+            time.sleep(ontime)
             self.led.value(0)
             count -= 1
             if (count < 1):
                 break
-            time.sleep(1)
+            time.sleep(duration)
 
     def beep(self, count=1):
         while True:
