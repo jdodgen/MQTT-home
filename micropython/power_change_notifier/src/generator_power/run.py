@@ -11,13 +11,6 @@ import cfg
 import time
 import uasyncio as asyncio   # version for micropython
 
-# mqtt_as return codes
-ERROR_OK = 0
-ERROR_AP_NOT_FOUND = 1
-ERROR_BAD_PASSWORD = 2
-ERROR_BROKER_LOOKUP_FAILED = 3
-ERROR_BROKER_CONNECT_FAILED =  4
-
 # conditional print
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
@@ -31,7 +24,7 @@ async def send_email(body):
   smtp.login(cfg.gmail_user, cfg.gmail_password)
   smtp.to(cfg.send_messages_to)
   smtp.write("From: NotifyGenerator <notifygenerator@gmail.com>\n")
-  smtp.write("Subject: Power Outage (%s)\n\n%s\n" % (cfg.ssid,body))
+  smtp.write("Subject: Power Outage\n\n%s\n" % body)
   smtp.send()
   smtp.quit()
 
@@ -78,7 +71,7 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         generator_status.get(),
         utility_status.get())
         await client.publish(generator_status.topic(), generator_status.payload_on())  
-                    
+                         
 async def main(client):
     global utility_status
     global generator_status
@@ -87,34 +80,25 @@ async def main(client):
     
     utility_status  = feature_power.feature("utility_power_status", subscribe=True)
     generator_status  = feature_power.feature("generator_power_status", publish=True)  # subscribe default is False so this is a publish
-    
     on_generator = False
     led = alert_handler.alert_handler(cfg.led_gpio, None)
-    led.flash()
+    led.turn_on()
     while True:
         print("checking connection")
         try:
             await client.connect()
         except:
-            print("connect returned", client.status())
-            if client.status() != ERROR_OK:
-                x = 0
-                while x < 100:   #  number of times to send error code
-                    led.flash(count=client.status(), duration=0.4, ontime=0.2)
-                    time.sleep(4)
-                    x +=1
-                print("error codes sent")
+            await asyncio.sleep(1)
+            pass
         else:
             break
     # these are loops and run forever
-    print("out of connect to broker+wifi loop")
-    led.turn_on()
     asyncio.create_task(check_if_up(client))
     asyncio.create_task(raw_messages(client))
     await client.subscribe(utility_status.topic())
     print("waiting [%s] seconds to decide if on generator" % (cfg.number_of_seconds_to_wait,))    
     await asyncio.sleep(cfg.number_of_seconds_to_wait)
-    if done == False:  # we have received a "utl" message before the time-out
+    if done == False:  # we have recieved a "utl" message before the time-out
         print("timed out, sending on generator sms/email(s)")
         on_generator = True
         await send_email("No utility power: Now on secondary power")
@@ -123,7 +107,7 @@ async def main(client):
         # waiting for subscribe to callback 
 
 time.sleep(cfg.start_delay)
-print("starting", cfg.ssid, cfg.wifi_password)
+print("starting")
 # Local configuration, "config" came from mqtt_as
 config['ssid'] = cfg.ssid  
 config['wifi_pw'] = cfg.wifi_password
