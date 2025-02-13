@@ -4,7 +4,7 @@
 # see home-broker for example
 #
 #
-# password and name both can be put on each host
+# password and user
 name="jim"
 word="foobar"
 #
@@ -40,7 +40,7 @@ files = [
 "../../library/mqtt_hello.py",   
 ]
 #
-# code starts here.
+# common code starts here.
 import pysftp
 import os
 print("default name[%s] password[%s]" % (name,word))
