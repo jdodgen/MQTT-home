@@ -34,6 +34,7 @@ ERROR_AP_NOT_FOUND = 2
 ERROR_BAD_PASSWORD = 3
 ERROR_BROKER_LOOKUP_FAILED = 4
 ERROR_BROKER_CONNECT_FAILED =  5
+ERROR_IDLE = 6
 
 
 # Default short delay for good SynCom throughput (avoid sleep(0) with SynCom).
@@ -594,6 +595,7 @@ class MQTTClient(MQTT_base):
                 if (s.status() != network.STAT_CONNECTING):  # Break out on fail or success. Check once per sec.
                     break
                 await asyncio.sleep(1)
+            
             if (
                 s.status() == network.STAT_CONNECTING
             ):  # might hang forever awaiting dhcp lease renewal or something else
@@ -614,19 +616,32 @@ class MQTTClient(MQTT_base):
                 #print("wifi RPI")
                 s.config(pm=0xA11140)
                 #print("wifi RPI pm=0xA11140")
-            print("wifi connection to [%s][%s]" % (self._ssid, self._wifi_pw))
+            print("wifi s.connect to [%s][%s]" % (self._ssid, self._wifi_pw))
             try:
                 s.connect(self._ssid, self._wifi_pw)
             except:
-                print("exception doing s.connect")  # [%s]" % (str(s.status())))
+                """
+                STAT_IDLE - no connection, no activities-1000
+                STAT_CONNECTING - Connecting-1001
+                STAT_WRONG_PASSWORD - Failed due to password error-202
+                STAT_NO_AP_FOUND - Failed, because there is no access point reply,201
+                STAT_GOT_IP - Connected-1010
+                STAT_ASSOC_FAIL - 203
+                STAT_BEACON_TIMEOUT - Timeout-200
+                STAT_HANDSHAKE_TIMEOUT - Handshake timeout-204
+                """
+                print("exception doing s.connect") 
+                print("status", s.status())
                 if (s.status() == network.STAT_WRONG_PASSWORD):
                     self.error = ERROR_BAD_PASSWORD                     
                 elif (s.status() == network.STAT_NO_AP_FOUND):
                     self.error = ERROR_AP_NOT_FOUND
+                elif (s.status() == network.STAT_IDLE):
+                    self.error = ERROR_IDLE
                 else:
                     self.error = ERROR_AP_NOT_FOUND
                 raise
-
+            print("s.connect wifi s.status", s.status())
             for _ in range(60):  # Break out on fail or success. Check once per sec.
                 await asyncio.sleep(1)
                 # Loop while connecting or no IP
