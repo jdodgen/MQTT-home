@@ -30,10 +30,10 @@ VERSION = (0, 7, 2)
 
 # self.error values returned with .status()
 ERROR_OK = 0
-ERROR_AP_NOT_FOUND = 1
-ERROR_BAD_PASSWORD = 2
-ERROR_BROKER_LOOKUP_FAILED = 3
-ERROR_BROKER_CONNECT_FAILED =  4
+ERROR_AP_NOT_FOUND = 2
+ERROR_BAD_PASSWORD = 3
+ERROR_BROKER_LOOKUP_FAILED = 4
+ERROR_BROKER_CONNECT_FAILED =  5
 
 
 # Default short delay for good SynCom throughput (avoid sleep(0) with SynCom).

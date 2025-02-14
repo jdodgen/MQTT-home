@@ -11,6 +11,14 @@ import cfg
 import time
 import uasyncio as asyncio   # version for micropython
 
+
+# from mwtt_as.py 
+ERROR_OK = 0
+ERROR_AP_NOT_FOUND = 2
+ERROR_BAD_PASSWORD = 3
+ERROR_BROKER_LOOKUP_FAILED = 4
+ERROR_BROKER_CONNECT_FAILED =  5
+
 # conditional print
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
@@ -23,7 +31,7 @@ async def send_email(body):
   smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
   smtp.login(cfg.gmail_user, cfg.gmail_password)
   smtp.to(cfg.send_messages_to)
-  smtp.write("From: NotifyGenerator <notifygenerator@gmail.com>\n")
+  smtp.write("From: NotifyGenerator\n")
   smtp.write("Subject: Power Outage\n\n%s\n" % body)
   smtp.send()
   smtp.quit()
@@ -49,11 +57,16 @@ async def raw_messages(client):  # Respond to all incoming messages
             done = True
             if (on_generator == True):
                 seconds_on_generator = time.time() - start_time
-                hours_on = seconds_on_generator/3600 
-                await send_email("Power restored, Generator now off\nMinutes on Generator: %.1f\nHours on Generator:%.1f\nAverage cost to run: %.2f" % 
-                        (seconds_on_generator/60, hours_on,hours_on * cfg.cost_to_run))
+                hours = seconds_on_generator/3600 
+                minutes = seconds_on_generator/60
+                await send_email(
+'''
+Power restored, secondary power now off\n
+Minutes on secondary: %.1f
+Hours on secondary: %.1f
+''' %  (minutes, hours))
             else:
-                await send_email("Short loss of utility power, generator not running")
+                await send_email("Short loss of utility power, but it came back")
             led.turn_off()
             await client.unsubscribe(utility_status.topic())
     led.turn_off()
@@ -89,7 +102,14 @@ async def main(client):
         try:
             await client.connect()
         except:
-            await asyncio.sleep(1)
+            error_code = client.status()
+            if error_code >  0:
+                x = 0
+                while x < 15:
+                    led.flash(count=error_code, duration=0.4, ontime=0.4)
+                    x += 1
+                    time.sleep(2)
+            time.sleep(2)
             pass
         else:
             break
