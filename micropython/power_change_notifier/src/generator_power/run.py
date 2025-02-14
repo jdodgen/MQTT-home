@@ -79,7 +79,8 @@ async def main(client):
     global led
     
     utility_status  = feature_power.feature("utility_power_status", subscribe=True)
-    generator_status  = feature_power.feature("generator_power_status", publish=True)  # subscribe default is False so this is a publish
+    generator_status  = feature_power.feature("generator_power_status", publish=True) 
+    
     on_generator = False
     led = alert_handler.alert_handler(cfg.led_gpio, None)
     led.turn_on()
