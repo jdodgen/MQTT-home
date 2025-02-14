@@ -618,13 +618,15 @@ class MQTTClient(MQTT_base):
             try:
                 s.connect(self._ssid, self._wifi_pw)
             except:
-                print("exception doing s.connect [%s]" % (str(s.status())))
-            if (s.status() == network.STAT_WRONG_PASSWORD):
-                self.error = ERROR_BAD_PASSWORD
-                raise                      
-            elif (s.status() == network.STAT_NO_AP_FOUND):
-                self.error = ERROR_AP_NOT_FOUND
+                print("exception doing s.connect")  # [%s]" % (str(s.status())))
+                if (s.status() == network.STAT_WRONG_PASSWORD):
+                    self.error = ERROR_BAD_PASSWORD                     
+                elif (s.status() == network.STAT_NO_AP_FOUND):
+                    self.error = ERROR_AP_NOT_FOUND
+                else:
+                    self.error = ERROR_AP_NOT_FOUND
                 raise
+
             for _ in range(60):  # Break out on fail or success. Check once per sec.
                 await asyncio.sleep(1)
                 # Loop while connecting or no IP

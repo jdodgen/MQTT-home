@@ -105,11 +105,11 @@ async def main(client):
             error_code = client.status()
             if error_code >  0:
                 x = 0
-                while x < 15:
+                while x < 1:
                     led.flash(count=error_code, duration=0.4, ontime=0.4)
                     x += 1
-                    time.sleep(2)
-            time.sleep(2)
+                    time.sleep(1)
+            time.sleep(1)
             pass
         else:
             break
