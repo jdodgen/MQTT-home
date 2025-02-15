@@ -28,13 +28,17 @@ def print(*args, **kwargs): # replace print
     xprint("[run]", *args, **kwargs) # the copied real print
 
 async def send_email(body):
-  smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
-  smtp.login(cfg.gmail_user, cfg.gmail_password)
-  smtp.to(cfg.send_messages_to)
-  smtp.write("From: NotifyGenerator\n")
-  smtp.write("Subject: Power Outage\n\n%s\n" % body)
-  smtp.send()
-  smtp.quit()
+    try:
+        smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
+        smtp.login(cfg.gmail_user, cfg.gmail_password)
+        smtp.to(cfg.send_messages_to)
+        smtp.write("From: NotifyGenerator\n")
+        smtp.write("Subject: Power Outage\n\n%s\n" % body)
+        smtp.send()
+        smtp.quit()
+    except:
+        print("email failed", body) 
+
 
 done = False
 start_time = time.time()
@@ -120,6 +124,7 @@ async def main(client):
     await client.subscribe(utility_status.topic())
     print("waiting [%s] seconds to decide if on generator" % (cfg.number_of_seconds_to_wait,))    
     await asyncio.sleep(cfg.number_of_seconds_to_wait)
+    
     if done == False:  # we have recieved a "utl" message before the time-out
         print("timed out, sending on generator sms/email(s)")
         on_generator = True

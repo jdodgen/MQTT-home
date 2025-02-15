@@ -254,6 +254,7 @@ class MQTT_base:
         t = ticks_ms()
         while bytes_wr:
             if self._timeout(t) or not self.isconnected():
+                print("_as_write not connected")
                 raise OSError(-1, "Timeout on socket write")
             try:
                 n = sock.write(bytes_wr)
@@ -282,6 +283,7 @@ class MQTT_base:
             sh += 7
 
     async def _broker_connect(self, clean):
+        print("_broker_connect   _isconnected", self._isconnected)
         self._sock = socket.socket()
         self._sock.setblocking(False)
         try:
@@ -321,6 +323,7 @@ class MQTT_base:
         await self._as_write(premsg, i + 2)
         await self._as_write(msg)
         await self._send_str(self._client_id)
+        print("now doing _lw_topic")
         if self._lw_topic:
             await self._send_str(self._lw_topic)
             await self._send_str(self._lw_msg)
@@ -583,12 +586,13 @@ class MQTTClient(MQTT_base):
             esp.sleep_type(0)  # Improve connection integrity at cost of power consumption.
 
     async def wifi_connect(self, quick=False):
-        print("wifi_connect connect started")
+        print("wifi_connect started")
         s = self._sta_if
         if ESP8266:
             print("ESP8266")
             if s.isconnected():  # 1st attempt, already connected.
                 return
+            s.disc
             s.active(True)
             s.connect()  # ESP8266 remembers connection.
             for _ in range(60):
@@ -608,14 +612,12 @@ class MQTTClient(MQTT_base):
                 ):  # Break out on fail or success. Check once per sec.
                     await asyncio.sleep(1)
         else:
+            #s.disconnect()
             s.active(True)
-            print("wifi active true")
             if RP2:  # Disable auto-sleep.
                 # https://datasheets.raspberrypi.com/picow/connecting-to-the-internet-with-pico-w.pdf
                 # para 3.6.3
-                #print("wifi RPI")
                 s.config(pm=0xA11140)
-                #print("wifi RPI pm=0xA11140")
             print("wifi s.connect to [%s][%s]" % (self._ssid, self._wifi_pw))
             try:
                 s.connect(self._ssid, self._wifi_pw)
@@ -636,19 +638,30 @@ class MQTTClient(MQTT_base):
                     self.error = ERROR_BAD_PASSWORD                     
                 elif (s.status() == network.STAT_NO_AP_FOUND):
                     self.error = ERROR_AP_NOT_FOUND
-                elif (s.status() == network.STAT_IDLE):
-                    self.error = ERROR_IDLE
                 else:
-                    self.error = ERROR_AP_NOT_FOUND
+                    self.error = -1
                 raise
-            print("s.connect wifi s.status", s.status())
-            for _ in range(60):  # Break out on fail or success. Check once per sec.
+            print("wifi s.connect s.status", s.status())
+            for i in range(60):  # Break out on fail or success. Check once per sec.
                 await asyncio.sleep(1)
                 # Loop while connecting or no IP
+                print("wifi loop s.status", s.status(), i)
                 if s.isconnected():
+                    print("wifi isconnected break")
                     break
                 if ESP32:
-                    if s.status() != network.STAT_CONNECTING:  # 1001
+                    #if s.status() != network.STAT_CONNECTING:  # 1001
+                        #print("wifi STAT_CONNECTING break")
+                    if s.status() == network.STAT_GOT_IP:  # 1001
+                        print("wifi STAT_GOT_IP break")
+                        cnt=0
+                        while not s.isconnected():
+                            print("wifi waiting for isconnected", s.status())
+                            await asyncio.sleep(1)
+                            cnt += 1
+                            if cnt > 10:
+
+                                break
                         break
                 elif PYBOARD:  # No symbolic constants in network
                     if not 1 <= s.status() <= 2:
@@ -657,6 +670,7 @@ class MQTTClient(MQTT_base):
                     if not 1 <= s.status() <= 2:
                         break
             else:  # Timeout: still in connecting state
+                print("wifi waitloop no breaks")
                 s.disconnect()
                 await asyncio.sleep(1)
         print("checking wifi connection")
