@@ -5,7 +5,8 @@ import json
 
 # this configures and installs software
 # it replaces the cfg.py file each time it runs
-# Y N defalts are designed for development 
+# Y N defaults are designed for rapid deployment during development 
+# 
 
 # change wifi and message list to match your environment
 mp_lib_offset="../../../library/"
