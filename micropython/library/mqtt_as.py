@@ -756,7 +756,6 @@ class MQTTClient(MQTT_base):
                 async with self.lock:
                     await self.wait_msg()  # Immediate return if no message
                 await asyncio.sleep_ms(_DEFAULT_MS)  # Let other tasks get lock
-
         except OSError:
             pass
         self._reconnect()  # Broker or WiFi fail.
