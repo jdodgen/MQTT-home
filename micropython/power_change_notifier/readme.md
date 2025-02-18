@@ -22,7 +22,7 @@ Also the broker name needs to be the same subnet. In install.py default is "home
  - [ESP32-s2](https://www.wemos.cc/en/latest/s2/s2_mini.html) Mini microcontroler running micropython use the 2MB PSRAM veraion ESP32-S2FN4R2
  - 3V LED 5mm
  - 220ohm resistor
- - 8mm insulated hookup wire
+ - insulated hookup wire
  - 1/4 electrocookie perf board
  - 2 8 pin male header
  - 2 8 pin female header
