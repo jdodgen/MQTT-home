@@ -1,5 +1,9 @@
-# this part is plugged into an outlet that is 
-# NOT powered by the backup generator or other secondary power source.
+# utility outlet monitor
+# powered by utility power not powered by the backup generator or other secondary power source.
 
-it using a ESP32-S2 Mini board with a led/resistor to ground   
-[circut picture](../../circuit_picture.jpg)   
+flow:
+ - booting
+ - connect wifi
+ - connect to MQTT Broker
+ - flash a LED a short time
+ - publish power_alive messages forever
