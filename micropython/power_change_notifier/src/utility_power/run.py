@@ -32,30 +32,37 @@ async def conn_han(client):
     await mqtt_hello.send_hello(client, our_name, 
                         hardcoded_generic_description, 
                         power_status.get())
-  
+    
+async def problem_reporter(error_code):
+    if error_code >  0:
+        led.turn_off()
+        await asyncio.sleep(1)
+        x = 0
+        while x < 1:
+            led.flash(count=error_code, duration=0.4, ontime=0.4)
+            x += 1
+            await asyncio.sleep(1)
+        await asyncio.sleep(1)
+
 async def main(client):
     while True:
         print("checking client connection")
         try:
             await client.connect()
         except: 
+            print("connect failed")
             error_code = client.status()
-            if error_code >  0:
-                x = 0
-                while x < 1:
-                    led.flash(count=error_code, duration=0.4, ontime=0.4)
-                    x += 1
-                    time.sleep(1)
-            time.sleep(1)
+            await problem_reporter(error_code)
             pass
         else:
             break
+    await asyncio.sleep(2)
     led.flash(1)
     for _ in range(cfg.number_of_cycles_to_run):
         led.turn_on()
         await client.publish(power_status.topic(), power_status.payload_on())
         led.turn_off()
-        await asyncio.sleep(1)
+        await asyncio.sleep(4)
     led.turn_off()
     while True:
         await client.publish(power_status.topic(), power_status.payload_on())
@@ -69,6 +76,7 @@ config['connect_coro'] = conn_han
 config['server'] = cfg.server
 config['ssid'] = cfg.ssid
 config['wifi_pw'] = cfg.wifi_password
+config['problem_reporter'] = problem_reporter
 
 led.flash(2)  # I'm alive
 time.sleep(2)

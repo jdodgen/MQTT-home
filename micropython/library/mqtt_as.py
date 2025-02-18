@@ -122,6 +122,7 @@ config = {
     "wifi_pw": None,
     "queue_len": 0,
     "gateway" : False,
+    "problem_reporter" : False,
 }
 
 
@@ -153,6 +154,8 @@ class MQTT_base:
         self._client_id = config["client_id"]
         self._user = config["user"]
         self._pswd = config["password"]
+        self._problem_reporter = config["problem_reporter"]
+        print("self._problem_reporter", self._problem_reporter)
         self._keepalive = config["keepalive"]
         if self._keepalive >= 65536:
             raise ValueError("invalid keepalive time")
@@ -634,12 +637,11 @@ class MQTTClient(MQTT_base):
                 """
                 print("exception doing s.connect") 
                 print("status", s.status())
-                if (s.status() == network.STAT_WRONG_PASSWORD):
-                    self.error = ERROR_BAD_PASSWORD                     
-                elif (s.status() == network.STAT_NO_AP_FOUND):
-                    self.error = ERROR_AP_NOT_FOUND
-                else:
-                    self.error = -1
+            if (s.status() == network.STAT_WRONG_PASSWORD):
+                self.error = ERROR_BAD_PASSWORD 
+                raise                    
+            elif (s.status() == network.STAT_NO_AP_FOUND):
+                self.error = ERROR_AP_NOT_FOUND
                 raise
             print("wifi s.connect s.status", s.status())
             for i in range(60):  # Break out on fail or success. Check once per sec.
@@ -767,6 +769,8 @@ class MQTTClient(MQTT_base):
             pings_due = ticks_diff(ticks_ms(), self.last_rx) // self._ping_interval
             if pings_due >= 4:
                 print("Reconnect: broker fail.")
+                #if self._problem_reporter:
+                    #await self._problem_reporter(ERROR_BROKER_CONNECT_FAILED)
                 break
             await asyncio.sleep_ms(self._ping_interval)
             try:
@@ -822,21 +826,22 @@ class MQTTClient(MQTT_base):
                 try:
                     self._sta_if.disconnect()
                 except OSError:
-                    print("Wi-Fi not started, unable to disconnect interface")
+                    print("_keep_connected Wi-Fi not started, unable to disconnect interface")
                 await asyncio.sleep(1)
                 try:
                     await self.wifi_connect()
                 except OSError:
+                    print("_keep_connected wifi_connect failed")
                     continue
                 if not self._has_connected:  # User has issued the terminal .disconnect()
-                    print("Disconnected, exiting _keep_connected")
+                    print("_keep_connected Disconnected, exiting _keep_connected")
                     break
                 try:
                     await self.connect()
                     # Now has set ._isconnected and scheduled _connect_handler().
-                    print("Reconnect OK!")
+                    print("_keep_connected Reconnect OK!")
                 except OSError as e:
-                    print("Error in reconnect. %s" % (e))
+                    print("_keep_connected Error in reconnect. %s" % (e))
                     # Can get ECONNABORTED or -1. The latter signifies no or bad CONNACK received.
                     self._close()  # Disconnect and try again.
                     self._in_connect = False
