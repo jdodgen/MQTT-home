@@ -2,4 +2,4 @@
 # NOT powered by the backup generator or other secondary power source.
 
 it using a ESP32-S2 Mini board with a led/resistor to ground   
-[see:](../../../circuit _picture.jpg)   
+[see:](../../../circuit_picture.jpg)   
