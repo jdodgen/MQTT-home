@@ -7,12 +7,12 @@ Flow:
  - connect to MQTT Broker
  - MQTT subscribe to "utility_power_alive"  From [utility](../../utility_power)
  - MQTT publish secondary_powered_alive in a loop.
- - wait a few seconds for power_alive publish.
+ - wait a few seconds for utility_power_alive publish.
  - if utility_power_alive arrived?  quit
  - no utility_power_alive mesages arrived 
  - turn on LED
  - wait for power_alive publish
- - when power_alive arrives
+ - when utility_power_alive arrives
  - turn off LED
  - now idle until network problems. then flashes the error
  - 
