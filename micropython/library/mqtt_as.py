@@ -283,7 +283,7 @@ class MQTT_base:
             sh += 7
 
     async def _broker_connect(self, clean):
-        print("_broker_connect   _isconnected", self._isconnected)
+        print("_broker_connect at start  _isconnected", self._isconnected)
         self._sock = socket.socket()
         self._sock.setblocking(False)
         try:
