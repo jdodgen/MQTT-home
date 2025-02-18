@@ -11,7 +11,7 @@ flow:
 
 ### notes
 Flashing LED Codes:   
-   - 2 ssid not found
+   - 2 wifi ssid not found
    - 3 wifi password failed
    - 4 MQTT Broker DNS lookup failed
    - 5 unable to connect to the MQTT Broker
