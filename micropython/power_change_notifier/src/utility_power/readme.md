@@ -1,5 +1,17 @@
-# this part is plugged into an outlet that is 
-# NOT powered by the backup generator or other secondary power source.
+# utility outlet monitor
+### Powered by utility power and not powered by the generator/secondary power.
 
-it using a ESP32-S2 Mini board with a led/resistor to ground   
-[circut picture](../../circuit_picture.jpg)   
+flow:
+ - booting
+ - connect wifi
+ - connect to MQTT Broker
+ - flash a LED a short time
+ - publish utility_power_alive messages forever
+ - subscribed to by one or more [generator_power](../.../generator_power) devices or ?
+
+### notes
+Flashing LED Codes:   
+   - 2 wifi ssid not found
+   - 3 wifi password failed
+   - 4 MQTT Broker DNS lookup failed
+   - 5 unable to connect to the MQTT Broker
