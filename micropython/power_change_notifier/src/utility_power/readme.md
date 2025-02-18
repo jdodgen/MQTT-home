@@ -1,5 +1,5 @@
 # utility outlet monitor
-# powered by utility power not powered by the backup generator or other secondary power source.
+### Powered by utility power and not powered by the generator/secondary power.
 
 flow:
  - booting
