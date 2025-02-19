@@ -598,7 +598,7 @@ class MQTTClient(MQTT_base):
             s.disc
             s.active(True)
             s.connect()  # ESP8266 remembers connection.
-            for _ in range(60):
+            for _ in range(10):
                 if (s.status() != network.STAT_CONNECTING):  # Break out on fail or success. Check once per sec.
                     break
                 await asyncio.sleep(1)
