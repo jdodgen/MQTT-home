@@ -830,8 +830,9 @@ class MQTTClient(MQTT_base):
                 await asyncio.sleep(1)
                 try:
                     await self.wifi_connect()
-                except OSError:
-                    print("_keep_connected wifi_connect failed")
+                except:
+                    print("_keep_connected wifi_connect failed, error[%s]" % (self.error))
+                    await self._problem_reporter(self.error)
                     continue
                 if not self._has_connected:  # User has issued the terminal .disconnect()
                     print("_keep_connected Disconnected, exiting _keep_connected")
@@ -841,7 +842,8 @@ class MQTTClient(MQTT_base):
                     # Now has set ._isconnected and scheduled _connect_handler().
                     print("_keep_connected Reconnect OK!")
                 except OSError as e:
-                    print("_keep_connected Error in reconnect. %s" % (e))
+                    print("_keep_connected Error in reconnect[%s] error[%s]" % (e,self.error))
+                    await self._problem_reporter(self.error)
                     # Can get ECONNABORTED or -1. The latter signifies no or bad CONNACK received.
                     self._close()  # Disconnect and try again.
                     self._in_connect = False
