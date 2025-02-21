@@ -70,6 +70,12 @@ def print(*args, **kwargs): # replace print
 async def eliza(*_):  # e.g. via set_wifi_handler(coro): see test program
     await asyncio.sleep_ms(_DEFAULT_MS)
 
+# Default problem_reporter
+def default_problem_reporter(error):
+    try:
+        xprint("default_problem_reporter",error)
+    except:
+        xprint("default_problem_reporter error broke")
 
 class MsgQueue:
     def __init__(self, size):
@@ -122,7 +128,7 @@ config = {
     "wifi_pw": None,
     "queue_len": 0,
     "gateway" : False,
-    "problem_reporter" : False,
+    "problem_reporter" : default_problem_reporter,
 }
 
 
