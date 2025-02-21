@@ -1,32 +1,55 @@
-# MIT license copyright Jim Dodgen 2025
+# MIT license copyright 2024 Jim Dodgen
 import os
-# this configures and installs software
+import datetime
+import json
 
-# change these to match your environment
+# this configures and installs software
+# it replaces the cfg.py file each time it runs
+# Y N defalts are designed for development 
+
+# change wifi and message list to match your environment
 mp_lib_offset="../../../library/"
 all_lib_offset="../../../../library/"
 
-ssid = '???' 
-wifi_password = '???'
+jd=False
+sn=True
+example=False
+if (example):
+    ssid =  "???" 
+    wifi_password = '????????'
+    broker='home-broker.local'
+elif (jd):
+    ssid =  "xxxxx" 
+    wifi_password = 'xxxxxx'
+    broker="home-broker.local" 
+elif (sn):
+    ssid =  "xxxxx" 
+    wifi_password = 'xxxxxxx'
+    broker='home-broker.local'
 
+# this is the cfg.py template uses % to pass in stuff
 cfg_template = """
-# THIS cfg.py CREATED OR REPLACED BUY install.py
+# MIT license copyright 2024, 2025 Jim Dodgen
+# this cfg.py was created by: install.py
+# Date: %s 
 # MAKE YOUR CHANGES IN install.py
 #
-# we monitor a really NO and NC COM is going to ground.
-led_gpio     = 3      # "D3"  white 
+led_gpio = 3  # "D3" on D1-Mini proto card
 #
-# best to have a firewalled off wifi ssid for IoT things
 ssid="%s"
 wifi_password = "%s"
-
-number_of_cycles_to_run=120
-server = 'home-broker.local'
+#
+start_delay=10
+number_of_cycles_to_run=60 # 4 minutes
+server = '%s'
 """
 
+print("[%s][%s] [%s]\n" % (ssid, wifi_password, broker,))
+now = datetime.datetime.now()
 with open('cfg.py', 'w') as f:
-    f.write(cfg_template % (ssid, wifi_password))
-
+    f.write(cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"), 
+    ssid, wifi_password, broker))
+print ("press and hold O the press R momentary release O to allow flash, to install micropython")
 print("install micropython? (y,N)")
 ans = input()
 if (ans.upper() == "Y"):
@@ -47,7 +70,6 @@ if (ans.upper() == "Y"):
     all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_power.py",
     ]
-
     print("now pushing python support code")
     for c in code:
         print("installing", c)
@@ -57,14 +79,15 @@ print("install application code? (Y,n)")
 ans = input()
 if (ans.upper() != "N"):
     code = [
-    "run.py",
     "cfg.py",
+    "run.py",
+    #mp_lib_offset+"mqtt_as.py",
     ]
-
-    print("now pushing python IoD code")
+    print("now pushing python application code")
     for c in code:
         print("installing", c)
         os.system("ampy --port /dev/ttyACM0 put "+c)
+
 print("\ncurrent contents of flash")
 os.system("ampy --port /dev/ttyACM0 ls")
-print("\n  picocom -b 115200 /dev/ttyACM0")
+print("\npicocom -b 115200 /dev/ttyACM0")
