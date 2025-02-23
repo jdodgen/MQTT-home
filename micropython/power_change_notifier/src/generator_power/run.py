@@ -43,11 +43,10 @@ async def send_email(body):
     except:
         print("email failed", body) 
 
-
 done = False
 start_time = time.time()
 
-async def raw_messages(client):  # Respond to all incoming messages 
+async def raw_messages(client):  # Process all incoming messages 
     global led
     global done
     global utility_status
@@ -57,10 +56,11 @@ async def raw_messages(client):  # Respond to all incoming messages
     async for btopic, bmsg, retained in client.queue:
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
+        print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))
+        await client.subscribe(utility_status.topic())
         if done == True:
             time.sleep(60)
             break
-        print("callback [%s][%s][%s]" % (topic, msg, retained,))
         if (topic == utility_status.topic()):  # just getting the published message means utility outlet is powered, payload not important
             done = True
             if (on_generator == True):
@@ -74,7 +74,7 @@ Minutes on secondary: %.1f
 Hours on secondary: %.1f
 ''' %  (minutes, hours))
             else:
-                await send_email("Short loss of utility power, but it came back")
+                await send_email("Short loss of utility power")
             led.turn_off()
             await client.unsubscribe(utility_status.topic())
     led.turn_off()

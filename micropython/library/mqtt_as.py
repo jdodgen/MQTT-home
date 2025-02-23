@@ -708,6 +708,7 @@ class MQTTClient(MQTT_base):
             raise
 
     async def connect(self, *, quick=False):  # Quick initial connect option for battery apps
+        async with self.con_lock:
         print("mqtt connect started")
         if not self._has_connected:
             try:
