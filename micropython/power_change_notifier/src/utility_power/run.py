@@ -7,6 +7,10 @@ import mqtt_hello
 import alert_handler
 import cfg
 import time
+import network
+
+network.hostname(cfg.host_name)
+print("I am", network.hostname())
 
 # unusual MQTT code but it works
 # this boots up and publishes a" payload_on" in a loop
@@ -66,8 +70,8 @@ async def main(client):
     led.turn_off()
     while True:
         await client.publish(power_status.topic(), power_status.payload_on())
-        time.sleep(10*60) # ten minutes ... just for status
-        # also incase gen wall wart is power cycled
+        time.sleep(60) # 1 minute
+        # subscribers can monitor this to detect a pulse, one per minute
      # when we exit just shutdown and turn off 
      
 #config['subs_cb'] = callback
