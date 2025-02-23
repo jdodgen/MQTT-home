@@ -71,11 +71,12 @@ async def eliza(*_):  # e.g. via set_wifi_handler(coro): see test program
     await asyncio.sleep_ms(_DEFAULT_MS)
 
 # Default problem_reporter
-def default_problem_reporter(error):
+async def default_problem_reporter(error):
     try:
         xprint("default_problem_reporter",error)
     except:
         xprint("default_problem_reporter error broke")
+    print("default_problem_reporter done")
 
 class MsgQueue:
     def __init__(self, size):
@@ -292,7 +293,7 @@ class MQTT_base:
             sh += 7
 
     async def _broker_connect(self, clean):
-        print("_broker_connect at start  _isconnected", self._isconnected)
+        print("_broker_connect at start  _isconnected", self._isconnected, self._addr)
         self._sock = socket.socket()
         self._sock.setblocking(False)
         try:
@@ -342,7 +343,7 @@ class MQTT_base:
         # Await CONNACK
         # read causes ECONNABORTED if broker is out; triggers a reconnect.
         resp = await self._as_read(4)
-        print("Connected to broker")  # Got CONNACK
+        print("Connected to broker resp", resp)  # Got CONNACK
         if resp[3] != 0 or resp[0] != 0x20 or resp[1] != 0x02:  # Bad CONNACK e.g. authentication fail.
             raise OSError(-1, f"Connect fail: 0x{(resp[0] << 8) + resp[1]:04x} {resp[3]} (README 7)")
 
@@ -655,7 +656,7 @@ class MQTTClient(MQTT_base):
                 # Loop while connecting or no IP
                 print("wifi loop s.status", s.status(), i)
                 if s.isconnected():
-                    print("wifi isconnected break")
+                    print("wifi isconnected so break")
                     break
                 if ESP32:
                     #if s.status() != network.STAT_CONNECTING:  # 1001
@@ -692,7 +693,19 @@ class MQTTClient(MQTT_base):
                 if not s.isconnected():
                     raise OSError("Connection Unstable")  # in 1st 5 secs
                 await asyncio.sleep(1)
-            print("wifi_connect Got reliable connection")
+            print("wifi_connect +++ Got reliable connection +++")
+            
+    async def get_broker_ip_port(self):
+        # Note this blocks if DNS lookup occurs. Do it once to prevent
+        # blocking during later internet outage:
+        print("connect getaddrinfo for: %s:%s" % (self.server,self.port))
+        try:
+            self._addr = socket.getaddrinfo(self.server, self.port)[0][-1]
+            print("getaddrinfo lookup worked", self._addr)
+        except:
+            print("getaddrinfo lookup failed")
+            self.error = ERROR_BROKER_LOOKUP_FAILED
+            raise
 
     async def connect(self, *, quick=False):  # Quick initial connect option for battery apps
         print("mqtt connect started")
@@ -704,14 +717,15 @@ class MQTTClient(MQTT_base):
                 raise # no wifi connection so bye
             # Note this blocks if DNS lookup occurs. Do it once to prevent
             # blocking during later internet outage:
-            print("connect getaddrinfo for: %s:%s" % (self.server,self.port))
-            try:
-                self._addr = socket.getaddrinfo(self.server, self.port)[0][-1]
-                print("getaddrinfo lookup worked")
-            except:
-                print("getaddrinfo lookup failed")
-                self.error = ERROR_BROKER_LOOKUP_FAILED
-                raise
+            await self.get_broker_ip_port()
+            # print("connect getaddrinfo for: %s:%s" % (self.server,self.port))
+            # try:
+            #     self._addr = socket.getaddrinfo(self.server, self.port)[0][-1]
+            #     print("getaddrinfo lookup worked", self._addr)
+            # except:
+            #     print("getaddrinfo lookup failed")
+            #     self.error = ERROR_BROKER_LOOKUP_FAILED
+            #     raise
         self._in_connect = True  # Disable low level ._isconnected check
         try:
             if not self._has_connected and self._clean_init and not self._clean:

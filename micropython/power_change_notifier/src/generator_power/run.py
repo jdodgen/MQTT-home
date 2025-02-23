@@ -10,6 +10,10 @@ import alert_handler
 import cfg
 import time
 import uasyncio as asyncio   # version for micropython
+import network
+
+network.hostname(cfg.host_name)
+print("I am", network.hostname())
 
 
 # from mwtt_as.py 
@@ -84,7 +88,7 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         client.up.clear()
         await client.subscribe(utility_status.topic())
         # who am I sends a MQTT_hello message
-        mqtt_hello.send_hello(client, "generator_power_status", "When running publishes \"power on\" in a loop, quits in an hour after boot",
+        await mqtt_hello.send_hello(client, "generator_power_status", "When running publishes \"power on\" in a loop, quits in an hour after boot",
         generator_status.get(),
         utility_status.get())
         await client.publish(generator_status.topic(), generator_status.payload_on())  
