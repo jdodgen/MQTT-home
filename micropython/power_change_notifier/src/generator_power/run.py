@@ -91,6 +91,7 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         await mqtt_hello.send_hello(client, "generator_power_status", "When running publishes \"power on\" in a loop, quits in an hour after boot",
         generator_status.get(),
         utility_status.get())
+        print("check_if_up pub gen status")
         await client.publish(generator_status.topic(), generator_status.payload_on())  
                          
 async def main(client):

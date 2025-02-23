@@ -708,7 +708,7 @@ class MQTTClient(MQTT_base):
             raise
 
     async def connect(self, *, quick=False):  # Quick initial connect option for battery apps
-        async with self.con_lock:
+        #async with self.con_lock:
         print("mqtt connect started")
         if not self._has_connected:
             try:
@@ -859,7 +859,8 @@ class MQTTClient(MQTT_base):
                     print("_keep_connected Disconnected, exiting _keep_connected")
                     break
                 try:
-                    await self.connect()
+                    await self._broker_connect()  # Connect with clean session
+                    # await self.connect()
                     # Now has set ._isconnected and scheduled _connect_handler().
                     print("_keep_connected Reconnect OK!")
                 except OSError as e:
