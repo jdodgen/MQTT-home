@@ -93,7 +93,18 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
         utility_status.get())
         print("check_if_up pub gen status")
         await client.publish(generator_status.topic(), generator_status.payload_on())  
-                         
+        
+async def problem_reporter(error_code):
+    if error_code >  0:
+        led.turn_off()
+        await asyncio.sleep(1)
+        x = 0
+        while x < 1:
+            led.flash(count=error_code, duration=0.4, ontime=0.4)
+            x += 1
+            await asyncio.sleep(1)
+        await asyncio.sleep(1)      
+        
 async def main(client):
     global utility_status
     global generator_status
@@ -137,6 +148,7 @@ async def main(client):
         await asyncio.sleep(1000)
         # waiting for subscribe to callback 
 
+############ startup ###############
 time.sleep(cfg.start_delay)
 print("starting")
 # Local configuration, "config" came from mqtt_as
@@ -144,6 +156,7 @@ config['ssid'] = cfg.ssid
 config['wifi_pw'] = cfg.wifi_password
 config['server'] = cfg.server 
 config["queue_len"] = 1  # Use event interface with default queue size
+config['problem_reporter'] = problem_reporter
 
 MQTTClient.DEBUG = True  # Optional: print diagnostic messages
 client = MQTTClient(config)
