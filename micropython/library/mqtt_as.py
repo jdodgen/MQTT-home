@@ -223,7 +223,9 @@ class MQTT_base:
         self._lw_retain = retain
 
     def _timeout(self, t):
-        return ticks_diff(ticks_ms(), t) > self._response_time
+        diff = ticks_diff(ticks_ms(), t)
+        print ("_timeout diff", diff, "t", t)
+        return diff > self._response_time
 
     async def _as_read(self, n, sock=None):  # OSError caught by superclass
         if sock is None:
@@ -238,7 +240,7 @@ class MQTT_base:
         while size < n:
             con = self.isconnected()
             time_out = self._timeout(t)
-            print("_as_read isconnected", con, "timeout", time_out)
+            print("_as_read isconnected[", con, "]timeout[", time_out,"]")
             if time_out or not con:
                 print("_as_read timed out")
                 raise OSError(-1, "Timeout on socket read")
@@ -271,6 +273,7 @@ class MQTT_base:
             time_out = self._timeout(t) 
             print("_as_write not isconnected", time_out, con, self._isconnected)
             if time_out or not con:
+                
                 raise OSError(-1, "Timeout on socket write")
             try:
                 n = sock.write(bytes_wr)
@@ -360,7 +363,7 @@ class MQTT_base:
             print("_broker_connect bad CONNACK") 
             raise OSError(-1, f"Connect fail: 0x{(resp[0] << 8) + resp[1]:04x} {resp[3]} (README 7)")
         print("++++ broker connected ++++")
-        
+
     async def _ping(self):
         async with self.lock:
             await self._as_write(b"\xc0\0")
