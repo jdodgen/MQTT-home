@@ -9,7 +9,7 @@ import mqtt_hello
 import alert_handler
 import cfg
 import time
-import uasyncio as asyncio   # version for micropython
+import asyncio
 import network
 
 network.hostname(cfg.host_name)
