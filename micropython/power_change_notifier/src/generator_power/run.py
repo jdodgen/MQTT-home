@@ -106,10 +106,12 @@ async def main(client):
     on_generator = False
     led = alert_handler.alert_handler(cfg.led_gpio, None)
     
+    #while True:
+    print("checking connection")
     while True:
-        print("checking connection")
         try:
-            await client.connect()
+            await client.initial_connect()
+            break
         except:
             error_code = client.status()
             if error_code >  0:
@@ -118,10 +120,7 @@ async def main(client):
                     led.flash(count=error_code, duration=0.4, ontime=0.4)
                     x += 1
                     time.sleep(1)
-            time.sleep(1)
-            pass
-        else:
-            break
+        time.sleep(1)
     led.turn_on()
     # these are loops and run forever
     asyncio.create_task(check_if_up(client))
