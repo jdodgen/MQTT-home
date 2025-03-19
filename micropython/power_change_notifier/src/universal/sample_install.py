@@ -1,4 +1,4 @@
-# MIT license copyright 2024 Jim Dodgen
+# MIT license copyright 2024,2025 Jim Dodgen
 import os
 import datetime
 import json
@@ -11,6 +11,21 @@ import json
 # change wifi and message list to match your environment
 mp_lib_offset="../../../library/"
 all_lib_offset="../../../../library/"
+
+s_a = "Generator"
+s_b = "Utility"
+
+this_system = "a"  
+
+if (this_system == "a"):
+    publish_to = s_a
+    subscribe_from = s_b
+else:
+    publish_to = s_b
+    subscribe_from = s_a
+
+
+
 
 jd=False
 sn=True
@@ -63,12 +78,15 @@ gmail_password = "%s" # gmail generates this I can change it in the future
 gmail_user = "%s"
 # gen cost to run per hour https://generatorsupercenter.com/how-much-do-generators-cost-to-run/
 cost_to_run = 1.88  # in any currency 
+publish_to = "%s"
+subscribe_from = "%s"
 """
 now = datetime.datetime.now()
 with open('cfg.py', 'w') as f:
     f.write(cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"), 
     ssid, wifi_password, broker, to_list,
-    gmail_password, gmail_user )) #json.dumps(to_list)))
+    gmail_password, gmail_user,
+    publish_to, subscribe_from )) #json.dumps(to_list)))
 print ("press and hold O the press R momentary release O to allow flash, to install micropython")
 print("install micropython? (y,N)")
 ans = input()
