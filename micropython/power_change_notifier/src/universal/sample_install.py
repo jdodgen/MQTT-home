@@ -1,4 +1,4 @@
-# MIT license copyright 2024,2025 Jim Dodgen
+# MIT license copyright 2024, 2025 Jim Dodgen
 import os
 import datetime
 import json
@@ -65,8 +65,10 @@ led_gpio = 3  # "D3" on D1-Mini proto card
 ssid="%s"
 wifi_password = "%s"
 #
-start_delay=10
-number_of_seconds_to_wait=60
+start_delay=120 # startup time, give other time to boot
+number_of_seconds_to_wait=60  # messages published and checked 
+other_message_threshold=5  # how many number_of_seconds_to_wait to indicate other is down
+#
 server = '%s'
 #
 # a python list of one or more email addresses ["9095551212@tmomail.net", "you@gmail.com"]
@@ -76,8 +78,7 @@ send_messages_to = %s
 #
 gmail_password = "%s" # gmail generates this I can change it in the future
 gmail_user = "%s"
-# gen cost to run per hour https://generatorsupercenter.com/how-much-do-generators-cost-to-run/
-cost_to_run = 1.88  # in any currency 
+
 publish_to = "%s"
 subscribe_from = "%s"
 """

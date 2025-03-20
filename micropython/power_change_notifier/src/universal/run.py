@@ -15,6 +15,9 @@ import network
 network.hostname(cfg.host_name)
 print("I am", network.hostname())
 
+other_status  = feature_power.feature(cfg.subscribe, subscribe=True)
+our_status    = feature_power.feature(cfg.publish, publish=True) 
+
 
 # from mwtt_as.py 
 ERROR_OK = 0
@@ -31,43 +34,12 @@ def print(*args, **kwargs): # replace print
     #xprint('statement before print')
     xprint("[run]", *args, **kwargs) # the copied real print
 
-async def send_email(body):
-    try:
-        smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
-        smtp.login(cfg.gmail_user, cfg.gmail_password)
-        smtp.to(cfg.send_messages_to)
-        smtp.write("From: NotifyGenerator\n")
-        smtp.write("Subject: Power Outage\n\n%s\n" % body)
-        smtp.send()
-        smtp.quit()
-    except:
-        print("email failed", body) 
-
-done = False
-start_time = time.time()
-
-async def raw_messages(client):  # Process all incoming messages 
-    global led
-    global done
-    global utility_status
-    global start_time
-
-    # loop on message queue
-    async for btopic, bmsg, retained in client.queue:
-        topic = btopic.decode('utf-8')
-        msg = bmsg.decode('utf-8')
-        print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))
-        await client.subscribe(utility_status.topic())
-        if done == True:
-            time.sleep(60)
-            break
-        if (topic == utility_status.topic()):  # just getting the published message means utility outlet is powered, payload not important
-            done = True
-            if (on_generator == True):
-                seconds_on_generator = time.time() - start_time
-                hours = seconds_on_generator/3600 
-                minutes = seconds_on_generator/60
-                await send_email(
+"""
+if (on_generator == True):
+    seconds_on_generator = time.time() - start_time
+    hours = seconds_on_generator/3600 
+    minutes = seconds_on_generator/60
+    await send_email(
 '''
 Power restored, secondary power now off\n
 Minutes on secondary: %.1f
@@ -76,8 +48,42 @@ Hours on secondary: %.1f
             else:
                 await send_email("Short loss of utility power")
             led.turn_off()
-            await client.unsubscribe(utility_status.topic())
+            await client.unsubscribe(other_status.topic())
     led.turn_off()
+"""
+async def send_email(body):
+    try:
+        smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
+        smtp.login(cfg.gmail_user, cfg.gmail_password)
+        smtp.to(cfg.send_messages_to)
+        smtp.write("From: %s\n" % (cfg.publish,))
+        smtp.write("Subject: Power Outage\n\n%s\n" % body)
+        smtp.send()
+        smtp.quit()
+    except:
+        print("email failed", body) 
+
+got_other_message = False
+start_time = time.time()
+
+async def raw_messages(client):  # Process all incoming messages 
+    global led
+    global got_other_message
+    global other_status
+    global start_time
+
+    # loop on message queue
+    async for btopic, bmsg, retained in client.queue:
+        topic = btopic.decode('utf-8')
+        msg = bmsg.decode('utf-8')
+        print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))
+        await client.subscribe(other_status.topic())
+        if got_other_message == True:
+            await asyncio.sleep(60)
+            break
+        if (topic == other_status.topic()):  # just getting the published message means utility outlet is powered, payload not important
+            got_other_message = True
+            
     print("raw_messages exiting")
 
 async def check_if_up(client):  # Respond to connectivity being (re)established
@@ -86,13 +92,13 @@ async def check_if_up(client):  # Respond to connectivity being (re)established
     while True:
         await client.up.wait()  # Wait on an Event
         client.up.clear()
-        await client.subscribe(utility_status.topic())
+        await client.subscribe(other_status.topic())
         # who am I sends a MQTT_hello message
-        await mqtt_hello.send_hello(client, "generator_power_status", "When running publishes \"power on\" in a loop, quits in an hour after boot",
-        generator_status.get(),
-        utility_status.get())
+        await mqtt_hello.send_hello(client, "our_status", "When running publishes \"power on\" in a loop",
+        our_status.get(),
+        other_status.get())
         print("check_if_up pub gen status")
-        await client.publish(generator_status.topic(), generator_status.payload_on())  
+        await client.publish(our_status.topic(), our_status.payload_on())  
         
 async def problem_reporter(error_code):
     if error_code >  0:
@@ -106,15 +112,12 @@ async def problem_reporter(error_code):
         await asyncio.sleep(1)      
         
 async def main(client):
-    global utility_status
-    global generator_status
+    global other_status
+    global our_status
     global on_generator
     global led
     
-    utility_status  = feature_power.feature("utility_power_status", subscribe=True)
-    generator_status  = feature_power.feature("generator_power_status", publish=True) 
-    
-    on_generator = False
+    other_is_running = False
     led = alert_handler.alert_handler(cfg.led_gpio, None)
     
     #while True:
@@ -132,21 +135,35 @@ async def main(client):
                     x += 1
                     time.sleep(1)
         time.sleep(1)
-    led.turn_on()
+    # led.turn_on()
     # these are loops and run forever
     asyncio.create_task(check_if_up(client))
     asyncio.create_task(raw_messages(client))
-    await client.subscribe(utility_status.topic())
-    print("waiting [%s] seconds to decide if on generator" % (cfg.number_of_seconds_to_wait,))    
-    await asyncio.sleep(cfg.number_of_seconds_to_wait)
-    
-    if done == False:  # we have recieved a "utl" message before the time-out
-        print("timed out, sending on generator sms/email(s)")
-        on_generator = True
-        await send_email("No utility power: Now on secondary power")
-    while True: # loop forever
-        await asyncio.sleep(1000)
-        # waiting for subscribe to callback 
+    await client.subscribe(other_status.topic())
+    # now starting up 
+    print("waiting [%s] seconds for other to boot and publish" % (cfg.start_delay,))    
+    await asyncio.sleep(cfg.start_delay)
+    have_we_sent_down_email = False
+    while True:  # top loop checking to see of other has published
+        await client.publish(our_status.topic(), our_status.payload_on())  
+        if got_other_message == False:  # nothing came in this cycle
+            no_other_cnt += 1
+            if (no_other_cnt > cfg.other_message_threshold):
+                if (not have_we_sent_down_email):
+                    await send_email("%s is down: %s has power" % (cfg.subscribe, cfg.publish))
+                    have_we_sent_down_email = True
+                    led.turn_on()
+        else:
+            got_other_message = False   # got one, wait for another
+            if (have_we_sent_down_email):   # we reported that other was down 
+                have_we_sent_down_email = False
+                seconds_on_generator = time.time() - start_time
+                hours = seconds_on_generator/3600 
+                minutes = seconds_on_generator/60
+                await send_email(
+                    "Power restored, for %s\nMinutes: %.1f\nHours: %.1f" %  (cfg.subscribe, minutes, hours))
+            led.turn_off()
+        await asyncio.sleep(cfg.number_of_seconds_to_wait)
 
 ############ startup ###############
 time.sleep(cfg.start_delay)
