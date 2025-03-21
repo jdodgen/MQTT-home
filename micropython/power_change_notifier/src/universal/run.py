@@ -12,14 +12,16 @@ import time
 import asyncio
 import network
 
-network.hostname(cfg.host_name)
-print("I am", network.hostname())
+#network.hostname(cfg.host_name)
+#print("I am", network.hostname())
 
 other_status  = feature_power.feature(cfg.subscribe, subscribe=True)
+
+
 our_status    = feature_power.feature(cfg.publish, publish=True) 
 
 
-# from mwtt_as.py 
+# from mqtt_as.py 
 ERROR_OK = 0
 ERROR_AP_NOT_FOUND = 2
 ERROR_BAD_PASSWORD = 3
@@ -34,29 +36,12 @@ def print(*args, **kwargs): # replace print
     #xprint('statement before print')
     xprint("[run]", *args, **kwargs) # the copied real print
 
-"""
-if (on_generator == True):
-    seconds_on_generator = time.time() - start_time
-    hours = seconds_on_generator/3600 
-    minutes = seconds_on_generator/60
-    await send_email(
-'''
-Power restored, secondary power now off\n
-Minutes on secondary: %.1f
-Hours on secondary: %.1f
-''' %  (minutes, hours))
-            else:
-                await send_email("Short loss of utility power")
-            led.turn_off()
-            await client.unsubscribe(other_status.topic())
-    led.turn_off()
-"""
 async def send_email(body):
     try:
         smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
         smtp.login(cfg.gmail_user, cfg.gmail_password)
         smtp.to(cfg.send_messages_to)
-        smtp.write("From: %s\n" % (cfg.publish,))
+        smtp.write("From: device [%s]\n" % (cfg.publish,))
         smtp.write("Subject: Power Outage\n\n%s\n" % body)
         smtp.send()
         smtp.quit()
@@ -65,24 +50,30 @@ async def send_email(body):
 
 got_other_message = False
 start_time = time.time()
+have_we_sent_power_is_down_email = False
 
 async def raw_messages(client):  # Process all incoming messages 
     global led
     global got_other_message
     global other_status
     global start_time
-
+    global have_we_sent_power_is_down_email
     # loop on message queue
     async for btopic, bmsg, retained in client.queue:
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
-        print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))
-        await client.subscribe(other_status.topic())
-        if got_other_message == True:
-            await asyncio.sleep(60)
-            break
+        print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))        
         if (topic == other_status.topic()):  # just getting the published message means utility outlet is powered, payload not important
             got_other_message = True
+            if have_we_sent_power_is_down_email:
+                have_we_sent_power_is_down_email = False
+                seconds_on_generator = time.time() - start_time
+                hours = seconds_on_generator/3600 
+                minutes = seconds_on_generator/60
+                await send_email(
+                    "Power restored to [%s]\nDown, Minutes: %.1f (Hours: %.1f)" %  
+                                (cfg.subscribe, minutes, hours))
+
             
     print("raw_messages exiting")
 
@@ -114,8 +105,9 @@ async def problem_reporter(error_code):
 async def main(client):
     global other_status
     global our_status
-    global on_generator
+    global got_other_message
     global led
+    global have_we_sent_power_is_down_email
     
     other_is_running = False
     led = alert_handler.alert_handler(cfg.led_gpio, None)
@@ -143,26 +135,25 @@ async def main(client):
     # now starting up 
     print("waiting [%s] seconds for other to boot and publish" % (cfg.start_delay,))    
     await asyncio.sleep(cfg.start_delay)
-    have_we_sent_down_email = False
+    
+    no_other_cnt = 0
+    resub_loop_count = 0
     while True:  # top loop checking to see of other has published
         await client.publish(our_status.topic(), our_status.payload_on())  
-        if got_other_message == False:  # nothing came in this cycle
+        if got_other_message == False:  # no message(s) this cycle
             no_other_cnt += 1
             if (no_other_cnt > cfg.other_message_threshold):
-                if (not have_we_sent_down_email):
-                    await send_email("%s is down: %s has power" % (cfg.subscribe, cfg.publish))
-                    have_we_sent_down_email = True
+                if (not have_we_sent_power_is_down_email):
+                    await send_email("[%s]down: [%s]up" % (cfg.subscribe, cfg.publish))
+                    have_we_sent_power_is_down_email = True
                     led.turn_on()
-        else:
+        else:  # other message(s) have arrived
             got_other_message = False   # got one, wait for another
-            if (have_we_sent_down_email):   # we reported that other was down 
-                have_we_sent_down_email = False
-                seconds_on_generator = time.time() - start_time
-                hours = seconds_on_generator/3600 
-                minutes = seconds_on_generator/60
-                await send_email(
-                    "Power restored, for %s\nMinutes: %.1f\nHours: %.1f" %  (cfg.subscribe, minutes, hours))
             led.turn_off()
+        if (cfg.subscribe_interval < resub_loop_count):
+            resub_loop_count = 0
+            await client.subscribe(other_status.topic())
+        resub_loop_count += 1  
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
 
 ############ startup ###############
