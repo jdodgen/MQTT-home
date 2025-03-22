@@ -41,7 +41,7 @@ async def send_email(body):
         smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
         smtp.login(cfg.gmail_user, cfg.gmail_password)
         smtp.to(cfg.send_messages_to)
-        smtp.write("From: device [%s]\n" % (cfg.publish,))
+        smtp.write("From: device [%s] Reporting\n" % (cfg.publish,))
         smtp.write("Subject: Power Outage\n\n%s\n" % body)
         smtp.send()
         smtp.quit()
@@ -49,7 +49,7 @@ async def send_email(body):
         print("email failed", body) 
 
 got_other_message = False
-start_time = time.time()
+start_time = 0
 have_we_sent_power_is_down_email = False
 
 async def raw_messages(client):  # Process all incoming messages 
@@ -144,8 +144,9 @@ async def main(client):
             no_other_cnt += 1
             if (no_other_cnt > cfg.other_message_threshold):
                 if (not have_we_sent_power_is_down_email):
-                    await send_email("[%s]down: [%s]up" % (cfg.subscribe, cfg.publish))
+                    await send_email("[%s]down\n[%s]up" % (cfg.subscribe, cfg.publish))
                     have_we_sent_power_is_down_email = True
+                    start_time = time.time()
                     led.turn_on()
         else:  # other message(s) have arrived
             got_other_message = False   # got one, wait for another
