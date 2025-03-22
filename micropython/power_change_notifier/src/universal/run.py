@@ -10,15 +10,15 @@ import alert_handler
 import cfg
 import time
 import asyncio
-import network
 
+# imort network
 #network.hostname(cfg.host_name)
 #print("I am", network.hostname())
 
 other_status  = feature_power.feature(cfg.subscribe, subscribe=True)
 
 
-our_status    = feature_power.feature(cfg.publish, publish=True) 
+our_status    = feature_power.feature(cfg.publish, publish=True)   # publisher
 
 
 # from mqtt_as.py 
@@ -41,7 +41,7 @@ async def send_email(body):
         smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
         smtp.login(cfg.gmail_user, cfg.gmail_password)
         smtp.to(cfg.send_messages_to)
-        smtp.write("From: device [%s] Reporting\n" % (cfg.publish,))
+        smtp.write("From: device [%s] Reporting\n" % (cfg.publish,))      # publisher
         smtp.write("Subject: Power Outage\n\n%s\n" % body)
         smtp.send()
         smtp.quit()
@@ -73,6 +73,7 @@ async def raw_messages(client):  # Process all incoming messages
                 await send_email(
                     "Power restored to [%s]\nDown, Minutes: %.1f (Hours: %.1f)" %  
                                 (cfg.subscribe, minutes, hours))
+                start_time=0
 
             
     print("raw_messages exiting")
@@ -107,6 +108,7 @@ async def main(client):
     global our_status
     global got_other_message
     global led
+    global start_time
     global have_we_sent_power_is_down_email
     
     other_is_running = False
@@ -136,26 +138,39 @@ async def main(client):
     print("waiting [%s] seconds for other to boot and publish" % (cfg.start_delay,))    
     await asyncio.sleep(cfg.start_delay)
     
-    no_other_cnt = 0
+    publish_cycles_without_a_message = 0
     resub_loop_count = 0
     while True:  # top loop checking to see of other has published
         await client.publish(our_status.topic(), our_status.payload_on())  
         if got_other_message == False:  # no message(s) this cycle
-            no_other_cnt += 1
-            if (no_other_cnt > cfg.other_message_threshold):
+            publish_cycles_without_a_message += 1
+            if (publish_cycles_without_a_message > cfg.other_message_threshold and start_time == 0):
                 if (not have_we_sent_power_is_down_email):
-                    await send_email("[%s]down\n[%s]up" % (cfg.subscribe, cfg.publish))
+                    await send_email("[%s]down\n[%s]up" % (cfg.subscribe, cfg.publish))   # publisher
                     have_we_sent_power_is_down_email = True
                     start_time = time.time()
                     led.turn_on()
         else:  # other message(s) have arrived
             got_other_message = False   # got one, wait for another
             led.turn_off()
+            publish_cycles_without_a_message = 0
+
         if (cfg.subscribe_interval < resub_loop_count):
             resub_loop_count = 0
             await client.subscribe(other_status.topic())
         resub_loop_count += 1  
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
+
+def make_email_body():
+    ndx = 0
+    body = "watching:\n"
+    for dev in cfg.devices_we_subscribe_to:
+         
+        body += "[%s]%s" % (dev, "UP" if cfg.publisher_cycles_without_a_message[ndx] > 0 else "DOWN")
+        ndx += 1
+    print(body)
+        
+
 
 ############ startup ###############
 time.sleep(cfg.start_delay)

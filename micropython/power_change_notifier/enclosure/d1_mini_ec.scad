@@ -1,10 +1,8 @@
 //  MIT license copyright 2025 Jim Dodgen
 use <usb_hole.scad>
-use <fillet.scad>
 
-
-//LED_top(flat=true, height=3.7, cut_text="U", xoff=9,yoff=32) ; //3.7);
-LED_top(flat=true, height=3.7, cut_text="+", xoff=9,yoff=32) ; //3.7);
+logo = "G"; //  U + 
+LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32) ; //3.7);
 
 //rotate([180,0,0]) 
    //LED_pizo_buzzer_top();
@@ -573,3 +571,33 @@ module antenna_cutout(base_thickness)
     translate([0,hole1_offset_y+(m2_post_d/2)+0.7,0])
         cube([6, lth_y-hole1_offset_y-(m2_post_d*2), base_thickness]);
 }
+
+module fillet(rot, r, h) {
+    //translate([r / 2, r / 2, h/2])
+		//rotate([0,0,rot]) 
+			difference() {
+				//cube([r + 0.01, r + 0.01, h], center = true);
+				fillet_cube(rot=rot, r=r, h=h);
+				fillet_cylinder(rot=rot, r=r, h=h);
+				
+				//translate([r/2, r/2, 0])
+					//cylinder(r = r, h = h + 1, center = true);
+			}
+}
+
+module fillet_cube(rot, r, h)
+{
+	translate([r / 2, r / 2, h/2])
+	rotate([0,0,rot]) 
+		cube([r + 0.01, r + 0.01, h], center = true);
+}
+
+module fillet_cylinder(rot, r, h)
+{
+	translate([r / 2, r / 2, h/2])
+	rotate([0,0,rot]) 
+		translate([r/2, r/2, 0])
+			cylinder(r = r, h = h + 1, center = true);	
+}
+
+
