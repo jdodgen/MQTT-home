@@ -41,7 +41,7 @@ async def send_email(body):
         smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
         smtp.login(cfg.gmail_user, cfg.gmail_password)
         smtp.to(cfg.send_messages_to)
-        smtp.write("From: device [%s] Reporting\n" % (cfg.publish,))      # publisher
+        smtp.write("From: device [%s:%s] Reporting\n" % (cfg.ssid,cfg.publish,))      # publisher
         smtp.write("Subject: Power Outage\n\n%s\n" % body)
         smtp.send()
         smtp.quit()
