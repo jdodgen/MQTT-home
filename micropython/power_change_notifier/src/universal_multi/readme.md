@@ -1,4 +1,4 @@
-# A cluster of smart sensors
+# A cluster of smart power sensors
 ### overview
 -  all sensors "watch" all the "other" sensors.
 -  emails sent when sensors are lost and a LED turned on
