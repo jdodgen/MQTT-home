@@ -1,27 +1,28 @@
-# two source power monitor
-## this is the part plugged into an outlet
-### a generated config is ether "A watching B" or "B watching A"
-###  
+# A cluster of smart sensors
+### overview
+-  all sensors "watch" all the "other" sensors.
+-  emails sent when sensors are lost and a LED turned on
+- typical usecase is watching: generators, utility, solar, and battery, for outages
+- All sensors are independent and equal.
 
-Flow:
+### Flow:
  - Boot
  - connect to wifi
  - connect to MQTT Broker
- - MQTT subscribe to "utility_power_alive"  From [utility](../../utility_power)
- - MQTT publish secondary_powered_alive in a loop.
- - wait a few seconds for utility_power_alive publish.
- - loop publising status and checking if we reiceved 
- - count false got 
- - no utility_power_alive mesages arrived 
- - turn on LED
- - wait for power_alive publish
- - when utility_power_alive arrives
- - turn off LED
- - now idle until network problems. then flashes the error
+ - MQTT subscribe to the other sensors
+ - wait TBD seconds for subscribed messages.
+ - runing in a TBD second loop
+     - publish our status
+     - count times NO message (sensor off)  
+     - after a TBD count send email
+     - turn on and off LED if any "other sensors are off)
+- bunch of fault tollarance stuff
  - 
-### notes
-Flashing LED Codes:   
+### Diagnostic LED Codes:   
    - 2 wifi ssid not found
    - 3 wifi password failed
    - 4 MQTT Broker DNS lookup failed
    - 5 unable to connect to the MQTT Broker
+     
+
+Each sensor will send an email when another sensor is down
