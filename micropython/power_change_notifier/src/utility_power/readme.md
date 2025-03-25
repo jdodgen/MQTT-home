@@ -1,4 +1,5 @@
-# utility outlet monitor
+# old version soon to be deleted
+## utility outlet monitor
 ### Powered by utility power and not powered by the generator/secondary power.
 
 flow:
