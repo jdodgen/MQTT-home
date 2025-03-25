@@ -1,4 +1,5 @@
-# generator power monitor
+# OLD version soon to be deleted
+## generator power monitor
 ## this is the part plugged into an outlet that is on when the generator/secondary power is on
 
 Flow:
