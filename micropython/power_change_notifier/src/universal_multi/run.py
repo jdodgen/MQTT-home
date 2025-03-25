@@ -60,6 +60,7 @@ async def raw_messages(client):  # Process all incoming messages
         print("callback [%s][%s] retained[%s]" % (topic, msg, retained,)) 
         print("callback start_time(s)", cfg.start_time)
         i=0
+        restored_sensors = ""
         for dev in other_status:      
             if (topic == dev.topic()):  # just getting the published message means utility outlet is powered, payload not important
                 cfg.got_other_message[i] = True
@@ -68,11 +69,11 @@ async def raw_messages(client):  # Process all incoming messages
                     seconds = time.time() - cfg.start_time[i]
                     hours = seconds/3600
                     minutes = seconds/60
-                    await send_email("Power restored",
-                        "Power restored to [%s]\nDown, Minutes: %.f (Hours: %.1f)" %  
-                                    (cfg.devices_we_subscribe_to[i], minutes, hours))
+                    restored_sensors +=  "Power restored to [%s]\nDown, Minutes: %.f (Hours: %.1f)" %  
+                                    (cfg.devices_we_subscribe_to[i], minutes, hours)
                     cfg.start_time[i]=0
             i += 1
+        if restored_sensors: await send_email("Power restored",restored_sensors) 
      
     print("raw_messages exiting")
 
@@ -139,7 +140,7 @@ async def main(client):
     for dev in other_status:
         await client.subscribe(dev.topic())
 
-    # now starting up 
+    ###  now starting up 
     print("waiting [%s] seconds for other to boot and publish" % (cfg.start_delay,))    
     await asyncio.sleep(cfg.start_delay)
     
@@ -148,29 +149,24 @@ async def main(client):
     while True:  # top loop checking to see of other has published
         await client.publish(our_status.topic(), our_status.payload_on()) 
         i=0
+        down_sensors = ""
         for stat in  cfg.got_other_message:
             if stat == False:  # no message(s) this cycle
                 cfg.publish_cycles_without_a_message[i] += 1
                 if (cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold and cfg.start_time[i] == 0):
                     if (not cfg.have_we_sent_power_is_down_email[i]):
-
-                        await send_email("Power Outage","NOTICE [%s] is OFF\n%s" % (cfg.devices_we_subscribe_to[i], make_email_body()))   # publisher
-
+                        down_sensors += cfg.devices_we_subscribe_to[i]+", "
                         cfg.have_we_sent_power_is_down_email[i]= True
                         cfg.start_time[i] = time.time()
-                        
-                        ##led.turn_on()
-
             else:  # other message(s) have arrived
                 cfg.got_other_message[i] = False 
                 cfg.publish_cycles_without_a_message[i] = 0
-            if any(cfg.start_time):
-               led.turn_on() 
-            else:
-               led.turn_off()
             i += 1
-
-
+        if any(cfg.start_time):
+            led.turn_on() 
+        else:
+            led.turn_off()
+        if down_sensors: await send_email("Power Outage","NOTICE [%s] is/are OFF\n%s" % (down_sensors, make_email_body()))
         if (cfg.subscribe_interval < resub_loop_count):
             resub_loop_count = 0
             for dev in other_status:
@@ -178,8 +174,7 @@ async def main(client):
         resub_loop_count += 1  
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
 
-def make_email_body():
-    
+def make_email_body(): 
     body = "Sensors status:\n"
     i = 0
     for dev in cfg.devices_we_subscribe_to:
@@ -189,8 +184,6 @@ def make_email_body():
     print(body)
     return body
         
-
-
 ############ startup ###############
 time.sleep(cfg.start_delay)
 print("starting")
@@ -207,4 +200,4 @@ try:
     asyncio.run(main(client))
 finally:
     client.close()
-print("example exiting")
+print("exiting, should not get here")
