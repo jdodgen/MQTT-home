@@ -5,8 +5,7 @@ two or more esp32-s2 microcontrolers that communicate. Typicaly a [utility_power
 this includes micropython code, pictures of the hand wired board as well as scad and stl files to make the enclosure.
 
 The system consists of:
- - Utility monitor - publishes MQTT status that utility is supplying power
- - Generator monitor - subscribes to the above MQTT and sends emails when the state changes.
+ - 2 or more sensors that publishes MQTT status and subscribes to the other sensor(s).
  - MQTT broker - [mosquitto](https://mosquitto.org/) runs anywhere: I like tiny linux servers.
 
 /etc/mosquitto/mosquitto.conf needs to contain
@@ -15,7 +14,7 @@ allow_anonymous true
 listener 1883
 log_dest none"
 ```
-Also the broker name needs to be the same subnet. In install.py default is "home-broker.local"
+Also the broker name needs to be the same subnet.
 
 ###  Electrical parts:
 ### monitors:
