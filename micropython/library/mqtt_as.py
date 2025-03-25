@@ -58,7 +58,7 @@ PYBOARD = platform == "pyboard"
 # conditional print
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
-    #return # comment/uncomment to turn print on off
+    return # comment/uncomment to turn print on off
     # do whatever you want to do
     #xprint('statement before print')
     try:
