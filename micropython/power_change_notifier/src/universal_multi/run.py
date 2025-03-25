@@ -1,5 +1,5 @@
 # MIT license copyright 2025 Jim Dodgen
-# Generator side
+# Universal version allowing many sensors
 #
 import umail
 import alert_handler
