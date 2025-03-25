@@ -11,64 +11,71 @@ import json
 mp_lib_offset="../../../library/"
 all_lib_offset="../../../../library/"
 
-systemA = "generator"
-systemB = "Utility"
-print("A[%s]\nB[%s]\n(A or B)" % (systemA,systemB,))
-this_system = input()
-if (this_system.upper() == "A"):  
-    publish_to= systemA      #  systemA publishes status every N minutes
-    subscribe_from = systemB  #  systemA subscribes to systemB published status
-else:
-    publish_to = systemB      # reversed
-    subscribe_from = systemA
-
 ####
 #### many devices version
 ####
-cluster_of_devices = [systemA,systemB,"2battery"]
+JEDguest=False
+mtn1=True
+example=False
+###
+
+
+    cluster_id = "2Profs"
+    ssid =  "JEDguest"
+    wifi_password = '9098673852'
+    broker="home-broker.local" 
+    to_list = '["9097472800@tmomail.net", "jim@dodgen.us"]'
+    gmail_password = "xdom zveb qytq snms" # gmail generates this I can change it in the future
+    gmail_user = "notifygenerator@gmail.com"
+    cluster_of_devices = ["Genrac","Edison"]
+
+    cluster_id = "2Profs"
+    ssid =  "MTN1" 
+    wifi_password = 'Wewant$ecureWiFi'
+    broker="home-broker.local"  #'home-broker.local'
+    to_list = ["9097472800@tmomail.net", "jim@dodgen.us", ] #"power@2profs.net", ]'
+    gmail_password = "xdom zveb qytq snms" # gmail generates this I can change it in the future
+    gmail_user = "notifygenerator@gmail.com"
+    cluster_of_devices = ["Big Generator", "Utility Edison", "solar_batteries"]
+
 # these are extracts of above
 devices_we_subscribe_to = []
 publisher = ""
 
 i=1
-
 for device in(cluster_of_devices):
     print("%s) %s" % (i,device))
     i += 1
 print("select one: ", end="")
 req = input()
-ndx=int(req)-1
-print(cluster_of_devices[ndx])
+publisher_ndx=int(req)-1
+print(cluster_of_devices[publisher_ndx])
+publish_to = cluster_of_devices[publisher_ndx]
+device_index = {}
 i=0
+out=0
+publish_cycles_without_a_message =[]
+got_other_message = []
+have_we_sent_power_is_down_email  = []
+start_time = []
 for device in(cluster_of_devices):
-    if i == ndx:
-        publisher = cluster_of_devices[ndx]
+    if i == publisher_ndx:
+        publisher = cluster_of_devices[publisher_ndx]
     else:
-        devices_we_subscribe_to.append(cluster_of_devices[i])
+        devices_we_subscribe_to.append(device)
+        device_index[device] = out
+        publish_cycles_without_a_message.append(0)
+        got_other_message.append(False)
+        have_we_sent_power_is_down_email.append(False)
+        start_time.append(False)
+        out += 1
     print("%s) %s" % (i,device))
     i += 1
 print(devices_we_subscribe_to)
+################### end of many devices version
 
-print("flashing [%s]\n" % (publish_to,))
 
-JEDguest=False
-mtn1=True
-example=False
-if (example):
-    ssid =  "???" 
-    wifi_password = '????????'
-    broker='home-broker.local'
-    to_list = '["youremail@gmail.com", "a@b.com"]'
-    gmail_password = "vvvv vvvv vvvv vvvv" # gmail generates this I can change it in the future
-    gmail_user = "????@gmail.com"
-    # see https://medium.com/@studentofbharat/send-mail-using-python-code-9ab3b1d146ef
-elif (xx):
-    ssid =  "xx"
-    wifi_password = 'xx'
-    broker="home-broker.local" 
-    to_list = '["123", "foo@dot.com"]'
-    gmail_password = "xxx xxx xxx xxx xxx" # gmail generates this I can change it in the future
-    gmail_user = "your@gmail.com"
+print("\nflashing ssid[%s] device[%s]\n" % (ssid, publish_to,))
 
 # this is the cfg.py template uses % to pass in stuff
 cfg_template = """
@@ -98,16 +105,23 @@ gmail_password = "%s" # gmail generates this and it can change it in the future
 gmail_user = "%s"
 
 publish = "%s"
-subscribe = "%s"
 devices_we_subscribe_to = %s
+device_index = %s
+publish_cycles_without_a_message = %s
+have_we_sent_power_is_down_email = %s
+got_other_message = %s
+start_time = %s
 publisher = "%s"
+cluster_id = "%s"
 """
 print("creating cfg.py")
 now = datetime.datetime.now()
 cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"), 
     ssid, wifi_password, broker, to_list,
-    gmail_password, gmail_user, publish_to, subscribe_from ,
-    devices_we_subscribe_to, publisher)
+    gmail_password, gmail_user, publish_to,
+    devices_we_subscribe_to, device_index, publish_cycles_without_a_message, 
+    have_we_sent_power_is_down_email, got_other_message,start_time,
+    publisher,cluster_id)
 #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
 #   gmail_password, gmail_user ))
 with open('cfg.py', 'w') as f:
