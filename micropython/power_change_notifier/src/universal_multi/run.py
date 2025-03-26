@@ -39,8 +39,7 @@ async def send_email(subject,body):
         smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
         smtp.login(cfg.gmail_user, cfg.gmail_password)
         smtp.to(cfg.send_messages_to, mail_from="notifygenerator@gmail.com")
-        smtp.write("From: Sensor [%s:%s] Reporting\n" % (cfg.cluster_id, cfg.publish,))
-        smtp.write("Subject: %s\n\n%s\n" % (subject,body))
+        smtp.write("Subject: %s\n\n%s\n" % (subject,body,))
         smtp.send()
         smtp.quit()
     except:
@@ -69,11 +68,11 @@ async def raw_messages(client):  # Process all incoming messages
                     seconds = time.time() - cfg.start_time[i]
                     hours = seconds/3600
                     minutes = seconds/60
-                    restored_sensors +=  "Power restored to [%s]\nDown, Minutes: %.f (Hours: %.1f)" %  
-                                    (cfg.devices_we_subscribe_to[i], minutes, hours)
+                    restored_sensors +=  ("Power restored to [%s]\nDown, Minutes: %.f (Hours: %.1f)\n" %  
+                        (cfg.devices_we_subscribe_to[i], minutes, hours))
                     cfg.start_time[i]=0
             i += 1
-        if restored_sensors: await send_email("Power restored",restored_sensors) 
+        if restored_sensors: await send_email("Power restored",restored_sensors+make_email_body()) 
      
     print("raw_messages exiting")
 
@@ -149,13 +148,13 @@ async def main(client):
     while True:  # top loop checking to see of other has published
         await client.publish(our_status.topic(), our_status.payload_on()) 
         i=0
-        down_sensors = ""
+        down_sensors = 0
         for stat in  cfg.got_other_message:
             if stat == False:  # no message(s) this cycle
                 cfg.publish_cycles_without_a_message[i] += 1
                 if (cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold and cfg.start_time[i] == 0):
-                    if (not cfg.have_we_sent_power_is_down_email[i]):
-                        down_sensors += cfg.devices_we_subscribe_to[i]+", "
+                    if (not cfg.have_we_sent_power_is_down_email[i]):                       
+                        down_sensors += 1
                         cfg.have_we_sent_power_is_down_email[i]= True
                         cfg.start_time[i] = time.time()
             else:  # other message(s) have arrived
@@ -166,7 +165,8 @@ async def main(client):
             led.turn_on() 
         else:
             led.turn_off()
-        if down_sensors: await send_email("Power Outage","NOTICE [%s] is/are OFF\n%s" % (down_sensors, make_email_body()))
+        if down_sensors: 
+            await send_email("Power Outage", make_email_body())
         if (cfg.subscribe_interval < resub_loop_count):
             resub_loop_count = 0
             for dev in other_status:
@@ -181,6 +181,7 @@ def make_email_body():
          
         body += "[%s]%s\n" % (dev, "OFF" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "ON")
         i += 1
+    body += "\nThis is: [%s:%s] reporting" % (cfg.cluster_id, cfg.publish)
     print(body)
     return body
         
