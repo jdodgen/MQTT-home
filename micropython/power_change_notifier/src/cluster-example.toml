@@ -1,4 +1,7 @@
 # this is a toml configuration file https://toml.io/
+# this file is used bo install.py to create cfg.py
+# the only code differences between "sensors" is cfg.py
+#
 cluster_id = "2Profs"
 
 [network]
@@ -12,7 +15,7 @@ gmail_password = ""
 gmail_user = ""
 
 [sensor]
-#  do not use shashes "/" in the names. It messes with the MQTT wild cards
+#  do not use slashes "/" in the "name". It messes with the MQTT wild cards
 #  email = true means that the sensor sends emails when sensors lost and found
 [sensor.1]
 name = "Big Generator"
