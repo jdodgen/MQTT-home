@@ -151,12 +151,14 @@ async def main(client):
         down_sensors = 0
         for stat in  cfg.got_other_message:
             if stat == False:  # no message(s) this cycle
-                cfg.publish_cycles_without_a_message[i] += 1
-                if (cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold and cfg.start_time[i] == 0):
-                    if (not cfg.have_we_sent_power_is_down_email[i]):                       
-                        down_sensors += 1
-                        cfg.have_we_sent_power_is_down_email[i]= True
-                        cfg.start_time[i] = time.time()
+                if (cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold):
+                    if (cfg.start_time[i] == 0):
+                        if (not cfg.have_we_sent_power_is_down_email[i]):                       
+                            down_sensors += 1
+                            cfg.have_we_sent_power_is_down_email[i]= True
+                            cfg.start_time[i] = time.time()
+                else:
+                    cfg.publish_cycles_without_a_message[i] += 1
             else:  # other message(s) have arrived
                 cfg.got_other_message[i] = False 
                 cfg.publish_cycles_without_a_message[i] = 0

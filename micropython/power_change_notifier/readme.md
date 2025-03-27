@@ -1,6 +1,6 @@
 # power change notifier
 
-two or more esp32-s2 microcontrolers that communicate. Typicaly a [utility_power](src/utility_power) and a [generator_power](src/generator_power) device.
+two or more esp32-s2 microcontrolers that communicate. Typically a [utility_power](src/utility_power) and a [generator_power](src/generator_power) device.
 
 this includes micropython code, pictures of the hand wired board as well as scad and stl files to make the enclosure.
 
@@ -19,8 +19,8 @@ Also the broker name needs to be the same subnet.
 ###  Electrical parts:
 ### monitors:
  - [ESP32-s2](https://www.wemos.cc/en/latest/s2/s2_mini.html) Mini microcontroler running micropython use the 2MB PSRAM veraion ESP32-S2FN4R2
- - 3V LED 5mm
- - 220ohm resistor
+ - 2V LED 5mm
+ - 220 ohm resistor
  - insulated hookup wire
  - 1/4 electrocookie perf board
  - 2 8 pin male header
