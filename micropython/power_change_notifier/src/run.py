@@ -35,15 +35,16 @@ def print(*args, **kwargs): # replace print
     xprint("[run]", *args, **kwargs) # the copied real print
 
 async def send_email(subject,body):
-    try:
-        smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
-        smtp.login(cfg.gmail_user, cfg.gmail_password)
-        smtp.to(cfg.send_messages_to, mail_from="notifygenerator@gmail.com")
-        smtp.write("Subject: %s\n\n%s\n" % (subject,body,))
-        smtp.send()
-        smtp.quit()
-    except:
-        print("email failed", body) 
+    if cfg.send_email:
+        try:
+            smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
+            smtp.login(cfg.gmail_user, cfg.gmail_password)
+            smtp.to(cfg.send_messages_to, mail_from="notifygenerator@gmail.com")
+            smtp.write("Subject: %s\n\n%s\n" % (subject,body,))
+            smtp.send()
+            smtp.quit()
+        except:
+            print("email failed", body) 
 
 #got_other_message = False
 #start_time = 0
@@ -177,13 +178,13 @@ async def main(client):
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
 
 def make_email_body(): 
-    body = "Sensors status:\n"
+    body = "Sensors status:\nReported by: "+cfg.cluster_id
     i = 0
     for dev in cfg.devices_we_subscribe_to:
          
         body += "[%s]%s\n" % (dev, "OFF" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "ON")
         i += 1
-    body += "\nThis is: [%s:%s] reporting" % (cfg.cluster_id, cfg.publish)
+    body += "\nThis is: [%s] reporting" % (cfg.cluster_id, cfg.publish)
     print(body)
     return body
         

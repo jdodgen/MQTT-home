@@ -2,17 +2,17 @@
 # this file is used bo install.py to create cfg.py
 # the only code differences between "sensors" is cfg.py
 #
-cluster_id = "2Profs"
+cluster_id = "your place"
 
 [network]
-ssid =  "" 
-wifi_password = ''
+ssid =  "mywifi" 
+wifi_password = '12345678'
 broker="home-broker.local"  # or where ever your MQTT broker is
 
 [email]
 to_list = ["foo@bar.com", "bar@foo.com"]
-gmail_password = ""
-gmail_user = ""
+gmail_password = "xxx xxx xxx xxx"
+gmail_user = "??@gmail.com"
 
 [sensor]
 #  do not use slashes "/" in the "name". It messes with the MQTT wild cards

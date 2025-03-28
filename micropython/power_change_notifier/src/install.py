@@ -8,24 +8,24 @@ import sys
 # it replaces the cfg.py file each time it runs
 # Y N defaults are designed for rapid deployment during development 
 
-mp_lib_offset="../../../library/"
-all_lib_offset="../../../../library/"
+mp_lib_offset="../../library/"
+all_lib_offset="../../../library/"
 
 if len(sys.argv) > 1:
     cluster_toml = sys.argv[1]
 else:
     print("testing from vsc")
-    cluster_toml = "cluster_test.toml"  # test cluster
+    cluster_toml = "cluster-example.toml"  # test cluster
 try:
     with open(cluster_toml, 'rb') as toml_file:
             cluster = tomllib.load(toml_file)
             print(cluster)
 except FileNotFoundError:
-    print("Error: File not found")
-    exit
+    print("Error: ",cluster_toml," File not found")
+    sys.exit()
 except tomllib.TOMLDecodeError as e:
     print("Error: Invalid TOML format in {file_path}: {e}")
-    exit
+    sys.exit()
 exit
 
 i=1
@@ -126,13 +126,13 @@ with open('cfg.py', 'w') as f:
     f.write(cfg_text) 
 print("cfg.py created")
 
-print ("press and hold O\nthen press R momentary\nrelease O\nto allow flashing micropython")
+print ("press and hold O (flat side)\nthen press R (indent) momentary\nrelease O\nto allow flashing micropython")
 print("install micropython? (y,N)")
 ans = input()
 if (ans.upper() == "Y"):
     os.system("esptool.py --port /dev/ttyACM0 erase_flash")
-    os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ../ESP32_GENERIC_S2-20241129-v1.24.1.bin")
-    print("\npress R on esp32-s2 to reset")
+    os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20241129-v1.24.1.bin")
+    print("\npress R on esp32-s2 to reset (in the indent)")
     input()
 
 print("install library code? (y,N)")
