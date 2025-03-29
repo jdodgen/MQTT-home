@@ -607,7 +607,7 @@ class MQTTClient(MQTT_base):
         self._has_connected = False  # Define 'Clean Session' value to use.
         self.error = 0
      
-        self.debug = True
+        self.debug = False
     
         # task handles 
         self._memory_task = None
