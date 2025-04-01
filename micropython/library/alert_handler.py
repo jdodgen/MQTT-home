@@ -3,6 +3,7 @@
 
 import machine
 import time
+import uasyncio as asyncio
 
 # conditional print
 xprint = print # copy print
@@ -49,6 +50,17 @@ class alert_handler:
             if (count < 1):
                 break
             time.sleep(duration)
+
+    async def async_flash(self, count=0, duration=1, ontime=1):
+        self.led.value(0)
+        while True:
+            self.led.value(1)
+            await asyncio.sleep(ontime)
+            self.led.value(0)
+            count -= 1
+            if (count < 1):
+                break
+            await asyncio.sleep(duration)
 
     def beep(self, count=1):
         while True:
