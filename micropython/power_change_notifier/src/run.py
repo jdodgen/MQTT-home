@@ -105,16 +105,16 @@ async def raw_messages(client):  # Process all incoming messages
 #         gets
 #         )
         
-async def problem_reporter(error_code):
+async def problem_reporter(error_code, repeat=1):
     if error_code >  0:
         led.turn_off()
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
         x = 0
-        while x < 1:
+        while x < repeat:
             await led.async_flash(count=error_code, duration=0.4, ontime=0.4)
             x += 1
             await asyncio.sleep(1)
-        await asyncio.sleep(1)      
+        await asyncio.sleep(2)      
         
 async def main(client):
     global other_status
@@ -128,6 +128,9 @@ async def main(client):
 
     #while True:
     print("making connection")
+
+    await client.monitor_wifi()
+
     
     try:
         print("main client.initial_connect()")

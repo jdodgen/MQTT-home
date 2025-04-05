@@ -206,14 +206,16 @@ class MQTT_base:
         self._sock = None
         self._sta_if = network.WLAN(network.STA_IF)
         self._sta_if.active(True)
-        if config["gateway"]:  # Called from gateway (hence ESP32).
-            import aioespnow  # Set up ESPNOW
-            while not (sta := self._sta_if).active():
-                time.sleep(0.1)
-            sta.config(pm = sta.PM_NONE)  # No power management
-            sta.active(True)
-            self._espnow = aioespnow.AIOESPNow()  # Returns AIOESPNow enhanced with async support
-            self._espnow.active(True)
+        self.wifi_up = asyncio.Event()
+        self.broker_connected = asyncio.Event()
+        # if config["gateway"]:  # Called from gateway (hence ESP32).
+        #     import aioespnow  # Set up ESPNOW
+        #     while not (sta := self._sta_if).active():
+        #         time.sleep(0.1)
+        #     sta.config(pm = sta.PM_NONE)  # No power management
+        #     sta.active(True)
+        #     self._espnow = aioespnow.AIOESPNow()  # Returns AIOESPNow enhanced with async support
+        #     self._espnow.active(True)
 
         self.newpid = pid_gen()
         self.rcv_pids = set()  # PUBACK and SUBACK pids awaiting ACK response
@@ -439,12 +441,12 @@ class MQTT_base:
         if self._sock is not None:
             self._sock.close()
 
-    def close(self):  # API. See https://github.com/peterhinch/micropython-mqtt/issues/60
+    def wifi_disconnect(self):  # API. See https://github.com/peterhinch/micropython-mqtt/issues/60
         self._close()
         try:
             self._sta_if.disconnect()  # Disconnect Wi-Fi to avoid errors
         except OSError:
-            print("Wi-Fi not started, unable to disconnect interface")
+            print("wifi_disconnect Wi-Fi not started, no problem")
         self._sta_if.active(False)
 
     async def _await_pid(self, pid):
@@ -740,7 +742,105 @@ class MQTTClient(MQTT_base):
                     raise OSError("wifi_connect Connection Unstable")  # in 1st 5 secs
                 await asyncio.sleep(1)
             print("++++ Got reliable wifi connection ++++")
-            
+
+    async def monitor_wifi(self):
+        print("monitor_wifi starting")
+        
+        while True:
+            print("monitor_wifi making wifi connection")
+            self.wifi_disconnect()
+            wifi = self._sta_if
+            wifi.active(True)
+            self.wifi_up.clear()
+            if RP2:  # Disable auto-sleep.
+                # https://datasheets.raspberrypi.com/picow/connecting-to-the-internet-with-pico-w.pdf
+                # para 3.6.3
+                wifi.config(pm=0xA11140)
+            print("monitor_wifi wifi.connect to [",self._ssid,"][", self._wifi_pw, "]")
+            try:
+                wifi.connect(self._ssid, self._wifi_pw)
+            except:
+                """
+                STAT_IDLE - no connection, no activities-1000
+                STAT_CONNECTING - Connecting-1001
+                STAT_WRONG_PASSWORD - Failed due to password error-202
+                STAT_NO_AP_FOUND - Failed, because there is no access point reply,201
+                STAT_GOT_IP - Connected-1010
+                STAT_ASSOC_FAIL - 203
+                STAT_BEACON_TIMEOUT - Timeout-200
+                STAT_HANDSHAKE_TIMEOUT - Handshake timeout-204
+                """
+                print("monitor_wifi exception doing wifi.connect status[]", wifi.status(),"]")
+            if (wifi.status() == network.STAT_WRONG_PASSWORD):
+                await self._problem_reporter(ERROR_BAD_PASSWORD, repeat=60)
+                continue                 
+            elif (wifi.status() == network.STAT_NO_AP_FOUND):
+                await self._problem_reporter(ERROR_AP_NOT_FOUND, repeat=5)
+                continue
+            print("monitor_wifi wifi.connect wifi.status", wifi.status())
+            for i in range(10):  # Break out on fail or success. Check once per sec.
+                await asyncio.sleep(1)
+                # Loop while connecting or no IP
+                print("monitor_wifi loop wifi.status", wifi.status(), i)
+                if wifi.isconnected():
+                    print("monitor_wifi isconnected so break")
+                    break
+                if ESP32:
+                    if wifi.status() == network.STAT_GOT_IP:  # 1001
+                        print("monitor_wifi STAT_GOT_IP break")
+                        cnt=0
+                        while not wifi.isconnected():
+                            print("monitor_wifi waiting for isconnected", wifi.status())
+                            await asyncio.sleep(1)
+                            cnt += 1
+                            if cnt > 10:
+
+                                break
+                        break
+                elif PYBOARD:  # No symbolic constants in network
+                    if not 1 <= wifi.status() <= 2:
+                        break
+                elif RP2:  # 1 is STAT_CONNECTING. 2 reported by user (No IP?)
+                    if not 1 <= wifi.status() <= 2:
+                        break
+            else:  # Timeout: still in connecting state
+                print("monitor_wifi waitloop no breaks, disconnect")
+                await asyncio.sleep(2)
+                continue
+            if  wifi.isconnected():  
+                print("+++ monitor_wifi connected, now monitoring +++")
+                self.wifi_up.set()  # ok for broker connect
+                while True:
+                    if not wifi.isconnected():
+                        print("monitor_wifi connection broken")
+                        break
+                    await asyncio.sleep(5)
+            else:  # looks like it never connected 
+                print("monitor_wifi not intialy connected very odd")
+                pass
+
+    async def monitor_broker(self):
+        while True:
+            self.wifi_up.wait() 
+            self.broker_connected.clear()
+            await self.get_broker_ip_port()
+            print("brokers IP[", self._addr, "]")
+            if self.error:
+                await self._problem_reporter(self.error, repeat=10)
+            else:
+                try: 
+                    await self._broker_connect(True)  # Connect with clean session
+                    print("initial_connect  _broker_connect returned")
+                    self.broker_connected.set() # now pub/subs can run
+                    while True:  
+
+                except Exception as e:
+                    self._close()
+                    self._in_connect = False  # Caller may run .isconnected()
+                    print("initial_connect  _broker_connect failed",e) 
+                    self.error =  ERROR_BROKER_CONNECT_FAILED
+                    await self._problem_reporter(self.error)  
+
     async def get_broker_ip_port(self):
         # Note this blocks if DNS lookup occurs. Do it once to prevent
         # blocking during later internet outage:
