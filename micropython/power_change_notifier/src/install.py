@@ -19,7 +19,7 @@ else:
 try:
     with open(cluster_toml, 'rb') as toml_file:
             cluster = tomllib.load(toml_file)
-            print(cluster)
+            # print(cluster)
 except FileNotFoundError:
     print("Error: ",cluster_toml," File not found")
     sys.exit()
@@ -147,7 +147,7 @@ if (ans.upper() == "Y"):
     mp_lib_offset+"umail.py",
     all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_power.py",
-    mp_lib_offset+"mqtt_as.py",
+    mp_lib_offset+"mqtt_as_lite.py",
     ]
     print("now pushing python library code")
     for c in code:
