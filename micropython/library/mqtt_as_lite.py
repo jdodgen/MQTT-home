@@ -827,7 +827,7 @@ class MQTTClient(MQTT_base):
     async def monitor_broker(self):
         while True:
             self.wifi_up.wait() # blocks until wifi connected see: monitor_wifi()
-            self.broker_connected.clear() # this cause mqtt tools to wait until broker on line
+            self.broker_connected.clear() # this cause others to wait
             await self.get_broker_ip_port()
             print("brokers IP[", self._addr, "]")
             if self.error: # 
