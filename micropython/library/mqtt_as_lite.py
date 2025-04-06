@@ -5,6 +5,8 @@
 # Pyboard D support added also RP2/default
 # Various improvements contributed by Kevin Köck.
 # added more error handling - Jim Dodgen
+# now forked into a lite version. 
+# Tested on ESP32-S2
 
 import gc
 import usocket as socket
