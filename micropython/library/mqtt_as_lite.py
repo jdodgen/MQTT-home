@@ -811,7 +811,6 @@ class MQTTClient(MQTT_base):
                     if not 1 <= wifi.status() <= 2:
                         break
             else:  # Timeout: still in connecting state
-                print("monitor_wifi waitloop no breaks, disconnect")
                 await asyncio.sleep(2)
                 continue
             if  wifi.isconnected():  
