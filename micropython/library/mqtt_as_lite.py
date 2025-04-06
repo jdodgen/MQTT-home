@@ -208,8 +208,7 @@ class MQTT_base:
         self._sock = None
         self._sta_if = network.WLAN(network.STA_IF)
         self._sta_if.active(True)
-        self.wifi_up = asyncio.Event()
-        self.broker_connected = asyncio.Event()
+        
         # if config["gateway"]:  # Called from gateway (hence ESP32).
         #     import aioespnow  # Set up ESPNOW
         #     while not (sta := self._sta_if).active():
@@ -222,7 +221,10 @@ class MQTT_base:
         self.newpid = pid_gen()
         self.rcv_pids = set()  # PUBACK and SUBACK pids awaiting ACK response
         self.last_rx = ticks_ms()  # Time of last communication from broker
+        #
         self.lock = asyncio.Lock()
+        self.wifi_up = asyncio.Event()
+        self.broker_connected = asyncio.Event()
 
     def _set_last_will(self, topic, msg, retain=False, qos=0):
         qos_check(qos)
