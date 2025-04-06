@@ -57,6 +57,7 @@ else:
 ESP8266 = platform == "esp8266"
 PYBOARD = platform == "pyboard"
 
+# this turns off the prints
 do_prints = False
 def turn_on_prints(flag):
     global do_prints
