@@ -743,6 +743,11 @@ class MQTTClient(MQTT_base):
                 await asyncio.sleep(1)
             print("++++ Got reliable wifi connection ++++")
 
+    # this is designed to run as a asyncio task
+    # it insures a wifi connecton and reconnections
+    # wifi_up.wait() is used by monitor_broker to know if we are wifi connected
+    # it only exits when it gives up and does a soft or hard reboot
+    # so using this may cause a reboot
     async def monitor_wifi(self):
         print("monitor_wifi starting")
         
@@ -818,22 +823,22 @@ class MQTTClient(MQTT_base):
             else:  # looks like it never connected 
                 print("monitor_wifi not intialy connected very odd")
                 pass
-
+    # 
     async def monitor_broker(self):
         while True:
-            self.wifi_up.wait() 
-            self.broker_connected.clear()
+            self.wifi_up.wait() # blocks until wifi connected see: monitor_wifi()
+            self.broker_connected.clear() # this cause mqtt tools to wait until broker on line
             await self.get_broker_ip_port()
             print("brokers IP[", self._addr, "]")
-            if self.error:
+            if self.error: # 
                 await self._problem_reporter(self.error, repeat=10)
             else:
                 try: 
                     await self._broker_connect(True)  # Connect with clean session
                     print("initial_connect  _broker_connect returned")
                     self.broker_connected.set() # now pub/subs can run
-                    while True:  
-
+                    while True: # make sure broker is connected  
+                        self.ping()
                 except Exception as e:
                     self._close()
                     self._in_connect = False  # Caller may run .isconnected()
