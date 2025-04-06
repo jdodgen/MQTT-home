@@ -835,16 +835,17 @@ class MQTTClient(MQTT_base):
             else:
                 try: 
                     await self._broker_connect(True)  # Connect with clean session
-                    print("initial_connect  _broker_connect returned")
-                    self.broker_connected.set() # now pub/subs can run
-                    while True: # make sure broker is connected  
-                        self.ping()
                 except Exception as e:
                     self._close()
                     self._in_connect = False  # Caller may run .isconnected()
                     print("initial_connect  _broker_connect failed",e) 
                     self.error =  ERROR_BROKER_CONNECT_FAILED
-                    await self._problem_reporter(self.error)  
+                    await self._problem_reporter(self.error) 
+                else:
+                    print("initial_connect _broker_connect - success")
+                    self.broker_connected.set() # now pub/subs can run
+                    while True: # make sure broker is connected  
+                        self._ping()  # when this fails connection has been lost
 
     async def get_broker_ip_port(self):
         # Note this blocks if DNS lookup occurs. Do it once to prevent
