@@ -126,23 +126,24 @@ async def main(client):
     await asyncio.sleep(2)  # wakeup flash
     led.turn_off() 
 
-    #while True:
-    print("making connection")
 
-    await client.monitor_wifi()
-
+    print("creating tasks")
+    asyncio.create_task(client.monitor_wifi())
+    asyncio.create_task(client._handle_msg())
+    asyncio.create_task(client.monitor_broker())
+    asyncio.create_task(raw_messages(client))
     
-    try:
-        print("main client.initial_connect()")
-        await client.initial_connect()
-    except Exception as e:
-        print("main: client.initial_connect() failed", e)
-        await asyncio.sleep(1000)
-    await asyncio.sleep(1)
+    # try:
+    #     print("main client.initial_connect()")
+    #     await client.initial_connect()
+    # except Exception as e:
+    #     print("main: client.initial_connect() failed", e)
+    #     await asyncio.sleep(1000)
+    # await asyncio.sleep(1)
     # led.turn_on()
     # these are loops and run forever
     # asyncio.create_task(check_if_up(client))
-    asyncio.create_task(raw_messages(client))
+    
     print("subscribe[",wildcard_subscribe.topic(),"]")
     await client.subscribe(wildcard_subscribe.topic())
     print("emailing Boot")
@@ -151,8 +152,8 @@ async def main(client):
         #await client.subscribe(dev.topic())
 
     ###  now starting up 
-    print("waiting [%s] seconds for other to boot and publish" % (cfg.start_delay,))    
-    await asyncio.sleep(cfg.start_delay)
+    # print("waiting [%s] seconds for other to boot and publish" % (cfg.start_delay,))    
+    # await asyncio.sleep(cfg.start_delay)
     
     #publish_cycles_without_a_message = 0
     resub_loop_count = 0
@@ -220,5 +221,6 @@ client = MQTTClient(config)
 try:
     asyncio.run(main(client))
 finally:
-    client.close()
+    pass
+    #client.close()
 print("exiting, should not get here")
