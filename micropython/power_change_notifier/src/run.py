@@ -103,7 +103,12 @@ async def raw_messages(client):  # Process all incoming messages
 #         await mqtt_hello.send_hello(client, "our_status", "When running publishes \"power on\" in a loop",
 #         our_status.get(),
 #         gets
-#         )
+# 
+# 
+async def subscribes(client):
+    print("subscribe[",wildcard_subscribe.topic(),"]")
+    await client.subscribe(wildcard_subscribe.topic())
+
         
 async def problem_reporter(error_code, repeat=1):
     if error_code >  0:
@@ -144,10 +149,10 @@ async def main(client):
     # these are loops and run forever
     # asyncio.create_task(check_if_up(client))
     
-    print("subscribe[",wildcard_subscribe.topic(),"]")
-    await client.subscribe(wildcard_subscribe.topic())
+    
     print("emailing Boot")
     await send_email("Boot [%s:%s]" % (cfg.cluster_id, cfg.publish),"starting")
+    await client.subscribe(wildcard_subscribe.topic())
     #for dev in other_status:
         #await client.subscribe(dev.topic())
 
@@ -215,6 +220,7 @@ config['server'] = cfg.server
 config["queue_len"] = 1  # Use event interface with default queue size
 config['problem_reporter'] = problem_reporter
 config["response_time"] = 30
+config["do_subscribes"] = subscribes
 
 MQTTClient.DEBUG = True  # Optional: print diagnostic messages
 client = MQTTClient(config)

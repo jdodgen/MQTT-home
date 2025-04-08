@@ -17,8 +17,8 @@ from ubinascii import hexlify
 import uasyncio as asyncio
 
 gc.collect()
-from utime import ticks_ms, ticks_diff
-from uerrno import EINPROGRESS, ETIMEDOUT
+from utime import ticks_ms, ticks_diff, time
+from uerrno import EINPROGRESS, ETIMEDOUT, ENOTCONN
 
 gc.collect()
 from micropython import const
@@ -26,7 +26,7 @@ from machine import unique_id, soft_reset
 import network
 
 gc.collect()
-from sys import platform
+from sys import platform, maxsize
 
 VERSION = (0, 7, 2)
 
@@ -88,6 +88,9 @@ async def default_problem_reporter(error):
         xprint("default_problem_reporter error broke")
     print("default_problem_reporter done")
 
+async def default_subscribes():
+    pass
+
 class MsgQueue:
     def __init__(self, size):
         self._q = [0 for _ in range(max(size, 4))]
@@ -140,6 +143,7 @@ config = {
     "queue_len": 0,
     "gateway" : False,
     "problem_reporter" : default_problem_reporter,
+    "do_subscribes" : default_subscribes,
 }
 
 
@@ -171,6 +175,7 @@ class MQTT_base:
         self._client_id = config["client_id"]
         self._user = config["user"]
         self._pswd = config["password"]
+        self.do_subscribes = config["do_subscribes"]
         self._problem_reporter = config["problem_reporter"]
         print("self._problem_reporter", self._problem_reporter)
         self._keepalive = config["keepalive"]
@@ -223,9 +228,11 @@ class MQTT_base:
         self.rcv_pids = set()  # PUBACK and SUBACK pids awaiting ACK response
         self.last_rx = ticks_ms()  # Time of last communication from broker
         #
-        self.lock = asyncio.Lock()
+        self.sock_lock = asyncio.Lock()
         self.wifi_up = asyncio.Event()
         self.broker_connected = asyncio.Event()
+        self.connection_lost = False
+        self.last_pingresp = time()+1000
 
     def _set_last_will(self, topic, msg, retain=False, qos=0):
         qos_check(qos)
@@ -291,7 +298,7 @@ class MQTT_base:
             if time_out or not con: 
                 raise OSError(-1, "Timeout on socket write")
             try:
-                n = sock.send(bytes_wr)
+                n = sock.write(bytes_wr)
                 if not n:
                     raise
                 print("_as_write  write returned ", n)
@@ -391,7 +398,7 @@ class MQTT_base:
         print("\n\n++++ broker connected ++++\n")
 
     async def _ping(self):
-        async with self.lock:
+        async with self.sock_lock:
             try:
                 await self._as_write(b"\xc0\0")
             except:
@@ -478,7 +485,7 @@ class MQTT_base:
         pid = next(self.newpid)
         if qos:
             self.rcv_pids.add(pid)
-        async with self.lock:
+        async with self.sock_lock:
             await self._publish(topic, msg, retain, qos, 0, pid)
         if qos == 0:
             return
@@ -490,7 +497,7 @@ class MQTT_base:
             # No match
             if count >= self._max_repubs or not self.isconnected():
                 raise OSError(-1)  # Subclass to re-publish with new PID
-            async with self.lock:
+            async with self.sock_lock:
                 await self._publish(topic, msg, retain, qos, dup=1, pid=pid)  # Add pid
             count += 1
             self.REPUB_COUNT += 1
@@ -518,13 +525,13 @@ class MQTT_base:
 
     # Can raise OSError if WiFi fails. Subclass traps.
     async def subscribe(self, topic, qos, marker=0):
-        print("subscribe [", topic, "] marker[",marker,"] _sock[", self._sock,"]")
+        print("super subscribe [", topic, "] marker[",marker,"] _sock[", self._sock,"]")
         pkt = bytearray(b"\x82\0\0\0")
         pid = next(self.newpid)
 
         self.rcv_pids.add(pid)
         struct.pack_into("!BH", pkt, 1, 2 + 2 + len(topic) + 1, pid)
-        async with self.lock:
+        async with self.sock_lock:
             await self._as_write(pkt)
             await self._send_str(topic)
             await self._as_write(qos.to_bytes(1, "little"))
@@ -538,7 +545,7 @@ class MQTT_base:
         pid = next(self.newpid)
         self.rcv_pids.add(pid)
         struct.pack_into("!BH", pkt, 1, 2 + 2 + len(topic), pid)
-        async with self.lock:
+        async with self.sock_lock:
             await self._as_write(pkt)
             await self._send_str(topic)
 
@@ -551,22 +558,32 @@ class MQTT_base:
     # messages processed internally.
     # Immediate return if no data available. Called from ._handle_msg().
     async def wait_msg(self):
+        print("wait_msg start")
+        res = None
         try:
             res = self._sock.read(1)  # Throws OSError on WiFi fail
-            print("wait_msg[", res,"]")
         except OSError as e:
-            print("wait_msg",e)
+            print("wait_msg error:", e)
+            if e.errno == ENOTCONN:
+                print("wait_msg  lost connection, notify manage_broker")
+                self.connection_lost = True
+                await asyncio.sleep(1)
+            print("wait_msg error:",e)
             if e.args[0] in BUSY_ERRORS:  # Needed by RP2
                 await asyncio.sleep_ms(0)
                 return
             raise
+        print("wait_msg res:", res)
         if res is None:
+            print("wait_msg res == none")
             return
         if res == b"":
             raise OSError(-1, "Empty response")
 
         if res == b"\xd0":  # PINGRESP
             await self._as_read(1)  # Update .last_rx time
+            print("wait_msg got a pingresp")
+            self.last_pingresp = time()
             return
         op = res[0]
 
@@ -771,6 +788,7 @@ class MQTTClient(MQTT_base):
             wifi.active(True)
             self.wifi_up.clear()
             self.broker_connected.clear()
+
             if RP2:  # Disable auto-sleep.
                 # https://datasheets.raspberrypi.com/picow/connecting-to-the-internet-with-pico-w.pdf
                 # para 3.6.3
@@ -840,10 +858,11 @@ class MQTTClient(MQTT_base):
     async def monitor_broker(self):
         while True:
             self._isconnected = False
+            self.connection_lost = False
             await self.wifi_up.wait() # blocks until wifi connected see: monitor_wifi()
             self.broker_connected.clear() # this cause others to wait
             await self.get_broker_ip_port()
-            print("brokers IP[", self._addr, "]")
+            print("monitor_broker brokers IP[", self._addr, "]")
             if self.error: # 
                 await self._problem_reporter(self.error, repeat=10)
             else:
@@ -857,18 +876,26 @@ class MQTTClient(MQTT_base):
                     await self._problem_reporter(self.error) 
                 else:
                     print("monitor_broker _broker_connect - success, socket [", self._sock,"]")
+                    await self.do_subscribes(self.subscribe)
+                    self.connection_lost = False
                     self.broker_connected.set() # now pub/subs can run
                     self._isconnected = True
-                    while True: # make sure broker is connected  
+                    time_between_pings = 3 # self._keepalive
+                    max_ping_wait= time_between_pings*4
+                    self.last_pingresp =  time()
+                    while  not self.connection_lost: # make sure broker is connected  
+                        net_seconds = time() - self.last_pingresp
+                        print("monitor_broker net_seconds", net_seconds)
+                        if net_seconds >  max_ping_wait:
+                            print(" too much ping wait")
+                            break
                         try:
-                            print("monitor_broker keep alive ping")
                             await self._ping()  # when this fails connection has been lost
                             print("monitor_broker ping returned")
                         except:
                             print("/n/nmonitor_broker ping broke/n")
                             break
-                        await asyncio.sleep(3) # self._keepalive)
-
+                        await asyncio.sleep(time_between_pings)
     async def get_broker_ip_port(self):
         # Note this blocks if DNS lookup occurs. Do it once to prevent
         # blocking during later internet outage:
@@ -879,6 +906,7 @@ class MQTTClient(MQTT_base):
             print("++++ get_broker_ip_port == [", self._addr,"] ++++")
         except:
             print("get_broker_ip_port getaddrinfo lookup failed")
+            self._addr = None
             self.error = ERROR_BROKER_LOOKUP_FAILED
         
 
@@ -959,10 +987,12 @@ class MQTTClient(MQTT_base):
             await self.broker_connected.wait()
             print("_handle_msg wait_msg()")
             try:
-                async with self.lock:
+                async with self.sock_lock:
+                    print("_handle_msg got lock")
                     try:
                         await self.wait_msg()  # Immediate return if no message             
-                    except:
+                    except OSError as e:
+                        print("_handle_msg error:",e)
                         pass
             except OSError as e:
                 print("_handle_msg error:", e)
@@ -1046,6 +1076,7 @@ class MQTTClient(MQTT_base):
     #     print("_keep_connected Disconnected, exited _keep_connected")
 
     async def subscribe(self, topic, qos=0):
+        print("subscribe ", topic)
         qos_check(qos)
         while 1:
             await self.broker_connected.wait()
@@ -1053,6 +1084,10 @@ class MQTTClient(MQTT_base):
                 print("doing super")
                 return await super().subscribe(topic, qos)
             except OSError as e:
+                if e.errno == ENOTCONN:
+                    print("subscribe  lost connection, notify manage_broker")
+                    self.connection_lost = True
+                    await asyncio.sleep(1)
                 print("subscribe error",e)
                 pass
             await asyncio.sleep(1)
@@ -1064,7 +1099,11 @@ class MQTTClient(MQTT_base):
             await self.broker_connected.wait()
             try:
                 return await super().unsubscribe(topic)
-            except OSError:
+            except OSError as e:
+                if e.errno == ENOTCONN:
+                    print("unsubscribe  lost connection, notify manage_broker")
+                    self.connection_lost = True
+                    await asyncio.sleep(1)
                 print("unsubscribe error",e)
                 pass
             await asyncio.sleep(1)
@@ -1077,6 +1116,10 @@ class MQTTClient(MQTT_base):
             try:
                 return await super().publish(topic, msg, retain, qos)
             except OSError as e:
+                if e.errno == ENOTCONN:
+                    print("publish  lost connection, notify manage_broker")
+                    self.connection_lost = True
+                    await asyncio.sleep(1)
                 print("publish error",e)
                 pass
             # self._reconnect()  # Broker or WiFi fail.
