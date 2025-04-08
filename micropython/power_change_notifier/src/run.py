@@ -83,33 +83,14 @@ async def raw_messages(client):  # Process all incoming messages
      
     print("raw_messages exiting")
 
-# async def check_if_up(client):  # Respond to connectivity being (re)established
-#     #global valve
-#     #global valve_state
-#     global other_status
-#     global our_status
-#     while True:
-#         await client.up.wait()  # Wait on an Event
-#         client.up.clear()
-#         await client.subscribe(wildcard_subscribe.topic())
-#         #for dev in other_status:
-#             #await client.subscribe(dev.topic())
-#         # who am I sends a MQTT_hello message
-#         gets=[]
-#         for dev in other_status:
-#             gets.append(dev.get())
-#             # print(dev.topic())
+# DEBUG: show RAM messages.
+    async def _memory(self):
+        while True:
+            await asyncio.sleep(20)
+            gc.collect()
+            print("RAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc()))
 
-#         await mqtt_hello.send_hello(client, "our_status", "When running publishes \"power on\" in a loop",
-#         our_status.get(),
-#         gets
-# 
-# 
-async def subscribes(client):
-    print("subscribe[",wildcard_subscribe.topic(),"]")
-    await client.subscribe(wildcard_subscribe.topic())
-
-        
+     
 async def problem_reporter(error_code, repeat=1):
     if error_code >  0:
         led.turn_off()
@@ -131,35 +112,18 @@ async def main(client):
     await asyncio.sleep(2)  # wakeup flash
     led.turn_off() 
 
-
     print("creating tasks")
+    # these are needed for mqtt_as_lite
+    # they run forever and fix connection problems
     asyncio.create_task(client.monitor_wifi())
     asyncio.create_task(client._handle_msg())
     asyncio.create_task(client.monitor_broker())
+    # this pulls messages from the queue
     asyncio.create_task(raw_messages(client))
-    
-    # try:
-    #     print("main client.initial_connect()")
-    #     await client.initial_connect()
-    # except Exception as e:
-    #     print("main: client.initial_connect() failed", e)
-    #     await asyncio.sleep(1000)
-    # await asyncio.sleep(1)
-    # led.turn_on()
-    # these are loops and run forever
-    # asyncio.create_task(check_if_up(client))
-    
-    
+    # 
     print("emailing Boot")
     await send_email("Boot [%s:%s]" % (cfg.cluster_id, cfg.publish),"starting")
-    await client.subscribe(wildcard_subscribe.topic())
-    #for dev in other_status:
-        #await client.subscribe(dev.topic())
-
-    ###  now starting up 
-    # print("waiting [%s] seconds for other to boot and publish" % (cfg.start_delay,))    
-    # await asyncio.sleep(cfg.start_delay)
-    
+    #
     #publish_cycles_without_a_message = 0
     resub_loop_count = 0
     while True:  # top loop checking to see of other has published
@@ -187,9 +151,10 @@ async def main(client):
             led.turn_off()
         if down_sensors: 
             await send_email("Power Outage", make_email_body())
-        if (cfg.subscribe_interval < resub_loop_count):
+        if client.do_subscribes or cfg.subscribe_interval < resub_loop_count:
+            client.do_subscribes = False
             resub_loop_count = 0
-            print("resubscribe")
+            print("subscribing ", wildcard_subscribe.topic())
             await client.subscribe(wildcard_subscribe.topic())
             #for dev in other_status:
                 #await client.subscribe(dev.topic())
@@ -220,7 +185,6 @@ config['server'] = cfg.server
 config["queue_len"] = 1  # Use event interface with default queue size
 config['problem_reporter'] = problem_reporter
 config["response_time"] = 30
-config["do_subscribes"] = subscribes
 
 MQTTClient.DEBUG = True  # Optional: print diagnostic messages
 client = MQTTClient(config)
