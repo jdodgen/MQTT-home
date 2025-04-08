@@ -24,11 +24,16 @@ our_status    = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=Tr
 turn_on_prints(True)
 
 # from mqtt_as.py 
-ERROR_OK = 0
-ERROR_AP_NOT_FOUND = 2
-ERROR_BAD_PASSWORD = 3
-ERROR_BROKER_LOOKUP_FAILED = 4
-ERROR_BROKER_CONNECT_FAILED =  5
+errors_msg = '''For reference:
+LED error codes
+2 ERROR_AP_NOT_FOUND
+3 ERROR_BAD_PASSWORD
+4 ERROR_BROKER_LOOKUP_FAILED
+5 ERROR_BROKER_CONNECT_FAILED
+
+LED solid on, indicates an outage.
+LED out, normal no outage
+'''
 
 # conditional print
 xprint = print # copy print
@@ -50,9 +55,6 @@ async def send_email(subject,body):
         except:
             print("email failed", body) 
 
-#got_other_message = False
-#start_time = 0
-#have_we_sent_power_is_down_email = False
 
 async def raw_messages(client):  # Process all incoming messages 
     global led
@@ -62,7 +64,7 @@ async def raw_messages(client):  # Process all incoming messages
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
         print("callback [%s][%s] retained[%s]" % (topic, msg, retained,)) 
-        print("callback start_time(s)", cfg.start_time)
+        #print("callback start_time(s)", cfg.start_time)
         i=0
         restored_sensors = ""
         for dev in other_status:      
@@ -85,6 +87,7 @@ async def raw_messages(client):  # Process all incoming messages
 
 # DEBUG: show RAM messages.
     async def _memory(self):
+        import gc
         while True:
             await asyncio.sleep(20)
             gc.collect()
@@ -121,10 +124,11 @@ async def main(client):
     # this pulls messages from the queue
     asyncio.create_task(raw_messages(client))
     # 
+    await client.wifi_up.wait()
     print("emailing Boot")
-    await send_email("Boot [%s:%s]" % (cfg.cluster_id, cfg.publish),"starting")
+    await send_email("P monitor [%s:%s] Starting" % (cfg.cluster_id, cfg.publish),errors_msg)
     #
-    #publish_cycles_without_a_message = 0
+    await client.broker_connected.wait()
     resub_loop_count = 0
     while True:  # top loop checking to see of other has published
         await client.publish(our_status.topic(), our_status.payload_on()) 
