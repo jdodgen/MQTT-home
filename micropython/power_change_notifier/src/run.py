@@ -10,6 +10,7 @@ import alert_handler
 import cfg
 import time
 import asyncio
+import time
 
 other_status = []
 for dev in cfg.devices_we_subscribe_to:
@@ -34,6 +35,12 @@ LED error codes
 LED solid on, indicates an outage.
 LED out, normal no outage
 '''
+
+no_broker_msg ='''Could not connect to broker:
+[%s]
+retrying ...
+''' % (cfg.server,)
+print(no_broker_msg)
 
 # conditional print
 xprint = print # copy print
@@ -128,7 +135,27 @@ async def main(client):
     print("emailing Boot")
     await send_email("P monitor [%s:%s] Starting" % (cfg.cluster_id, cfg.publish),errors_msg)
     #
+    # now checking on the broker connect. It too long then email
+    start_broker_connect = time.time()
+    too_long = 60
+    broker_not_up_send_email = False
+    while True:
+        elapse  = time.time() - start_broker_connect
+        huh = client.broker_connected.is_set()
+        #print("elapse", elapse, huh)
+        if huh:
+            break
+        if elapse > too_long and not broker_not_up_send_email:
+            broker_not_up_send_email = True
+            print("email no broker")
+            await send_email("P monitor [%s:%s] broker not found" % (cfg.cluster_id, cfg.publish), "broker at ["+cfg.server+"] not found")
+        await asyncio.sleep(1)
+   
     await client.broker_connected.wait()
+    if broker_not_up_send_email:
+        await send_email("P monitor [%s:%s] broker connected" % (cfg.cluster_id, cfg.publish), "Broker now connected")
+   
+
     resub_loop_count = 0
     while True:  # top loop checking to see of other has published
         await client.publish(our_status.topic(), our_status.payload_on()) 
