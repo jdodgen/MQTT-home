@@ -26,7 +26,7 @@ Also the broker name needs to be the same subnet.
  - 2 8 pin male header
  - 2 8 pin female header
 ## simple MQTT server
-see [Only MQTT Broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker/Only%20MQTT%20Broker)
+see [Simple MQTT Broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker/baby_home_broker)
 
 
 
