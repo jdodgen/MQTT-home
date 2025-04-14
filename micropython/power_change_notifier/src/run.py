@@ -49,7 +49,7 @@ async def send_email(subject,body):
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             smtp.to(cfg.send_messages_to, mail_from="notifygenerator@gmail.com")
-            smtp.write("Subject: %s\n\n%s\n" % (subject,body,))
+            smtp.write("Subject: PCN %s\n\n%s\n" % (subject,body,))
             smtp.send()
             smtp.quit()
         except:
@@ -126,7 +126,7 @@ async def main(client):
     # 
     await client.wifi_up.wait()
     print("emailing Boot")
-    await send_email("P monitor [%s:%s] Starting" % (cfg.cluster_id, cfg.publish),errors_msg)
+    await send_email("[%s:%s] Starting" % (cfg.cluster_id, cfg.publish),errors_msg)
     #
     await client.broker_connected.wait()
     resub_loop_count = 0
@@ -154,7 +154,7 @@ async def main(client):
         else:
             led.turn_off()
         if down_sensors: 
-            await send_email("Power Outage", make_email_body())
+            await send_email("Power Outage(s)", make_email_body())
         if client.do_subscribes or cfg.subscribe_interval < resub_loop_count:
             client.do_subscribes = False
             resub_loop_count = 0
