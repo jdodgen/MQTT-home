@@ -6,15 +6,7 @@ this includes micropython code, pictures of the hand wired board as well as scad
 
 The system consists of:
  - 2 or more sensors that publishes MQTT status and subscribes to the other sensor(s).
- - MQTT broker - [mosquitto](https://mosquitto.org/) runs anywhere: I like tiny linux servers.
-
-/etc/mosquitto/mosquitto.conf needs to contain
-```
-allow_anonymous true
-listener 1883
-log_dest none
-```
-Also the broker name needs to be the same subnet.
+ - MQTT broker - [mosquitto](https://mosquitto.org/) runs anywhere: [simple MQTT broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker/baby_home_broker).
 
 ###  Electrical parts:
 ### monitors:
