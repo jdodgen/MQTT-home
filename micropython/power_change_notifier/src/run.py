@@ -201,7 +201,7 @@ def make_email_body():
     i = 0
     for dev in cfg.devices_we_subscribe_to:
         # body += "[%s]%s\n" % (dev, "OFF" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "ON") 
-        body += ''' [sensor.%d]\n  name = "%s"\n  on = %s\n''' % (i, dev, "false # POWER OFF" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "true # power on")
+        body += ''' [sensor.%d]\n  name = "%s"\n  on = %s\n''' % (i, dev, "false  #\t\t<>>>> \""+dev+"\" OFF <<<<>" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "true # on")
         i += 1
     body += ''' [sensor.%d]\n  name = "%s" # reporting sensor\n  on = true'''% (i, cfg.publish)
     print(body)
