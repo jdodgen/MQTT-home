@@ -55,13 +55,14 @@ def print(*args, **kwargs): # replace print
     #xprint('statement before print')
     xprint("[run]", *args, **kwargs) # the copied real print
 
-async def send_email(subject, body):
+async def send_email(subject, body, cluster_id_only=False):
     if cfg.send_email:
         try:
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-            smtp.write("Subject:[PCN %s:%s] %s\n\n%s\n" % (cfg.cluster_id, cfg.publish, subject, body,))
+            id = cfg.cluster_id if cluster_id_only else cfg.cluster_id+":"+cfg.publish
+            smtp.write("Subject:[PCN %s] %s\n\n%s\n" % (id, subject, body,))
             smtp.send()
             smtp.quit()
         except:
@@ -186,7 +187,7 @@ async def main(client):
         else:
             led.turn_off()
         if down_sensors: 
-            await send_email("Power Outage(s)", make_email_body())
+            await send_email("Power Outage(s)", make_email_body(), cluster_id_only=True)
         if client.do_subscribes or cfg.subscribe_interval < resub_loop_count:
             client.do_subscribes = False
             resub_loop_count = 0
