@@ -1,5 +1,9 @@
-# MIT license copyright 2025 Jim Dodgen
+# MIT license copyright 2025 Jim Dodgen 
+# powered up monitor
 # Universal version allowing unlimited sensors
+# typically monitoring utility power and standby power
+# turning on a LED and sending emails 
+# also publishes status
 #
 import umail
 import alert_handler
@@ -25,7 +29,7 @@ our_status    = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=Tr
 turn_on_prints(True)
 
 # ERRORS from mqtt_as_lite.py 
-errors_msg = '''Starting up ...\nFor reference:
+boilerplate = '''Starting up ...\nFor reference:
 Flashing LED error codes
 1 starting up
 2 ERROR_AP_NOT_FOUND
@@ -135,7 +139,7 @@ async def main(client):
     await client.wifi_up.wait()
     print("emailing startup")
     # await send_email("[%s:%s] Starting" % (cfg.cluster_id, cfg.publish),errors_msg)
-    await send_email("Starting ", errors_msg, id="%s:%s" % (cfg.cluster_id, cfg.publish), errors_msg)
+    await send_email("Starting ", boilerplate, id = "%s:%s" % (cfg.cluster_id, cfg.publish))
     #
     # now checking on the broker connect. It too long then email
     start_broker_connect = time.time()
