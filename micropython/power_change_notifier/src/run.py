@@ -51,7 +51,7 @@ def print(*args, **kwargs): # replace print
     #xprint('statement before print')
     xprint("[run]", *args, **kwargs) # the copied real print
 
-async def send_email(subject,body):
+async def send_email(subject,body, id=cfg.cluster_id):
     if cfg.send_email:
         try:
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
@@ -133,8 +133,9 @@ async def main(client):
     asyncio.create_task(raw_messages(client))
     # 
     await client.wifi_up.wait()
-    print("emailing Boot")
-    await send_email("[%s:%s] Starting" % (cfg.cluster_id, cfg.publish),errors_msg)
+    print("emailing startup")
+    # await send_email("[%s:%s] Starting" % (cfg.cluster_id, cfg.publish),errors_msg)
+    await send_email("Starting ", errors_msg, id="%s:%s" % (cfg.cluster_id, cfg.publish), errors_msg)
     #
     # now checking on the broker connect. It too long then email
     start_broker_connect = time.time()
