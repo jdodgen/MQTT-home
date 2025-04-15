@@ -57,7 +57,7 @@ async def send_email(subject,body):
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             smtp.to(cfg.send_messages_to, mail_from="notifygenerator@gmail.com")
-            smtp.write("Subject: PCN %s\n\n%s\n" % (subject,body,))
+            smtp.write("Subject:[PCN %s] %s\n\n%s\n" % (cfg.cluster_id, subject, body,))
             smtp.send()
             smtp.quit()
         except:
@@ -201,7 +201,7 @@ def make_email_body():
     i = 0
     for dev in cfg.devices_we_subscribe_to:
         # body += "[%s]%s\n" % (dev, "OFF" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "ON") 
-        body += ''' [sensor.%d]\n  name = "%s"\n  on = %s\n''' % (i, dev, "false  #\t\t<>>>> \""+dev+"\" OFF <<<<>" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "true # on")
+        body += ''' [sensor.%d]\n  name = "%s"\n  on = %s\n''' % (i, dev, "false  #\t\t<b><>>>> \""+dev+"\" OFF <<<<></b>" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "true # on")
         i += 1
     body += ''' [sensor.%d]\n  name = "%s" # reporting sensor\n  on = true'''% (i, cfg.publish)
     print(body)
