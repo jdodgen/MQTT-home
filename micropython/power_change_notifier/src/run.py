@@ -56,7 +56,7 @@ async def send_email(subject,body, id=cfg.cluster_id):
         try:
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
             smtp.login(cfg.gmail_user, cfg.gmail_password)
-            smtp.to(cfg.send_messages_to, mail_from="notifygenerator@gmail.com")
+            smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
             smtp.write("Subject:[PCN %s] %s\n\n%s\n" % (cfg.cluster_id, subject, body,))
             smtp.send()
             smtp.quit()
