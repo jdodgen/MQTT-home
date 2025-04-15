@@ -55,18 +55,17 @@ def print(*args, **kwargs): # replace print
     #xprint('statement before print')
     xprint("[run]", *args, **kwargs) # the copied real print
 
-async def send_email(subject,body, id=cfg.cluster_id):
+async def send_email(subject, body):
     if cfg.send_email:
         try:
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-            smtp.write("Subject:[PCN %s] %s\n\n%s\n" % (id, subject, body,))
+            smtp.write("Subject:[PCN %s:%s] %s\n\n%s\n" % (cfg.cluster_id, cfg.publish, subject, body,))
             smtp.send()
             smtp.quit()
         except:
             print("email failed", body) 
-
 
 async def raw_messages(client):  # Process all incoming messages 
     global led
@@ -93,7 +92,7 @@ async def raw_messages(client):  # Process all incoming messages
                     cfg.start_time[i]=0
             i += 1
         if restored_sensors: 
-            await send_email("Power restored",restored_sensors+make_email_body()) 
+            await send_email("Power restored", restored_sensors+make_email_body()) 
      
     print("raw_messages exiting")
 
@@ -138,8 +137,8 @@ async def main(client):
     # 
     await client.wifi_up.wait()
     print("emailing startup")
-    # await send_email("[%s:%s] Starting" % (cfg.cluster_id, cfg.publish),errors_msg)
-    await send_email("Starting ", boilerplate, id = "%s:%s" % (cfg.cluster_id, cfg.publish))
+    # await send_email("Starting" % (cfg.cluster_id, cfg.publish),errors_msg)
+    await send_email("Starting", boilerplate)
     #
     # now checking on the broker connect. It too long then email
     start_broker_connect = time.time()
@@ -154,12 +153,12 @@ async def main(client):
         if elapse > too_long and not broker_not_up_send_email:
             broker_not_up_send_email = True
             print("email no broker")
-            await send_email("P monitor [%s:%s] broker not found" % (cfg.cluster_id, cfg.publish), "broker at ["+cfg.server+"] not found")
+            await send_email("broker not found", "broker at ["+cfg.server+"] not found")
         await asyncio.sleep(1)
    
     await client.broker_connected.wait()
     if broker_not_up_send_email:
-        await send_email("P monitor [%s:%s] broker connected" % (cfg.cluster_id, cfg.publish), "Broker now connected")
+        await send_email("Connected", "Broker now connected")
    
 
     resub_loop_count = 0
