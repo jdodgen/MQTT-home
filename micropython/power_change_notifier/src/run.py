@@ -26,7 +26,8 @@ turn_on_prints(True)
 
 # from mqtt_as.py 
 errors_msg = '''For reference:
-LED error codes
+Flashing LED error codes
+1 starting up
 2 ERROR_AP_NOT_FOUND
 3 ERROR_BAD_PASSWORD
 4 ERROR_BROKER_LOOKUP_FAILED
