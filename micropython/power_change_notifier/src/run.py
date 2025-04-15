@@ -24,8 +24,8 @@ our_status    = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=Tr
 
 turn_on_prints(True)
 
-# from mqtt_as.py 
-errors_msg = '''For reference:
+# ERRORS from mqtt_as_lite.py 
+errors_msg = '''Starting up ...\nFor reference:
 Flashing LED error codes
 1 starting up
 2 ERROR_AP_NOT_FOUND
