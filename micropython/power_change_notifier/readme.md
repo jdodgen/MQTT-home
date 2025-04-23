@@ -1,6 +1,6 @@
 # power change notifier
 
-two or more esp32-s2 microcontrolers that communicate. Typically a utility power and a generator. 
+two or more esp32-s2 microcontrolers that communicate. Typically utility power and a generator. 
 
 this includes micropython code, pictures of the hand wired board as well as scad and stl files to make the enclosure.
 
