@@ -15,7 +15,7 @@ gmail_password = "xxx xxx xxx xxx"
 gmail_user = "??@gmail.com"
 
 [sensor]
-#  do not use slashes "/" in the "name". It messes with the MQTT wild cards
+#  do not use slashes "/" or "+" in the "name". It messes with the MQTT wild cards
 #  email = true means that the sensor sends emails when sensors lost and found
 [sensor.1]
 name = "Big Generator"

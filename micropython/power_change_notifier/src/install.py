@@ -33,8 +33,12 @@ sensors = cluster["sensor"]
 sensor_keys = list(sensors.keys())
 sensor_keys.sort()
 for key in sensor_keys:
-    print("%s) %s" % (i,sensors[key]["name"]))
-    i += 1
+    name =sensors[key]["name"]
+    print("%s) %s" % (i,name))
+    if(('+' in name) or ('/' in name)):
+        print("ERROR: name contains a / or + Both are MQTT reserved")
+        sys.exit()
+
 print("select one: ", end="")
 req = input()
 publish_to = sensors[req]["name"]
