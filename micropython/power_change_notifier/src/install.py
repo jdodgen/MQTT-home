@@ -26,8 +26,12 @@ except FileNotFoundError:
 except tomllib.TOMLDecodeError as e:
     print("Error: Invalid TOML format in {file_path}: {e}")
     sys.exit()
-exit
-
+# build cc: string
+ cc_string = ''   
+for addr in cluster["email"]["gmail_user"]:
+    cc_string += "<%s>," % (addr,)
+cc_string.rstrip(",")
+    
 i=1
 sensors = cluster["sensor"]
 sensor_keys = list(sensors.keys())
@@ -99,7 +103,8 @@ subscribe_interval = 10 # count of number_of_seconds_to_wait to cause subscribe
 server = '%s'
 #
 # a python list of one or more email addresses ["9095551212@tmomail.net", "you@gmail.com"]
-send_messages_to = %s
+send_messages_to = %s # a python list
+cc_string = "%s"  # a smtp Cc: string
 # 
 # gmail account to send emails through  
 #
@@ -114,16 +119,16 @@ have_we_sent_power_is_down_email = %s
 got_other_message = %s
 start_time = %s
 cluster_id = "%s"
-send_email =  %s
+send_email =  %s,
 """
 print("creating cfg.py")
 now = datetime.datetime.now()
 cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"), 
     cluster["network"]["ssid"], cluster["network"]["wifi_password"], cluster["network"]["broker"], cluster["email"]["to_list"],
-    cluster["email"]["gmail_password"], cluster["email"]["gmail_user"], publish_to,
-    devices_we_subscribe_to, device_index, publish_cycles_without_a_message, 
+    cluster["email"]["gmail_password"], cluster["email"]["gmail_user"], cc_string, 
+    publish_to, devices_we_subscribe_to, device_index, publish_cycles_without_a_message, 
     have_we_sent_power_is_down_email, got_other_message,start_time,
-    cluster["cluster_id"], send_email)
+    cluster["cluster_id"], send_email, cc_list)
 #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
 #   gmail_password, gmail_user ))
 with open('cfg.py', 'w') as f:
