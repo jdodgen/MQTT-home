@@ -62,11 +62,11 @@ async def send_email(subject, body, cluster_id_only=False):
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
             id = cfg.cluster_id if cluster_id_only else cfg.cluster_id+":"+cfg.publish
-            smtp.write("Cc: %s\nSubject:[PCN %s] %s\n\n%s\n" % (cfg.cc_string, id, subject, body,))
+            smtp.write("CC: %s\nSubject:[PCN %s] %s\n\n%s\n" % (cfg.cc_string, id, subject, body,))
             smtp.send()
             smtp.quit()
-        except:
-            print("email failed", body) 
+        except Exception as e:
+            print("email failed", body, e) 
 
 async def raw_messages(client):  # Process all incoming messages 
     global led
