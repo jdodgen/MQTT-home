@@ -1,7 +1,7 @@
 
 # NanoPI-NEO LTS MQTT Broker
 Download:  h3-sd-friendlycore-xenial-4.14-armhf-20210618.img.gz see [friendlyelec](https://wiki.friendlyelec.com/wiki/index.php/NanoPi_NEO#UbuntuCore_16.04)   
-This is built off of Ubuntu 16.04 LTS,  I think it is the most soild distro for the NEO.  When this is installed the MicroSD cards need no configuration.
+This is built off of Ubuntu 16.04 LTS,  I think it is the most solid distro for the NEO.  When installed below the MicroSD cards need no configuration.
 Just plug it into the back of your router. 
 The MQTT Broker is found as ```home-broker.local``` on the subnet.  
 
