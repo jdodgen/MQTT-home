@@ -15,8 +15,8 @@ The system consists of:
  - 220 ohm resistor
  - insulated hookup wire
  - 1/4 electrocookie perf board
- - 2 8-pin male header
- - 2 8-pin female header
+ - 2 8-pin male headers
+ - 2 8-pin female headers
 ## simple MQTT server
 see [Simple MQTT Broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker/baby_home_broker)
 
