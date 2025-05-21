@@ -9,7 +9,7 @@ The system consists of:
  - MQTT broker - [mosquitto](https://mosquitto.org/) which runs anywhere, example: [simple MQTT broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker/baby_home_broker).
 
 ###  Electrical parts:
-### monitors:
+### Sensors:
  - [ESP32-s2](https://www.wemos.cc/en/latest/s2/s2_mini.html) Mini microcontroler running micropython use the 2MB PSRAM veraion ESP32-S2FN4R2
  - 2V LED 5mm
  - 220 ohm resistor
