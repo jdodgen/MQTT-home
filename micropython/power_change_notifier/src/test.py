@@ -22,13 +22,12 @@ def connectMQTT():
     client.connect()
     client.set_callback(cback)
     return client
-
-#Configure your WiFi SSID and password
+### start ###
 ssid = "danger"
-password = "9098673852"
-
-
-
+password = "will roberson"
+broker="26d590584befaf4655dsewa81048787c9d32f80.s1.eu.hivemq.cloud"  #'home-broker.local'
+user = "change"
+password = "password"
 wifi = network.WLAN(network.STA_IF)
 wifi.active(True)
 try:
@@ -42,9 +41,6 @@ try:
 except:
     print("exception doing wifi.connect status[]", wifi.status(),"]")
 
-
-
-    
 topic="test_topic"
 value="test_value"  
  
