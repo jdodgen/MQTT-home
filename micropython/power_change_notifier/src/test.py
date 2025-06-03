@@ -21,18 +21,14 @@ def connectMQTT():
         ssl_params={'server_hostname': broker})
     client.connect()
     client.set_callback(cback)
-  
     return client
-
-
 
 #Configure your WiFi SSID and password
 ssid = "danger"
 password = "9098673852"
 
-broker="26d590584baf4655a81048787c932f80.s1.eu.hivemq.cloud"  #'home-broker.local'
-user = "powerchange"
-password = "power!N0w"
+
+
 wifi = network.WLAN(network.STA_IF)
 wifi.active(True)
 try:
