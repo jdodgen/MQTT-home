@@ -9,7 +9,8 @@
 # Tested on ESP32-S2
 
 import gc
-import usocket as socket
+#import usocket as socket
+import socket
 import ustruct as struct
 
 gc.collect()
@@ -336,7 +337,8 @@ class MQTT_base:
         await asyncio.sleep_ms(_DEFAULT_MS)
         print("_broker_connect socket created")
         if self._ssl:
-            import ussl as ssl
+            #import ussl as ssl
+            import ssl
             self._sock = ssl.wrap_socket(self._sock, **self._ssl_params)
         premsg = bytearray(b"\x10\0\0\0\0\0")
         msg = bytearray(b"\x04MQTT\x04\0\0\0")  # Protocol 3.1.1
