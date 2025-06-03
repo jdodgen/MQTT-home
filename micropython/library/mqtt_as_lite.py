@@ -9,7 +9,8 @@
 # Tested on ESP32-S2
 
 import gc
-import usocket as socket
+#import usocket as socket
+import socket
 import ustruct as struct
 
 gc.collect()
@@ -42,14 +43,14 @@ ERROR_IDLE = 6
 
 # Default short delay for good SynCom throughput (avoid sleep(0) with SynCom).
 _DEFAULT_MS = const(20)
-_SOCKET_POLL_DELAY = const(5)  # 100ms added greatly to publish latency
+_SOCKET_POLL_DELAY = const(20)  # 100ms added greatly to publish latency
 
 # Legitimate errors while waiting on a socket. See uasyncio __init__.py open_connection().
 ESP32 = platform == "esp32"
 RP2 = platform == "rp2"
 if ESP32:
     # https://forum.micropython.org/viewtopic.php?f=16&t=3608&p=20942#p20942
-    BUSY_ERRORS = [EINPROGRESS, ETIMEDOUT, 118, 119]  # Add in weird ESP32 errors
+    BUSY_ERRORS = [EINPROGRESS, ETIMEDOUT, 118, 119, 116, -116]  # Add in weird ESP32 errors
 elif RP2:
     BUSY_ERRORS = [EINPROGRESS, ETIMEDOUT, -110]
 else:
@@ -73,7 +74,7 @@ def print(*args, **kwargs): # replace print
     # do whatever you want to do
     #xprint('statement before print')
     try:
-        xprint("[mqtt_as]", *args, **kwargs) # the copied real print
+        xprint("[mqtt_asl]", *args, **kwargs) # the copied real print
     except:
         raise ValueError("xprint problem ["+msg+"]")
 
@@ -254,6 +255,7 @@ class MQTT_base:
             try:
                 msg_size = sock.readinto(buffer[size:], n - size)
             except OSError as e:  # ESP32 issues weird 119 errors here
+                print("_as_read error: ", e)
                 msg_size = None
                 if e.args[0] not in BUSY_ERRORS:
                     raise
@@ -270,7 +272,6 @@ class MQTT_base:
         print("_as_write [", bytes_wr,"]")
         if sock is None:
             sock = self._sock
-
         # Wrap bytes in memoryview to avoid copying during slicing
         bytes_wr = memoryview(bytes_wr)
         if length:
@@ -299,7 +300,8 @@ class MQTT_base:
             if n:
                 t = ticks_ms()
                 bytes_wr = bytes_wr[n:]
-            await asyncio.sleep_ms(_SOCKET_POLL_DELAY)
+            await asyncio.sleep(1)
+            #await asyncio.sleep_ms(_SOCKET_POLL_DELAY)
 
     async def _send_str(self, s):
         await self._as_write(struct.pack("!H", len(s)))
@@ -386,8 +388,8 @@ class MQTT_base:
         async with self.sock_lock:
             try:
                 await self._as_write(b"\xc0\0")
-            except:
-                print("_ping exception")
+            except Exception as e:
+                print("_ping exception",e)
 
     def _close(self):
         if self._sock is not None:
@@ -490,22 +492,23 @@ class MQTT_base:
     # messages processed internally.
     # Immediate return if no data available. Called from ._handle_msg().
     async def wait_msg(self):
-        print("wait_msg start")
+        print("wait_msg start  _sock[", self._sock,"]")
         res = None
         try:
             res = self._sock.read(1)  # Throws OSError on WiFi fail
+            #res = await self._as_read(1)
         except OSError as e:
             print("wait_msg error:", e)
             if e.errno == ENOTCONN:
                 print("wait_msg  lost connection, notify manage_broker")
                 self.connection_lost = True
                 await asyncio.sleep(1)
-            print("wait_msg error:",e)
             if e.args[0] in BUSY_ERRORS:  # Needed by RP2
                 await asyncio.sleep_ms(0)
+                print("wait_msg: BUSY_ERRORS")
                 return
             raise
-        print("wait_msg res:", res)
+        print("wait_msg first byte", res)
         if res is None:
             print("wait_msg res == none")
             return
@@ -796,11 +799,12 @@ class MQTTClient(MQTT_base):
                     print("monitor_broker _broker_connect - success, socket [", self._sock,"]")
                     self.do_subscribes = True # tells app to subscribe/resubscribe
                     self.connection_lost = False
-                    self.broker_connected.set() # now pub/subs can run
+                    
                     self._isconnected = True
-                    time_between_pings = 3 # self._keepalive
+                    time_between_pings = self._keepalive
                     max_ping_wait= time_between_pings*6
                     self.last_pingresp =  time() # this get changed by wait_msg PINGRESP
+                    self.broker_connected.set() # now pub/subs can run
                     while  not self.connection_lost: # make sure broker is connected  
                         net_seconds = time() - self.last_pingresp
                         print("monitor_broker net_seconds", net_seconds)
@@ -833,18 +837,18 @@ class MQTTClient(MQTT_base):
     # handles incoming messages wait_msg put them in the queue.
     async def _handle_msg(self):
         while True:  
-            await self.broker_connected.wait()
-            print("_handle_msg wait_msg()")
             try:
                 async with self.sock_lock:
-                    print("_handle_msg got lock")
+                    print("_handle_msg got sock_lock")
+                    await self.broker_connected.wait()
+                    print("_handle_msg: broker is connected")
                     try:
                         await self.wait_msg()  # Immediate return if no message             
                     except OSError as e:
-                        print("_handle_msg error:",e)
+                        print("_handle_msg error: from wait_msg",e)
                         pass
             except OSError as e:
-                print("_handle_msg error:", e)
+                print("_handle_msg error: from lock", e)
                 pass
             await asyncio.sleep_ms(_DEFAULT_MS)  # Let other tasks get lock
 

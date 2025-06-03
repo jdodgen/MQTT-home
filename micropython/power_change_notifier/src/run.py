@@ -44,7 +44,7 @@ LED out, normal no outage
 no_broker_msg ='''Could not connect to broker:
 [%s]
 retrying ...
-''' % (cfg.server,)
+''' % (cfg.broker,)
 print(no_broker_msg)
 
 # conditional print
@@ -133,6 +133,7 @@ async def main(client):
     asyncio.create_task(client.monitor_wifi())
     asyncio.create_task(client._handle_msg())
     asyncio.create_task(client.monitor_broker())
+    
     # this pulls messages from the queue
     asyncio.create_task(raw_messages(client))
     # 
@@ -154,7 +155,7 @@ async def main(client):
         if elapse > too_long and not broker_not_up_send_email:
             broker_not_up_send_email = True
             print("email no broker")
-            await send_email("broker not found", "broker at ["+cfg.server+"] not found")
+            await send_email("broker not found", "broker at ["+cfg.broker+"] not found")
         await asyncio.sleep(1)
    
     await client.broker_connected.wait()
@@ -164,7 +165,15 @@ async def main(client):
 
     resub_loop_count = 0
     while True:  # top loop checking to see of other has published
+        #await asyncio.sleep(120)
         await client.publish(our_status.topic(), our_status.payload_on()) 
+        await asyncio.sleep(120)
+        await asyncio.sleep(2)
+        await client.publish(our_status.topic(), our_status.payload_on()) 
+        await asyncio.sleep(2)
+        await client.publish(our_status.topic(), our_status.payload_on()) 
+        #await client.subscribe(wildcard_subscribe.topic())
+        continue
         i=0
         down_sensors = 0
         print("\b[publish_check_loop]")
@@ -218,10 +227,16 @@ print("starting")
 # Local configuration, "config" came from mqtt_as
 config['ssid'] = cfg.ssid  
 config['wifi_pw'] = cfg.wifi_password
-config['server'] = cfg.server 
+
 config["queue_len"] = 1  # Use event interface with default queue size
 config['problem_reporter'] = problem_reporter
 config["response_time"] = 30
+config["keepalive"] = 7200
+config['server'] = cfg.broker 
+config["ssl"] = cfg.ssl   # true or false
+config["ssl_params"] = {'server_hostname': cfg.broker,}
+config["user"] = cfg.user
+config["password"] = cfg.password
 
 MQTTClient.DEBUG = True  # Optional: print diagnostic messages
 client = MQTTClient(config)
