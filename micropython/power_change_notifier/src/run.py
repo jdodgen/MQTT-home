@@ -7,7 +7,8 @@
 #
 import umail
 import alert_handler
-from mqtt_as_lite import MQTTClient, config, turn_on_prints
+# from mqtt_as_lite import MQTTClient, config, turn_on_prints
+from mqtt_support import mqtt_support
 import feature_power 
 import mqtt_hello
 import alert_handler
@@ -34,9 +35,7 @@ Flashing LED error codes
 1 starting up
 2 ERROR_AP_NOT_FOUND
 3 ERROR_BAD_PASSWORD
-4 ERROR_BROKER_LOOKUP_FAILED
-5 ERROR_BROKER_CONNECT_FAILED
-
+4 ERROR_BROKER_CONNECT_FAILED
 LED solid on, indicates an outage.
 LED out, normal no outage
 '''
@@ -47,13 +46,33 @@ retrying ...
 ''' % (cfg.broker,)
 print(no_broker_msg)
 
-# conditional print
-xprint = print # copy print
-def print(*args, **kwargs): # replace print
-    #return # comment/uncomment to turn print on off
-    # do whatever you want to do
-    #xprint('statement before print')
-    xprint("[run]", *args, **kwargs) # the copied real print
+# conditional formatted print replacement
+# MIT License Copyright Jim Dodgen 2025
+# if first string starts with a "." then the first word of the string is appended to the print_tag
+# typically identifying the routine
+# this needs to be pasted into your .py file
+#
+print_tag = "robust"
+do_prints = True # usually set to False in production
+def turn_on_prints(flag):  # true or false
+    global do_prints
+    do_prints=flag
+raw_print = print # copy print
+def print(first, *args, **kwargs): # replace print
+    global do_prints
+    if do_prints:
+        f=None
+        if isinstance(first, str) and first[0] == ".":
+            f = first.split(" ",1)
+        else:
+            f = ["",first]
+        try:
+            if len(f) > 1:
+                raw_print("["+print_tag+f[0]+"]", f[1], *args, **kwargs) # the copied real print
+            else:
+                raw_print("["+print_tag+f[0]+"]", *args, **kwargs) # the copied real print
+        except:
+            raise ValueError("xprint problem ["+print_tag+"]")
 
 async def send_email(subject, body, cluster_id_only=False):
     if cfg.send_email:
@@ -72,7 +91,7 @@ async def raw_messages(client):  # Process all incoming messages
     global led
     global other_status
     # loop on message queue
-    async for btopic, bmsg, retained in client.queue:
+    async for btopic, bmsg in client.queue:
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
         print("callback [%s][%s] retained[%s]" % (topic, msg, retained,)) 
@@ -105,8 +124,11 @@ async def raw_messages(client):  # Process all incoming messages
             gc.collect()
             print("RAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc()))
 
-     
-async def problem_reporter(error_code, repeat=1):
+async def problem_reporter(error_queue):
+    # wait for an error
+    async for error_code, in error_queue:
+            print(error_code)  
+'''async def problem_reporter(error_code, repeat=1):
     if error_code >  0:
         led.turn_off()
         await asyncio.sleep(2)
@@ -115,7 +137,7 @@ async def problem_reporter(error_code, repeat=1):
             await led.async_flash(count=error_code, duration=0.4, ontime=0.4)
             x += 1
             await asyncio.sleep(1)
-        await asyncio.sleep(2)      
+        await asyncio.sleep(2)'''      
         
 async def main(client):
     global other_status
@@ -126,18 +148,38 @@ async def main(client):
     led.turn_on()
     await asyncio.sleep(2)  # wakeup flash
     led.turn_off() 
+    list_of_topics = [topic,]
+    mqtt = mqtt_support(
+            ssid=ssid,
+            wifi_pw=wifi_password,
+            problem_reporter=problem_reporter,
+            broker=broker,
+            broker_user=broker_user,
+            broker_password=broker_password,
+            subscriptions = list_of_topics
+            )
+    asyncio.create_task(raw_messages(mqtt.queue)) # incoming messages
+    asyncio.create_task(problem_reporter(mqtt.error_queue)) # incoming messages
+    asyncio.create_task(mqtt.monitor_wifi())  # connects and reconnects as needed
 
+    '''#await asyncio.sleep(1)
+    print("connecting to broker")
+
+    client = await mqtt.broker()  # first connection to the broker.
+    print("main client connected")
     print("creating tasks")
     # these are needed for mqtt_as_lite
     # they run forever and fix connection problems
     asyncio.create_task(client.monitor_wifi())
     asyncio.create_task(client._handle_msg())
     asyncio.create_task(client.monitor_broker())
-    
+    '''
     # this pulls messages from the queue
     asyncio.create_task(raw_messages(client))
-    # 
-    await client.wifi_up.wait()
+    #
+    #done above
+    
+    await client.wifi_up.wait()'''
     print("emailing startup")
     # await send_email("Starting" % (cfg.cluster_id, cfg.publish),errors_msg)
     await send_email("Starting", boilerplate)
