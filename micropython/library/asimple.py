@@ -229,10 +229,11 @@ class MQTTClient:
             print(".wait_msg waiting")
         print(".wait_msg res", res)
         # self.sock.setblocking(True)
-        if res is None:
+        if res == None:
             return None
         if res == b"":
-            raise OSError(-1)
+            return None
+            # raise OSError(-1)
         if res == b"\xd0":  # PINGRESP
             sz = self.sock.read(1)[0]
             assert sz == 0

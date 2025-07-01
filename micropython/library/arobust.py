@@ -85,7 +85,7 @@ class MQTTClient(asimple.MQTTClient):
                 print(".publish [", topic, "][", msg, "]")
                 ret = super().publish(topic, msg, retain, qos)
             except OSError as e:
-                print(".publish failed so do always_connect")
+                print(".publish failed so do always_connect",e)
                 self.error_queue.put(4) # ERROR_BROKER_CONNECT_FAILED =  4
                 await self.always_connect()
                 await asyncio.sleep(1)
@@ -100,7 +100,7 @@ class MQTTClient(asimple.MQTTClient):
                 print(".wait_msg super")
                 ret = await super().wait_msg()
             except OSError as e:
-                print(".wait_msg looping always_connect")
+                print(".wait_msg got eror",e,"trying again")
                 await asyncio.sleep(1)
                 await self.always_connect()
             else:

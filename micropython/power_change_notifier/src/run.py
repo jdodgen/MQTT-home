@@ -20,12 +20,14 @@ our_status    = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=Tr
 print(our_status.topic())
 
 other_status = []
-list_of_others = []   # use this to get msgs back during testing [our_status.topic(),]
+#list_of_others = []
+list_of_others = [our_status.topic(),] # use this to get echo msgs back during testing
 for dev in cfg.devices_we_subscribe_to:
     print("subscribing to:", dev)
     other_status.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True))
     list_of_others.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True).topic())
 print("list of others", list_of_others)
+
 wildcard_subscribe = feature_power.feature(cfg.cluster_id+"/+", subscribe=True)
 print(wildcard_subscribe.topic())
 
@@ -269,10 +271,11 @@ async def main():
                 cfg.got_other_message[i] = False
                 cfg.publish_cycles_without_a_message[i] = 0
             i += 1
-        if any(cfg.start_time):
-            print(".main turning led on")
+        if any(cfg.start_time):  # any in start_time True?
+            print(".main turning led on", cfg.start_time)
             led.turn_on()
         else:
+            print(".main turning led off", cfg.start_time)
             led.turn_off()
         if down_sensors:
             await send_email("Power Outage(s)", make_email_body(), cluster_id_only=True)
