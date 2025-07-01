@@ -3,10 +3,11 @@ import os
 import datetime
 import tomllib
 import sys
+#import feature_power
 
 # this configures and installs software
 # it replaces the cfg.py file each time it runs
-# Y N defaults are designed for rapid deployment during development 
+# Y N defaults are designed for rapid deployment during development
 
 mp_lib_offset="../../library/"
 all_lib_offset="../../../library/"
@@ -28,7 +29,7 @@ except tomllib.TOMLDecodeError as e:
     sys.exit()
 
 # build cc: string
-cc_string = ''   
+cc_string = ''
 for addr in cluster["email"]["to_list"]:
     cc_string += "<%s>," % (addr,)
 cc_string = cc_string.rstrip(",")
@@ -53,13 +54,14 @@ if sensors[req]["email"]:
     send_email = True
 else:
     send_email =False
-    
+
 print("bulding a ",publish_to)
 
 publisher_ndx=int(req)-1
 # pre build some lists
 device_index = {}
 devices_we_subscribe_to = []
+#list_of_other_topics = []
 publish_cycles_without_a_message =[]
 got_other_message = []
 have_we_sent_power_is_down_email  = []
@@ -73,6 +75,7 @@ for key in sensor_keys:
     else:
         name =sensors[key]["name"]
         devices_we_subscribe_to.append(name)
+        #list_of_other_topics.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True).topic())
         device_index[name] = out
         publish_cycles_without_a_message.append(0)
         got_other_message.append(False)
@@ -81,6 +84,13 @@ for key in sensor_keys:
         out += 1
     i += 1
 print(devices_we_subscribe_to)
+
+# list_of_other_topics = []
+# for dev in devices_we_subscribe_to:
+    # print("subscribing to:", dev)
+    # other_status.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True))
+    # list_of_others.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True).topic())
+# print("list of others", list_of_others)
 ################### end of many devices version
 
 
@@ -90,7 +100,7 @@ print("\nflashing ssid[%s] device[%s]\n" % (cluster["network"]["ssid"], publish_
 cfg_template = """
 # MIT license copyright 2024, 2025 Jim Dodgen
 # this cfg.py was created by: install.py
-# Date: %s 
+# Date: %s
 # MAKE YOUR CHANGES IN install.py
 #
 led_gpio = 3  # "D3" on D1-Mini proto card
@@ -99,7 +109,7 @@ ssid="%s"
 wifi_password = "%s"
 #
 start_delay=0 # startup delay
-number_of_seconds_to_wait=30  # messages published and checked 
+number_of_seconds_to_wait=30  # messages published and checked
 other_message_threshold=4  # how many number_of_seconds_to_wait to indicate other is down
 subscribe_interval = 10 # count of number_of_seconds_to_wait to cause subscribe
 #
@@ -110,8 +120,8 @@ password = '%s'
 #
 # a python list of one or more email addresses ["9095551212@tmomail.net", "you@gmail.com"]
 send_messages_to = %s # a python list
-# 
-# gmail account to send emails through  
+#
+# gmail account to send emails through
 #
 gmail_password = "%s" # gmail generates this and it can change it in the future
 gmail_user = "%s"
@@ -129,18 +139,18 @@ send_email =  %s,
 """
 print("creating cfg.py")
 now = datetime.datetime.now()
-cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"), 
-    cluster["network"]["ssid"], cluster["network"]["wifi_password"], 
-    cluster["mqtt_broker"]["broker"], cluster["mqtt_broker"]["ssl"], cluster["mqtt_broker"]["user"], cluster["mqtt_broker"]["password"], 
+cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
+    cluster["network"]["ssid"], cluster["network"]["wifi_password"],
+    cluster["mqtt_broker"]["broker"], cluster["mqtt_broker"]["ssl"], cluster["mqtt_broker"]["user"], cluster["mqtt_broker"]["password"],
     cluster["email"]["to_list"],
-    cluster["email"]["gmail_password"], cluster["email"]["gmail_user"], cc_string, 
-    publish_to, devices_we_subscribe_to, device_index, publish_cycles_without_a_message, 
+    cluster["email"]["gmail_password"], cluster["email"]["gmail_user"], cc_string,
+    publish_to, devices_we_subscribe_to, device_index, publish_cycles_without_a_message,
     have_we_sent_power_is_down_email, got_other_message,start_time,
     cluster["cluster_id"], send_email)
 #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
 #   gmail_password, gmail_user ))
 with open('cfg.py', 'w') as f:
-    f.write(cfg_text) 
+    f.write(cfg_text)
 print("cfg.py created")
 
 print ("press and hold O (flat side)\nthen press R (indent) momentary\nrelease O\nto allow flashing micropython")
@@ -163,9 +173,11 @@ if (ans.upper() == "Y"):
     mp_lib_offset+"uuid.py",
     mp_lib_offset+"alert_handler.py",
     mp_lib_offset+"umail.py",
-    all_lib_offset+"mqtt_hello.py",
+    #all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_power.py",
-    mp_lib_offset+"mqtt_as_lite.py",
+    mp_lib_offset+"mqtt_support.py",
+    mp_lib_offset+"asimple.py",
+    mp_lib_offset+"arobust.py",
     ]
     print("now pushing python library code")
     for c in code:
@@ -177,7 +189,7 @@ ans = input()
 if (ans.upper() != "N"):
     code = [
     "run.py",
-    
+
     ]
     print("now pushing python application code")
     for c in code:
