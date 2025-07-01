@@ -3,7 +3,19 @@ import os
 import datetime
 import tomllib
 import sys
-#import feature_power
+
+# Get the absolute path of the current script's directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Add the parent directory to sys.path
+# In this example, if main.py is in 'project/', this adds 'project/'
+sys.path.append(os.path.join(current_dir, '../../../library/'))
+import feature_power
+
+
+
+wildcard_subscribe = feature_power.feature(cfg.cluster_id+"/+", subscribe=True)
+print(wildcard_subscribe.topic())
 
 # this configures and installs software
 # it replaces the cfg.py file each time it runs
@@ -11,6 +23,7 @@ import sys
 
 mp_lib_offset="../../library/"
 all_lib_offset="../../../library/"
+
 
 if len(sys.argv) > 1:
     cluster_toml = sys.argv[1]
@@ -27,6 +40,20 @@ except FileNotFoundError:
 except tomllib.TOMLDecodeError as e:
     print("Error: Invalid TOML format in {file_path}: {e}")
     sys.exit()
+
+# build feature
+our_status    = feature_power.feature(cluster["cluster_id"]+"/"+publish_to, publish=True)   # publisher
+print(our_status.topic())
+
+#other_device_features = []
+#other_device_topics = []
+other_device_topics = [our_status.topic(),] # use this to get echo msgs back during testing
+
+for dev in cfg.devices_we_subscribe_to:
+    print("subscribing to:", dev)
+    #other_device_features.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True))
+    other_device_topics.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True).topic())
+print("list of others", other_device_topics)
 
 # build cc: string
 cc_string = ''
