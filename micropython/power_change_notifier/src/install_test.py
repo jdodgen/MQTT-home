@@ -18,7 +18,7 @@ code = [test_main_offset+"main.py", mp_lib_offset+"boot.py",]
 print("now pushing python library code")
 for c in code:
     print("installing", c)
-        os.system("ampy --port /dev/ttyACM0 put "+c)
+    os.system("ampy --port /dev/ttyACM0 put "+c)
 
 code = ["test.py",]
 print("now pushing python application code")
