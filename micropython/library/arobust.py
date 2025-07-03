@@ -107,7 +107,7 @@ class MQTTClient(asimple.MQTTClient):
                 return ret
 
     async def check_msg(self, attempts=2):
-        #print(".check_msg")
+        print(".check_msg")
         ret = None
         while True:
             # self.sock.setblocking(False)

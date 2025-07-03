@@ -1,8 +1,8 @@
 //  MIT license copyright 2025 Jim Dodgen
 use <usb_hole.scad>
 
-logo = "G"; //  U + 
-LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32) ; //3.7);
+logo = "R"; //  U + 
+LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=true) ; //3.7);
 
 //rotate([180,0,0]) 
    //LED_pizo_buzzer_top();
@@ -184,7 +184,7 @@ module empty_top()
 
 }
 //
-module LED_top(flat=false, height=top_thickness,cut_text=false, xoff=20, yoff=12)
+module LED_top(flat=false, height=top_thickness,cut_text=false, xoff=20, yoff=12, top_stripe=false)
 {
     led_loc = [29.5,-21,-height/2];
     led_hole = 7;
@@ -202,11 +202,18 @@ module LED_top(flat=false, height=top_thickness,cut_text=false, xoff=20, yoff=12
         if (cut_text)
         {
             color("red") translate([xoff,-yoff, height*3/2])
+            {
+                
                 rotate([180,0,90]) 
                     linear_extrude(height*3)
                         text(cut_text, size=12, font=font);
+            }
         }
     }
+    if (top_stripe)
+        translate([xoff+8,-yoff-5, 0])
+            cube([1,20,1]);
+    
     
 }
  

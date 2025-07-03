@@ -206,11 +206,9 @@ if (ans.upper() == "Y"):
     mp_lib_offset+"umail.py",
     #all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_power.py",
-    all_lib_offset+"msgqueue.py",
-    #mp_lib_offset+"mqtt_support.py",
-    #mp_lib_offset+"asimple.py",
-    #mp_lib_offset+"arobust.py",
-    mp_lib_offset+"mqtt_as.py",
+    mp_lib_offset+"mqtt_support.py",
+    mp_lib_offset+"asimple.py",
+    mp_lib_offset+"arobust.py",
     ]
     print("now pushing python library code")
     for c in code:

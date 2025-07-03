@@ -95,7 +95,7 @@ class mqtt_support():
         self.subscriptions = subscriptions
         self.pub_retains = publish_retains
         asyncio.create_task(self.monitor_wifi())  # connects and reconnects as needed
-        asyncio.create_task(self.process_incoming_messages())
+        # asyncio.create_task(self.process_incoming_messages())
 
     async def monitor_wifi(self):
         print(".monitor_wifi starting")
