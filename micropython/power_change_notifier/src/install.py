@@ -1,4 +1,45 @@
 # MIT license copyright 2024,25 Jim Dodgen
+# usage is python3 install.py snd the cluster toml file
+cluster_example_toml='''
+# this is a toml configuration file see https://toml.io/
+# this file is used by install.py to generate device cfg.py files
+
+cluster_id = "your place"  # as in: "/home/your place/Big Generator/power"
+
+[network]
+ssid =  "mywifi"
+wifi_password = '12345678'
+
+[mqtt_broker]
+broker="home-broker.local"  # or where ever your MQTT broker is
+ssl = true/false
+user = "user"
+password = "password"
+
+[email]
+to_list = ["foo@bar.com", "bar@foo.com"]
+gmail_password = "xxx xxx xxx xxx"
+gmail_user = "??@gmail.com"
+
+[sensor]
+#  do not use slashes "/" or "+" in the "name". It messes with the MQTT wild cards
+#  email = true means that the sensor sends emails when sensors lost and found
+[sensor.1]
+name = "Big Generator"   # example topic  "/home/your place/Big Generator/power"
+email = true  # if false this sensor does not send emails
+[sensor.2]
+name = "Utility power company"
+email = true
+[sensor.3]
+name = "solar_batteries"
+email = false
+[sensor.3]
+name = "offsite"
+email = false
+ssid = "otherwifi"
+wifi_password = "otherpw"
+'''
+
 import os
 import datetime
 import tomllib
@@ -11,10 +52,6 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 # In this example, if main.py is in 'project/', this adds 'project/'
 sys.path.append(os.path.join(current_dir, '../../../library/'))
 import feature_power
-
-
-
-
 
 # this configures and installs software
 # it replaces the cfg.py file each time it runs
@@ -57,7 +94,7 @@ for key in sensor_keys:
     print("%s) %s" % (i,name))
     i += 1
     if(('+' in name) or ('/' in name)):
-        print("ERROR: name contains a / or + Both are MQTT reserved")
+        print("ERROR: name [%s] contains a / or +,  Both are MQTT reserved" %(name,))
         sys.exit()
 
 print("select one: ", end="")
@@ -66,8 +103,13 @@ publish_to = sensors[req]["name"]
 if sensors[req]["email"]:
     send_email = True
 else:
-    send_email =False
-
+    send_email = False
+if "ssid" in sensors[req]:
+    wifi_password = sensors[req]["wifi_password"]
+    ssid = sensors[req]["ssid"]
+else: # take default
+    ssid = cluster["network"]["ssid"]
+    wifi_password = cluster["network"]["wifi_password"]
 
 
 print("bulding a ",publish_to)
@@ -101,12 +143,12 @@ for key in sensor_keys:
 print(devices_we_subscribe_to)
 
 # build features
-our_status    = feature_power.feature(cluster["cluster_id"]+"/"+publish_to, publish=True)   # publisher
-print(our_status.topic())
+our_feature    = feature_power.feature(cluster["cluster_id"]+"/"+publish_to, publish=True)   # publisher
+print(our_feature.topic())
 
 #other_device_features = []
 #other_device_topics = []
-other_device_topics = [our_status.topic(),] # use this to get echo msgs back during testing
+other_device_topics = [our_feature.topic(),] # use this to get echo msgs back during testing
 
 for dev in devices_we_subscribe_to:
     print("subscribing to:", dev)
@@ -125,7 +167,7 @@ print("list of others", other_device_topics)
 ################### end of many devices version
 
 
-print("\nflashing ssid[%s] device[%s]\n" % (cluster["network"]["ssid"], publish_to,))
+print("\nflashing ssid[%s] device[%s]\n" % (ssid, publish_to,))
 
 # this is the cfg.py template uses % to pass in stuff
 cfg_template = """
@@ -166,18 +208,19 @@ have_we_sent_power_is_down_email = %s
 got_other_message = %s
 start_time = %s
 cluster_id = "%s"
-send_email =  %s,
+send_email =  %s
+other_device_topics = %s
 """
 print("creating cfg.py")
 now = datetime.datetime.now()
 cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
-    cluster["network"]["ssid"], cluster["network"]["wifi_password"],
+    ssid, wifi_password,
     cluster["mqtt_broker"]["broker"], cluster["mqtt_broker"]["ssl"], cluster["mqtt_broker"]["user"], cluster["mqtt_broker"]["password"],
     cluster["email"]["to_list"],
     cluster["email"]["gmail_password"], cluster["email"]["gmail_user"], cc_string,
     publish_to, devices_we_subscribe_to, device_index, publish_cycles_without_a_message,
     have_we_sent_power_is_down_email, got_other_message,start_time,
-    cluster["cluster_id"], send_email)
+    cluster["cluster_id"], send_email,other_device_topics)
 #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
 #   gmail_password, gmail_user ))
 with open('cfg.py', 'w') as f:
@@ -218,7 +261,7 @@ if (ans.upper() == "Y"):
         os.system("ampy --port /dev/ttyACM0 put "+c)
 
 print("\ninstall application code? (Y,n)")
-ans = input()
+ans = "Y" #  input()
 if (ans.upper() != "N"):
     code = [
     "run.py",

@@ -5,7 +5,7 @@
 # turning on a LED and sending emails
 # also publishes status
 #
-VERSION = (0, 2, 0)
+VERSION = (0, 2, 2)
 import umail
 import alert_handler
 from mqtt_as import MQTTClient, config  #,  turn_on_prints
@@ -61,6 +61,7 @@ async def send_email(subject, body, cluster_id_only=False):
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
             id = cfg.cluster_id if cluster_id_only else cfg.cluster_id+":"+cfg.publish
+            print("our id", id)
             smtp.write("CC: %s\nSubject:[PCN %s] %s\n\n%s\n" % (cfg.cc_string, id, subject, body,))
             smtp.send()
             smtp.quit()
@@ -164,8 +165,7 @@ async def main():
     asyncio.create_task(down_report_outage(client,error_queue))
     #
 
-    print("emailing startup")
-    await send_email("Starting", boilerplate)
+
     #
     # make first connection
     # mqtt_as requires a good connection to the broker/server at startup
@@ -222,21 +222,23 @@ def make_email_body():
     i = 0
     for dev in cfg.devices_we_subscribe_to:
         # body += "[%s]%s\n" % (dev, "OFF" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "ON")
-        body += ''' [sensor.%d]\n  name = "%s"\n  on = %s\n''' % (i, dev, "false  #\t\t<b><>>>> \""+dev+"\" OFF <<<<></b>" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "true # on")
+        body += ''' [sensor.%d]\n  name = "%s"\n  on = %s\n''' % (i, dev, "false  #\t\t<>>>> \""+dev+"\" OFF <<<<>" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "true # on")
         i += 1
     body += ''' [sensor.%d]\n  name = "%s" # reporting sensor\n  on = true'''% (i, cfg.publish)
     print(body)
     return body
 
-def up_so_subscribe(client, error_queue):
+async def up_so_subscribe(client, error_queue):
     while True:
         await client.up.wait()
         client.up.clear()
         print('doing subscribes')
         error_queue.put(0)
         await client.subscribe(wildcard_subscribe.topic())
+        print("emailing startup")
+        await send_email("Starting", boilerplate)
 
-def down_report_outage(client, error_queue):
+async def down_report_outage(client, error_queue):
     while True:
         await client.down.wait()
         client.down.clear()

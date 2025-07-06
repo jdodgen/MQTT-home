@@ -1,8 +1,11 @@
 //  MIT license copyright 2025 Jim Dodgen
 use <usb_hole.scad>
-
+/*
 logo = "R"; //  U + 
 LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=true) ; //3.7);
+*/
+logo = "S"; //  U + 
+LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=false) ; //3.7);
 
 //rotate([180,0,0]) 
    //LED_pizo_buzzer_top();

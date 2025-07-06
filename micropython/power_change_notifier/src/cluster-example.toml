@@ -1,13 +1,17 @@
-# this is a toml configuration file https://toml.io/
-# this file is used bo install.py to create cfg.py
-# the only code differences between "sensors" is cfg.py
-#
-cluster_id = "your place"
+# this is a toml configuration file see https://toml.io/
+# this file is used by install.py to generate device cfg.py files
+
+cluster_id = "your place"  # as in: "/home/your place/Big Generator/power"
 
 [network]
-ssid =  "mywifi" 
+ssid =  "mywifi"
 wifi_password = '12345678'
+
+[mqtt_broker]
 broker="home-broker.local"  # or where ever your MQTT broker is
+ssl = true/false
+user = "user"
+password = "password"
 
 [email]
 to_list = ["foo@bar.com", "bar@foo.com"]
@@ -18,8 +22,8 @@ gmail_user = "??@gmail.com"
 #  do not use slashes "/" or "+" in the "name". It messes with the MQTT wild cards
 #  email = true means that the sensor sends emails when sensors lost and found
 [sensor.1]
-name = "Big Generator"
-email = true
+name = "Big Generator"   # example topic  "/home/your place/Big Generator/power"
+email = true  # if false this sensor does not send emails
 [sensor.2]
 name = "Utility power company"
 email = true
