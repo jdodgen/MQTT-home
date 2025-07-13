@@ -14,14 +14,6 @@ smaller are using microcontrollers that support [micropython](https://micropytho
 [Button with LED and buzzer](https://github.com/jdodgen/MQTT-home/tree/main/micropython/LED-Piezo-Button)         
 [Motorized Ball Valve controller](https://github.com/jdodgen/MQTT-home/tree/main/micropython/ball_valve_controller)          
 
-# Directory organization
-## MQTT-home/Library
-Code shared by both micropython and linux
-## MQTT-home/linux
-Linux IoT, typically RPI servers, linux projects live here# MQTT-home
-This is a "hierarchical development environment" used for creation of both micropython and linux "things".  
-All communication using MQTT messages.
-
 Larger/more complex are using linux on small devices like a "Raspberry pi"
 smaller are using microcontrollers that support [micropython](https://micropython.org/)   
 
