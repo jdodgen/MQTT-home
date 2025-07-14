@@ -1,3 +1,1 @@
-i=1
-
-print ("sss.%d" % (i,))
+print("foo") if False else None

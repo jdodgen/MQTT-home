@@ -25,16 +25,20 @@ gmail_user = "??@gmail.com"
 #  do not use slashes "/" or "+" in the "name". It messes with the MQTT wild cards
 #  email = true means that the sensor sends emails when sensors lost and found
 [sensor.1]
-name = "Big Generator"   # example topic  "/home/your place/Big Generator/power"
+id = "G"
+desc = "Generator powered outlet" # Typicaly in gally/kitchen in plain sight
 email = true  # if false this sensor does not send emails
 [sensor.2]
-name = "Utility power company"
+id = "U"
+desc = "Utility power company"
 email = true
 [sensor.3]
+id = "S"
 name = "solar_batteries"
 email = false
 [sensor.3]
-name = "offsite"
+id = "R"
+desc = "Offsite monitor"
 email = false
 ssid = "otherwifi"
 wifi_password = "otherpw"
@@ -85,36 +89,51 @@ for addr in cluster["email"]["to_list"]:
 cc_string = cc_string.rstrip(",")
 print(cc_string)
 
-i=1
 sensors = cluster["sensor"]
 sensor_keys = list(sensors.keys())
 sensor_keys.sort()
 for key in sensor_keys:
-    name =sensors[key]["name"]
-    print("%s) %s" % (i,name))
-    i += 1
-    if(('+' in name) or ('/' in name)):
-        print("ERROR: name [%s] contains a / or +,  Both are MQTT reserved" %(name,))
+    #print("sensor key=", key)
+    if len(key) != 1:
+        print("id [%s] mist be a single letter or number" % (key, ))
+    try:
+        desc =sensors[key]["desc"]
+    except:
+        desc=""
+    print("%s) %s" % (key, desc))
+    if(('+' in desc) or ('/' in desc) or ('+' in key) or ('/' in key)):
+        print("\nERROR: future topic  [%s][%s] contains a / or +,  MQTT reserved fix in toml file\n" % (key,desc,))
         sys.exit()
 
 print("select one: ", end="")
-req = input()
-publish_to = sensors[req]["name"]
-if sensors[req]["email"]:
-    send_email = True
-else:
+sensor_to_make = input().upper()
+print("request = ", sensor_to_make)
+if sensor_to_make in sensors:
+    if "desc" in sensors[sensor_to_make] and len(sensors[sensor_to_make]['desc']) > 0:
+        publish_to = sensor_to_make+" "+sensors[sensor_to_make]['desc']
+    else:
+        publish_to = sensor_to_make   # single letter version
+    print("publish_to [%s]" %  (publish_to,))
+    if "send_email" in sensors[sensor_to_make] and sensors[sensor_to_make]["send_email"] == True:
+        send_email = True
+    else:
+        send_email = False
+    if "ssid" in sensors[sensor_to_make]:
+        wifi_password = sensors[sensor_to_make]["wifi_password"]
+        ssid = sensors[sensor_to_make]["ssid"]
+    else: # take default
+        ssid = cluster["network"]["ssid"]
+        wifi_password = cluster["network"]["wifi_password"]
+else:  # these "letters" do not exist in the config but are treated as "soft_tracking"  that is not tracked until first publish
+    publish_to = sensor_to_make   # single letter version
     send_email = False
-if "ssid" in sensors[req]:
-    wifi_password = sensors[req]["wifi_password"]
-    ssid = sensors[req]["ssid"]
-else: # take default
     ssid = cluster["network"]["ssid"]
     wifi_password = cluster["network"]["wifi_password"]
 
 
 print("bulding a ",publish_to)
 
-publisher_ndx=int(req)-1
+#publisher_ndx=int(req)-1
 # pre build some lists
 device_index = {}
 devices_we_subscribe_to = []
@@ -124,47 +143,59 @@ got_other_message = []
 have_we_sent_power_is_down_email  = []
 start_time = []
 #
-out=0
-i=0
-for key in sensor_keys:
-    if i == publisher_ndx:
-        pass
+# out=0
+# i=0
+# for key in sensor_keys:
+    # if i == publisher_ndx:
+        # pass
+    # else:
+        # name =sensors[key]["name"]
+        # devices_we_subscribe_to.append(name)
+        # #list_of_other_topics.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True).topic())
+        # device_index[name] = out
+        # publish_cycles_without_a_message.append(0)
+        # got_other_message.append(False)
+        # have_we_sent_power_is_down_email.append(False)
+        # start_time.append(False)
+        # out += 1
+    # i += 1
+# print(devices_we_subscribe_to)
+
+def make_topic_cluster_pub(letter):
+    if letter in sensors:
+        if "desc" in sensors[letter]:
+            desc = sensors[letter]["desc"]
+        else:
+            desc = ''
     else:
-        name =sensors[key]["name"]
-        devices_we_subscribe_to.append(name)
-        #list_of_other_topics.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True).topic())
-        device_index[name] = out
-        publish_cycles_without_a_message.append(0)
-        got_other_message.append(False)
-        have_we_sent_power_is_down_email.append(False)
-        start_time.append(False)
-        out += 1
-    i += 1
-print(devices_we_subscribe_to)
+        desc = ''
+    if desc == '':
+        return cluster["cluster_id"]+"/"+letter
+    else:
+        return cluster["cluster_id"]+"/"+letter+" "+desc
+
 
 # build features
-our_feature    = feature_power.feature(cluster["cluster_id"]+"/"+publish_to, publish=True)   # publisher
+our_feature    = feature_power.feature(make_topic_cluster_pub(publish_to), publish=True)   # publisher
 print(our_feature.topic())
 
-#other_device_features = []
-#other_device_topics = []
-other_device_topics = [our_feature.topic(),] # use this to get echo msgs back during testing
+# for dev in devices_we_subscribe_to:
+    # print("subscribing to:", dev)
+    # #other_device_features.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True))
+    # other_device_topics.append(feature_power.feature(cluster["cluster_id"]+"/"+dev, subscribe=True).topic())
 
-for dev in devices_we_subscribe_to:
-    print("subscribing to:", dev)
-    #other_device_features.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True))
-    other_device_topics.append(feature_power.feature(cluster["cluster_id"]+"/"+dev, subscribe=True).topic())
-print("list of others", other_device_topics)
 #wildcard_subscribe = feature_power.feature(cluster["cluster_id"]+"/+", subscribe=True)
 #print(wildcard_subscribe.topic())
 
-# list_of_other_topics = []
-# for dev in devices_we_subscribe_to:
-    # print("subscribing to:", dev)
-    # other_status.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True))
-    # list_of_others.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True).topic())
-# print("list of others", list_of_others)
-################### end of many devices version
+hard_tracked_topics = []
+soft_tracking = "soft_tracking" # soft tracked sensors are only tracked after first publish and ignored at boot
+for key in sensor_keys:
+    if soft_tracking in sensors[key]:
+        if sensors[key][soft_tracking] == True:
+            continue
+    if key != sensor_to_make:  # not tracking self
+        hard_tracked_topics.append(feature_power.feature(make_topic_cluster_pub(key), subscribe=True).topic())
+print("hard tracked topics", hard_tracked_topics)
 
 
 print("\nflashing ssid[%s] device[%s]\n" % (ssid, publish_to,))
@@ -177,6 +208,7 @@ cfg_template = """
 # MAKE YOUR CHANGES IN install.py
 #
 led_gpio = 3  # "D3" on D1-Mini proto card
+onboard_led_gpio = 15 # built in BLUE led
 #
 ssid="%s"
 wifi_password = "%s"
@@ -201,44 +233,49 @@ gmail_user = "%s"
 cc_string = "%s"  # a smtp Cc: string
 
 publish = "%s"
-devices_we_subscribe_to = %s
-device_index = %s
-publish_cycles_without_a_message = %s
-have_we_sent_power_is_down_email = %s
-got_other_message = %s
-start_time = %s
 cluster_id = "%s"
 send_email =  %s
-other_device_topics = %s
+hard_tracked_topics = %s
 """
 print("creating cfg.py")
 now = datetime.datetime.now()
 cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
-    ssid, wifi_password,
-    cluster["mqtt_broker"]["broker"], cluster["mqtt_broker"]["ssl"], cluster["mqtt_broker"]["user"], cluster["mqtt_broker"]["password"],
+    ssid,
+    wifi_password,
+    cluster["mqtt_broker"]["broker"],
+    cluster["mqtt_broker"]["ssl"],
+    cluster["mqtt_broker"]["user"],
+    cluster["mqtt_broker"]["password"],
     cluster["email"]["to_list"],
-    cluster["email"]["gmail_password"], cluster["email"]["gmail_user"], cc_string,
-    publish_to, devices_we_subscribe_to, device_index, publish_cycles_without_a_message,
-    have_we_sent_power_is_down_email, got_other_message,start_time,
-    cluster["cluster_id"], send_email,other_device_topics)
+    cluster["email"]["gmail_password"],
+    cluster["email"]["gmail_user"],
+    cc_string,
+    publish_to,
+    cluster["cluster_id"],
+    send_email,
+    hard_tracked_topics)
 #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
 #   gmail_password, gmail_user ))
 with open('cfg.py', 'w') as f:
     f.write(cfg_text)
 print("cfg.py created")
 
+did_we_flash = False
 print ("press and hold O (flat side)\nthen press R (indent) momentary\nrelease O\nto allow flashing micropython")
 print("install micropython? (y,N)")
 ans = input()
 if (ans.upper() == "Y"):
+    did_we_flash = True
     os.system("esptool.py --port /dev/ttyACM0 erase_flash")
     # os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20241129-v1.24.1.bin")
     os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20250415-v1.25.0.bin")
     print("\npress R on esp32-s2 to reset (in the indent)")
     input()
-
-print("install library code? (y,N)")
-ans = input()
+if did_we_flash == False:
+    print("install library code? (y,N)")
+    ans = input()
+else:
+    ans = "Y"
 if (ans.upper() == "Y"):
     code = [
     mp_lib_offset+"main.py",
@@ -259,13 +296,15 @@ if (ans.upper() == "Y"):
     for c in code:
         print("installing", c)
         os.system("ampy --port /dev/ttyACM0 put "+c)
+if did_we_flash == False:
+    print("\ninstall application code? (Y,n)")
+    ans = input()
+else:
+    ans = "Y"
 
-print("\ninstall application code? (Y,n)")
-ans = "Y" #  input()
 if (ans.upper() != "N"):
     code = [
     "run.py",
-
     ]
     print("now pushing python application code")
     for c in code:
