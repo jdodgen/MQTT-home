@@ -4,7 +4,7 @@ use <usb_hole.scad>
 logo = "R"; //  U + 
 LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=true) ; //3.7);
 */
-logo = "S"; //  U + 
+logo = "A"; //  U + 
 LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=false) ; //3.7);
 
 //rotate([180,0,0]) 
@@ -205,21 +205,27 @@ module LED_top(flat=false, height=top_thickness,cut_text=false, xoff=20, yoff=12
         if (cut_text)
         {
             color("red") translate([xoff,-yoff, height*3/2])
-            {
-                
-                rotate([180,0,90]) 
-                    linear_extrude(height*3)
-                        text(cut_text, size=12, font=font);
+            { 
+                translate([35,4,0])
+                    rotate([0,180,-90]) 
+                    //linear_extrude(height*3)
+                        center_text(cut_text, size=12,extrude=30,scale=1.2);
+                        //text(cut_text, size=12, font=font);
             }
         }
     }
     if (top_stripe)
         translate([xoff+8,-yoff-5, 0])
-            cube([1,20,1]);
-    
-    
+            cube([1,20,1]);   
 }
- 
+
+module center_text(text, size, font="Liberation Mono:style=Regular", width=0, length=0, extrude=0.6, scale=1) {
+    $fn = 30;
+    translate([-5.5, -4, -extrude/2]) 
+      scale([1.3,1,1])
+        linear_extrude(extrude) 
+            import(file="stencil_TNH.dxf", layer=text, scale=scale);
+} 
 
 //LED3_top(flat=true, height=5) ; //3.7);
 module LED3_top(flat=false, height=top_thickness)
