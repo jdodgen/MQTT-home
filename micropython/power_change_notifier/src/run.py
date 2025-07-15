@@ -106,7 +106,7 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
                 hours = seconds/3600
                 minutes = seconds/60
                 restored_sensors +=  ("# Power restored to [%s]\n# Down, Minutes: %.f (Hours: %.1f)\n" %
-                    (topic, minutes, hours))
+                    (topic.split("/")[2], minutes, hours))
                 current_watched_sensors[topic]["start_time"]=0
         if restored_sensors:
             await send_email("Power restored", restored_sensors+make_email_body())
