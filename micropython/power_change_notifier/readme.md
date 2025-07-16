@@ -7,9 +7,10 @@ This system includes: micropython code, pictures of the hand wired board, scad a
 The system consists of:
  - 2 or more sensors. Actualy a single could be used to do just an email at boot. They all publishes a MQTT message life status. status and subscribes to and from the sensor(s).
 
-## Current Hardware:
+## Development Hardware:
+ESP32-S2 4MB FLASH 2MB PSRAM
 ### Processor:
- - [ESP32-s2](https://www.wemos.cc/en/latest/s2/s2_mini.html) "Mini" microcontroler with 2MB PSRAM version ESP32-S2FN4R2 or better.
+ - [ESP32-s2](https://www.wemos.cc/en/latest/s2/s2_mini.html) "Mini" microcontroler ESP32-S2FN4R2 or better.
 ### Breadboard 3D case version 
  - 2V LED 5mm
  - 220 ohm resistor
