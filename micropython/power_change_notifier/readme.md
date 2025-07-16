@@ -2,10 +2,10 @@
 
 Two or more esp32-s2 microcontrolers that communicate via [MQTT](https://en.wikipedia.org/wiki/MQTT). Typically monitoring electric company power and a backup generator, can also include things like [UPS](https://en.wikipedia.org/wiki/Uninterruptible_power_supply)'s, solar systems, or other things. 
 
-This system includes: micropython code, pictures of the hand wired board, scad and stl files to 3d print the enclosures (currently two types).
+This system includes: micropython code, Specifications for the prototype board verson, [scad](https://openscad.org/) and stl files to 3d print the enclosures (currently two modifiable types).
 
 The system consists of:
- - 2 or more sensors. Actualy a single could be used to do just an email at boot. They all publishes a MQTT message life status. status and subscribes to and from the sensor(s).
+ - 2 or more sensors. Actualy a single could be used to do just an email at boot. They each "publish" a "life" status to MQTT. and "subscribe" to all the other sensors.
 
 ## Development Hardware:
 ESP32-S2 4MB FLASH 2MB PSRAM
