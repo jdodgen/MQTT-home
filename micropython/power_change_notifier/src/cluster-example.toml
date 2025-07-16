@@ -8,8 +8,8 @@ ssid =  "mywifi"
 wifi_password = '12345678'
 
 [mqtt_broker]
-broker="home-broker.local"  # or where ever your MQTT broker is
-ssl = true/false
+broker="??.s1.eu.hivemq.cloud"
+ssl = true
 user = "user"
 password = "password"
 
@@ -19,15 +19,14 @@ gmail_password = "xxx xxx xxx xxx"
 gmail_user = "??@gmail.com"
 
 [sensor]
-#  do not use slashes "/" or "+" in the "name". It messes with the MQTT wild cards
+#  do not use the following in the names (/,+,*,)  It messes with the MQTT wild cards
 #  email = true means that the sensor sends emails when sensors lost and found
-[sensor.1]
-name = "Big Generator"   # example topic  "/home/your place/Big Generator/power"
-email = true  # if false this sensor does not send emails
-[sensor.2]
-name = "Utility power company"
-email = true
-[sensor.3]
-name = "solar_batteries"
-email = false
-
+[sensor.G]
+desc = "Always on"
+send_email = true # set this to false to supress emailing on this sensor
+[sensor.U]
+send_email = true
+[sensor.B]
+desc = "solar"
+soft_tracking = true  # not monitored at boot only after a publish
+send_email = false

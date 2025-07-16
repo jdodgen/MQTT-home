@@ -34,6 +34,7 @@ desc = "Utility power company"
 email = true
 [sensor.3]
 id = "S"
+soft_tracking = true  # not monitored at boot only after a publish
 name = "solar_batteries"
 email = false
 [sensor.3]
