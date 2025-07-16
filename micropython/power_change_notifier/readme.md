@@ -1,11 +1,12 @@
-# power change notifier
+# Power Change Notifier (PCN)
 
 Two or more esp32-s2 microcontrolers that communicate via [MQTT](https://en.wikipedia.org/wiki/MQTT). Typically monitoring electric company power and a backup generator, can also include things like [UPS](https://en.wikipedia.org/wiki/Uninterruptible_power_supply)'s, solar systems, or other things. 
 
 This system includes: micropython code, Specifications for the prototype board verson, [scad](https://openscad.org/) and stl files to 3d print the enclosures (currently two modifiable types).
 
 The system consists of:
- - 2 or more sensors. Actualy a single could be used to do just an email at boot. They each "publish" a "life" status to MQTT. and "subscribe" to all the other sensors.
+ - 2 or more PCN sensors.They each "publish" a "life" status to MQTT. and "subscribe" to all the other sensors. They control both the onboard LED as well as a GPIO connected LED. Email is used to report startup, a power loss and power restored.
+ - A MQTT Broker which can be on your LAN or a service in the cloud.
 
 ## Development Hardware:
 ESP32-S2 4MB FLASH 2MB PSRAM
