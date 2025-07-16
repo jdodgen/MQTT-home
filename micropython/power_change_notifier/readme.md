@@ -24,6 +24,12 @@ ESP32-S2 4MB FLASH 2MB PSRAM
 ### Also if you want to run a simple local MQTT server
 see [Simple MQTT Broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker/baby_home_broker)
 
+## Beta Log
+### Beta 1
+Three sites usng LAN MQTT Broker. One failed, could not access wired Broker from guest network. Instalation documentation needed.
+### Beta 2
+Three sites using a Broker in the cloud. One failed due to bad sensor config. The other worked. Problem discovered when sensor is a distance away. This caused an alert until on the other WiFi. 
+
 
 
  - 
