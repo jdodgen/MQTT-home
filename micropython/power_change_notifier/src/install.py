@@ -43,6 +43,10 @@ desc = "Offsite monitor"
 email = false
 ssid = "otherwifi"
 wifi_password = "otherpw"
+[sensor.E]
+desc = "passive watcher"
+monitor_only = true  # this only subscribes and does NOT publish a status. it is soft_tracking by default
+send_email = true
 '''
 
 import os
@@ -65,6 +69,11 @@ import feature_power
 mp_lib_offset="../../library/"
 all_lib_offset="../../../library/"
 
+def optional_value(where, val):
+    if val in where:
+        if where[val] == True:
+            return True
+    return False      
 
 if len(sys.argv) > 1:
     cluster_toml = sys.argv[1]
@@ -106,7 +115,7 @@ for key in sensor_keys:
         print("\nERROR: future topic  [%s][%s] contains a / or +,  MQTT reserved fix in toml file\n" % (key,desc,))
         sys.exit()
 
-print("select one: ", end="")
+print("select one case insensitive: ", end="")
 sensor_to_make = input().upper()
 print("request = ", sensor_to_make)
 if sensor_to_make in sensors:
@@ -125,6 +134,11 @@ if sensor_to_make in sensors:
     else: # take default
         ssid = cluster["network"]["ssid"]
         wifi_password = cluster["network"]["wifi_password"]
+    if optional_value(sensor[key], "monitor_only") == True:
+        monitor_only = True
+    else:
+        monitor_only = False
+        
 else:  # these "letters" do not exist in the config but are treated as "soft_tracking"  that is not tracked until first publish
     publish_to = sensor_to_make   # single letter version
     send_email = False
@@ -181,19 +195,11 @@ def make_topic_cluster_pub(letter):
 our_feature    = feature_power.feature(make_topic_cluster_pub(publish_to), publish=True)   # publisher
 print(our_feature.topic())
 
-# for dev in devices_we_subscribe_to:
-    # print("subscribing to:", dev)
-    # #other_device_features.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True))
-    # other_device_topics.append(feature_power.feature(cluster["cluster_id"]+"/"+dev, subscribe=True).topic())
-
-#wildcard_subscribe = feature_power.feature(cluster["cluster_id"]+"/+", subscribe=True)
-#print(wildcard_subscribe.topic())
-
+  
+    
 hard_tracked_topics = []
-soft_tracking = "soft_tracking" # soft tracked sensors are only tracked after first publish and ignored at boot
 for key in sensor_keys:
-    if soft_tracking in sensors[key]:
-        if sensors[key][soft_tracking] == True:
+    if optional_value(sensor[key], "soft_tracking") == True or optional_value(sensor[key], "monitor_only") == True:
             continue
     if key != sensor_to_make:  # not tracking self
         hard_tracked_topics.append(feature_power.feature(make_topic_cluster_pub(key), subscribe=True).topic())
@@ -238,6 +244,7 @@ publish = "%s"
 cluster_id = "%s"
 send_email =  %s
 hard_tracked_topics = %s
+monitor_only = %s  # this sensor does not publish status and therefore is not tracked
 """
 print("creating cfg.py")
 now = datetime.datetime.now()
@@ -255,7 +262,8 @@ cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
     publish_to,
     cluster["cluster_id"],
     send_email,
-    hard_tracked_topics)
+    hard_tracked_topics,
+    monitor_only)
 #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
 #   gmail_password, gmail_user ))
 with open('cfg.py', 'w') as f:
