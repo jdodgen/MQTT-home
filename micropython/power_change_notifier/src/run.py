@@ -186,6 +186,7 @@ async def main():
         add_current_watched_sensors(topic)
     error_queue = MsgQueue(20)
     # Local configuration, "config" came from mqtt_as
+    print("wifi ssid[%s] pw[%s]" % (cfg.ssid, cfg.wifi_password,))
     config['ssid'] = cfg.ssid
     config['wifi_pw'] = cfg.wifi_password
     config['server'] = cfg.broker

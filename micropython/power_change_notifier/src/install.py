@@ -130,9 +130,10 @@ else:  # these "letters" do not exist in the config but are treated as "soft_tra
     send_email = False
     ssid = cluster["network"]["ssid"]
     wifi_password = cluster["network"]["wifi_password"]
+print("ssid[%s] pw[%s]" % (ssid, wifi_password,))
 
 
-print("bulding a ",publish_to)
+#print("bulding a ",publish_to)
 
 #publisher_ndx=int(req)-1
 # pre build some lists
