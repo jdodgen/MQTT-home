@@ -28,7 +28,9 @@ see [Simple MQTT Broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/ho
 ### Beta 1
 Three sites usng LAN MQTT Broker. One failed, could not access wired Broker from guest network. Instalation documentation needed.
 ### Beta 2
-Three sites using a Broker in the cloud. One failed due to bad sensor config. The other worked. Problem discovered when sensor is a distance away. This caused an alert until on the other WiFi. 
+Three sites using a Broker in the cloud. One failed due to bad sensor config. The other worked. Problem discovered when a sensor is a distance away. This causes an "power down alert" only cleared when the other is on WiFi. 
+### Beta 3
+This version added soft_tracking where the sensor is only tracked after it has published a status. This allows for the remote sensors to not cause a "power down alert" during instalation. Static tracking replaced with on-the-fly discovery of devices.
 
 
 
