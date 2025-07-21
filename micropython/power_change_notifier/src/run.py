@@ -232,7 +232,8 @@ async def main():
             print("ip address", client._addr)
             break
     while True:  # top loop checking to see of other has published
-        await client.publish(our_status.topic(), our_status.payload_on())
+        if monitor_only == False:
+            await client.publish(our_status.topic(), our_status.payload_on())
         i=0
         down_sensors = 0
         any_start_times = 0
