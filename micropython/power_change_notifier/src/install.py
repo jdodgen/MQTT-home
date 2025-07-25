@@ -158,24 +158,6 @@ publish_cycles_without_a_message =[]
 got_other_message = []
 have_we_sent_power_is_down_email  = []
 start_time = []
-#
-# out=0
-# i=0
-# for key in sensor_keys:
-    # if i == publisher_ndx:
-        # pass
-    # else:
-        # name =sensors[key]["name"]
-        # devices_we_subscribe_to.append(name)
-        # #list_of_other_topics.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True).topic())
-        # device_index[name] = out
-        # publish_cycles_without_a_message.append(0)
-        # got_other_message.append(False)
-        # have_we_sent_power_is_down_email.append(False)
-        # start_time.append(False)
-        # out += 1
-    # i += 1
-# print(devices_we_subscribe_to)
 
 def make_topic_cluster_pub(letter):
     if letter in sensors:
@@ -190,21 +172,17 @@ def make_topic_cluster_pub(letter):
     else:
         return cluster["cluster_id"]+"/"+letter+" "+desc
 
-
 # build features
 our_feature    = feature_power.feature(make_topic_cluster_pub(publish_to), publish=True)   # publisher
 print(our_feature.topic())
 
-  
-    
-hard_tracked_topics = []
+hard_tracked_topics = [] # these get tracked from boot. others (soft) only after first publish
 for key in sensor_keys:
     if optional_value(sensor[key], "soft_tracking") == True or optional_value(sensor[key], "monitor_only") == True:
             continue
     if key != sensor_to_make:  # not tracking self
         hard_tracked_topics.append(feature_power.feature(make_topic_cluster_pub(key), subscribe=True).topic())
 print("hard tracked topics", hard_tracked_topics)
-
 
 print("\nflashing ssid[%s] device[%s]\n" % (ssid, publish_to,))
 
@@ -218,12 +196,13 @@ cfg_template = """
 led_gpio = 3  # "D3" on D1-Mini proto card
 onboard_led_gpio = 15 # built in BLUE led
 #
+#wifi: IoT or guest network recomended
 ssid="%s"
 wifi_password = "%s"
 #
-# set up wifi, IoT or guest network recomended
-start_delay=0 # startup delay
-number_of_seconds_to_wait=30  # messages published and checked
+# 
+start_delay=0 # startup delay  
+number_of_seconds_to_wait=30  # Alive message published and "missing sender search" conducted at this rate
 other_message_threshold=4  # how many number_of_seconds_to_wait to indicate other is down
 #
 broker = '%s'
