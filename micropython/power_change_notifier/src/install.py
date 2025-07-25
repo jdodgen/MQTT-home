@@ -134,7 +134,7 @@ if sensor_to_make in sensors:
     else: # take default
         ssid = cluster["network"]["ssid"]
         wifi_password = cluster["network"]["wifi_password"]
-    if optional_value(sensor[key], "monitor_only") == True:
+    if optional_value(sensors[key], "monitor_only") == True:
         monitor_only = True
     else:
         monitor_only = False
@@ -199,7 +199,7 @@ print(our_feature.topic())
     
 hard_tracked_topics = []
 for key in sensor_keys:
-    if optional_value(sensor[key], "soft_tracking") == True or optional_value(sensor[key], "monitor_only") == True:
+    if optional_value(sensors[key], "soft_tracking") == True or optional_value(sensors[key], "monitor_only") == True:
             continue
     if key != sensor_to_make:  # not tracking self
         hard_tracked_topics.append(feature_power.feature(make_topic_cluster_pub(key), subscribe=True).topic())
