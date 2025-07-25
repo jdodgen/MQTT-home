@@ -243,7 +243,7 @@ cc_string = "%s"  # a smtp Cc: string
 publish = "%s"
 cluster_id = "%s"
 send_email =  %s
-hard_tracked_topics = %s
+hard_tracked_topics = %s # these get tracked from boot, others only after first publish
 monitor_only = %s  # this sensor does not publish status and therefore is not tracked
 """
 print("creating cfg.py")
