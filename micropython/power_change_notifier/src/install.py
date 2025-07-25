@@ -247,8 +247,9 @@ cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
 #   gmail_password, gmail_user ))
 with open('cfg.py', 'w') as f:
     f.write(cfg_text)
-print("cfg.py created")
+print("created cfg.py")
 
+# install micropython kernal 
 did_we_flash = False
 print ("press and hold O (flat side)\nthen press R (indent) momentary\nrelease O\nto allow flashing micropython")
 print("install micropython? (y,N)")
@@ -260,6 +261,7 @@ if (ans.upper() == "Y"):
     os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20250415-v1.25.0.bin")
     print("\npress R on esp32-s2 to reset (in the indent)")
     input()
+# install library code 
 if did_we_flash == False:
     print("install library code? (y,N)")
     ans = input()
@@ -285,6 +287,8 @@ if (ans.upper() == "Y"):
     for c in code:
         print("installing", c)
         os.system("ampy --port /dev/ttyACM0 put "+c)
+
+# install application code
 if did_we_flash == False:
     print("\ninstall application code? (Y,n)")
     ans = input()
@@ -299,7 +303,7 @@ if (ans.upper() != "N"):
     for c in code:
         print("installing", c)
         os.system("ampy --port /dev/ttyACM0 put "+c)
-
+print("Installed cfg.py")
 os.system("ampy --port /dev/ttyACM0 put cfg.py")
 print("\ncurrent contents of flash")
 os.system("ampy --port /dev/ttyACM0 ls")
