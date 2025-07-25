@@ -221,10 +221,10 @@ onboard_led_gpio = 15 # built in BLUE led
 ssid="%s"
 wifi_password = "%s"
 #
+# set up wifi, IoT or guest network recomended
 start_delay=0 # startup delay
 number_of_seconds_to_wait=30  # messages published and checked
 other_message_threshold=4  # how many number_of_seconds_to_wait to indicate other is down
-subscribe_interval = 10 # count of number_of_seconds_to_wait to cause subscribe
 #
 broker = '%s'
 ssl = %s # true or false
