@@ -24,12 +24,10 @@ gmail_user = "??@gmail.com"
 [sensor]
 #  do not use slashes "/" or "+" in the "name". It messes with the MQTT wild cards
 #  email = true means that the sensor sends emails when sensors lost and found
-[sensor.1]
-id = "G"
+[sensor.G]
 desc = "Generator powered outlet" # Typicaly in gally/kitchen in plain sight
 email = true  # if false this sensor does not send emails
-[sensor.2]
-id = "U"
+[sensor.U]
 desc = "Utility power company"
 email = true
 [sensor.3]
@@ -158,24 +156,6 @@ publish_cycles_without_a_message =[]
 got_other_message = []
 have_we_sent_power_is_down_email  = []
 start_time = []
-#
-# out=0
-# i=0
-# for key in sensor_keys:
-    # if i == publisher_ndx:
-        # pass
-    # else:
-        # name =sensors[key]["name"]
-        # devices_we_subscribe_to.append(name)
-        # #list_of_other_topics.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True).topic())
-        # device_index[name] = out
-        # publish_cycles_without_a_message.append(0)
-        # got_other_message.append(False)
-        # have_we_sent_power_is_down_email.append(False)
-        # start_time.append(False)
-        # out += 1
-    # i += 1
-# print(devices_we_subscribe_to)
 
 def make_topic_cluster_pub(letter):
     if letter in sensors:
@@ -190,21 +170,17 @@ def make_topic_cluster_pub(letter):
     else:
         return cluster["cluster_id"]+"/"+letter+" "+desc
 
-
 # build features
 our_feature    = feature_power.feature(make_topic_cluster_pub(publish_to), publish=True)   # publisher
 print(our_feature.topic())
 
-  
-    
-hard_tracked_topics = []
+hard_tracked_topics = [] # these get tracked from boot. others (soft) only after first publish
 for key in sensor_keys:
     if optional_value(sensors[key], "soft_tracking") == True or optional_value(sensors[key], "monitor_only") == True:
             continue
     if key != sensor_to_make:  # not tracking self
         hard_tracked_topics.append(feature_power.feature(make_topic_cluster_pub(key), subscribe=True).topic())
 print("hard tracked topics", hard_tracked_topics)
-
 
 print("\nflashing ssid[%s] device[%s]\n" % (ssid, publish_to,))
 
@@ -218,13 +194,14 @@ cfg_template = """
 led_gpio = 3  # "D3" on D1-Mini proto card
 onboard_led_gpio = 15 # built in BLUE led
 #
+#wifi: IoT or guest network recomended
 ssid="%s"
 wifi_password = "%s"
 #
-start_delay=0 # startup delay
-number_of_seconds_to_wait=30  # messages published and checked
+# 
+start_delay=0 # startup delay  
+number_of_seconds_to_wait=30  # Alive message published and "missing sender search" conducted at this rate
 other_message_threshold=4  # how many number_of_seconds_to_wait to indicate other is down
-subscribe_interval = 10 # count of number_of_seconds_to_wait to cause subscribe
 #
 broker = '%s'
 ssl = %s # true or false
@@ -243,7 +220,7 @@ cc_string = "%s"  # a smtp Cc: string
 publish = "%s"
 cluster_id = "%s"
 send_email =  %s
-hard_tracked_topics = %s
+hard_tracked_topics = %s # these get tracked from boot, others only after first publish
 monitor_only = %s  # this sensor does not publish status and therefore is not tracked
 """
 print("creating cfg.py")
@@ -268,8 +245,9 @@ cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
 #   gmail_password, gmail_user ))
 with open('cfg.py', 'w') as f:
     f.write(cfg_text)
-print("cfg.py created")
+print("created cfg.py")
 
+# install micropython kernal 
 did_we_flash = False
 print ("press and hold O (flat side)\nthen press R (indent) momentary\nrelease O\nto allow flashing micropython")
 print("install micropython? (y,N)")
@@ -281,6 +259,7 @@ if (ans.upper() == "Y"):
     os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20250415-v1.25.0.bin")
     print("\npress R on esp32-s2 to reset (in the indent)")
     input()
+# install library code 
 if did_we_flash == False:
     print("install library code? (y,N)")
     ans = input()
@@ -306,6 +285,8 @@ if (ans.upper() == "Y"):
     for c in code:
         print("installing", c)
         os.system("ampy --port /dev/ttyACM0 put "+c)
+
+# install application code
 if did_we_flash == False:
     print("\ninstall application code? (Y,n)")
     ans = input()
@@ -320,7 +301,7 @@ if (ans.upper() != "N"):
     for c in code:
         print("installing", c)
         os.system("ampy --port /dev/ttyACM0 put "+c)
-
+print("Installed cfg.py")
 os.system("ampy --port /dev/ttyACM0 put cfg.py")
 print("\ncurrent contents of flash")
 os.system("ampy --port /dev/ttyACM0 ls")
