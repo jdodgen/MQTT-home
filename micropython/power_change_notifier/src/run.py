@@ -1,16 +1,17 @@
 # MIT license copyright 2025 Jim Dodgen
 # Power Change Notifier
-# No server (except for the MQTT Broker)
-# All sensor run the same code and monitor the other sensors
-# Universal version allowing lots of sensors
-# typically monitoring utility power and standby power
-# turning on a LED and sending emails
-# and publishes status for others to follow
-#
-# For a sensor this is the primary function. "am I alive"
-# I am using this code as the base for other IoT sensors
-# example is adding a gpio line detect dry contacts, that is a swich or button: True or false
-# So for a door, if it is true AND "alive" it can be trusted that it is open. 
+# requires only a MQTT Broker. Local or in the Cloud
+# All sensor run the identical code, only "cfg.py" is different
+# No real limit to the number of sensors. Only  CPU and memory. 
+# typically application is monitoring utility power and standby (Generator) power
+# It monotors and turns on a LED also sends emails. 
+# It optionaly publishes status for others to follow
+# This is a Simple IoT.
+# For any sensor this is the most importaint thing. "am I alive"
+# I am using this code as the starting point for other more complex IoT sensors
+# example is adding a gpio line to detect a swich or button:
+# So for a door, if it is "true" AND "alive" it can be trusted that it is open.
+# if not you are worried 
 #
 VERSION = (0, 3, 4)
 import umail
