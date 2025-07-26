@@ -101,7 +101,7 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
                 minutes = seconds/60
                 restored_sensors +=  ("# Power restored to [%s]\n# Down, Minutes: %.f (Hours: %.1f)\n" %
                     (topic.split("/")[2], minutes, hours))
-                current_watched_sensors[topic][START_TIME]=0
+            current_watched_sensors[topic][START_TIME]=0
         if restored_sensors:
             await send_email("Power restored", restored_sensors+make_email_body())
     print("raw_messages exiting?")
@@ -204,12 +204,12 @@ async def main():
             await client.publish(our_status.topic(), our_status.payload_on())
         i=0
         down_sensors = 0
-        any_start_times = 0
+        any_start_times = False
         print("\b[publish_check_loop]")
         # need to loop on current_watched_sensors[topic][MESSAGE_THIS_CYCLE]
         for sensor in  current_watched_sensors:
             #print("main sensor[%s][%s]" % (sensor, current_watched_sensors[sensor]))
-            if current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] == False:  # no message(s) this cycle
+            if current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] == False:  # no message this cycle
                 if (current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold):
                     if (current_watched_sensors[sensor][START_TIME] == 0):
                         if (not current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]):
@@ -218,12 +218,12 @@ async def main():
                             current_watched_sensors[sensor][START_TIME]= time.time()
                 else:
                     current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] += 1
-            else:  # other message(s) have arrived
-                current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] = False
+            else:  # messages for this topic have arrived 
+                current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] = False # set false here, set true in raw_messages
                 current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
             i += 1
             if current_watched_sensors[sensor][START_TIME] > 0:
-                any_start_times += 1
+                any_start_times = True
         if any_start_times:
             led.turn_on()
         else:
