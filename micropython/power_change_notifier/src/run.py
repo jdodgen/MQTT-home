@@ -2,16 +2,16 @@
 # Power Change Notifier
 # requires only a MQTT Broker. Local or in the Cloud
 # All sensor run the identical code, only "cfg.py" is different
-# No real limit to the number of sensors. Only  CPU and memory. 
+# No real limit to the number of sensors. Only  CPU and memory.
 # typically application is monitoring utility power and standby (Generator) power
-# It monotors and turns on a LED also sends emails. 
-# It optionaly publishes status for others to follow
+# It monitors and turns on a LED also sends emails.
+# It optionally publishes status for others to follow
 # This is a Simple IoT.
-# For any sensor this is the most importaint thing. "am I alive"
+# For any sensor this is the most important thing. "am I alive"
 # I am using this code as the starting point for other more complex IoT sensors
 # example is adding a gpio line to detect a swich or button:
 # So for a door, if it is "true" AND "alive" it can be trusted that it is open.
-# if not you are worried 
+# if not you are worried
 #
 VERSION = (0, 3, 4)
 import umail
@@ -24,13 +24,14 @@ import cfg
 import time
 import asyncio
 import time
+import os
 from msgqueue import  MsgQueue
 
 wildcard_subscribe = feature_power.feature(cfg.cluster_id+"/+", subscribe=True)
 print(wildcard_subscribe.topic())
 
 our_status = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=True)   # publisher
-print("our_status = [%s]" % (our_status))
+print("Our topic = [%s]" % (our_status.topic(),))
 
 # ERRORS
 boilerplate = '''Starting up ...\nFor reference:
@@ -57,7 +58,7 @@ async def send_email(subject, body, cluster_id_only=False):
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-            id = cfg.cluster_id if cluster_id_only else cfg.cluster_id+":"+cfg.publish
+            id = cfg.cluster_id if cluster_id_only else cfg.cluster_id+"/"+cfg.publish
             print("our id [%s]" % (id,))
             smtp.write("CC: %s\nSubject:[PCN %s] %s\n\n%s\n" % (cfg.cc_string, id, subject, body,))
             smtp.send()
@@ -80,7 +81,7 @@ def add_current_watched_sensors(topic):
         HAVE_WE_SENT_POWER_IS_DOWN_EMAIL: False,
         PUBLISH_CYCLES_WITHOUT_A_MESSAGE: 0,
         START_TIME: 0}
-    
+
 async def raw_messages(client,error_queue):  # Process all incoming messages
     global led
     global current_watched_sensors
@@ -111,25 +112,23 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
         if restored_sensors:
             await send_email("Power restored", restored_sensors+make_email_body())
     print("raw_messages exiting?")
-    
-    def print_flash_usage():
-        stat = os.statvfs('/')
-        total_size = stat[1] * stat[2]
-        free_space = stat[0] * stat[3]
-        used_space = total_size - free_space
-        print("Total Flash: {:,} bytes".format(total_size))
-        print("Used Flash: {:,} bytes".format(used_space))
-        print("Free Flash: {:,} bytes".format(free_space)) 
-        
+
+def print_flash_usage():
+    stat = os.statvfs('/')
+    total_size = stat[1] * stat[2]
+    free_space = stat[0] * stat[3]
+    used_space = total_size - free_space
+    print("Flash: total %d used %s free %d" % (total_size,used_space,free_space,))
+
 # show PSRAM messages.
-    async def _memory(self):
-        import gc
-        import os
-        while True:
-            await asyncio.sleep(20)
-            gc.collect()
-            print("RAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc()))
-            
+async def _memory(self):
+    import gc
+    import os
+    while True:
+        await asyncio.sleep(20)
+        gc.collect()
+        print("RAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc(), ))
+
 #  called with the ERRORS listed above
 async def problem_reporter(error_queue):
     # wait for an error
@@ -184,7 +183,7 @@ async def main():
     MQTTClient.DEBUG = True  # Optional: print diagnostic messages
     client = MQTTClient(config)
 
-    led = alert_handler.alert_handler(cfg.led_gpio, None,onboard_led_pin=cfg.onboard_led_gpio)
+    led = alert_handler.alert_handler(cfg.led_gpio, None, onboard_led_pin=cfg.onboard_led_gpio)
     led.turn_on()
     await asyncio.sleep(1)  # wakeup flash
     led.turn_off()
@@ -234,7 +233,7 @@ async def main():
                             current_watched_sensors[sensor][START_TIME]= time.time()
                 else:
                     current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] += 1
-            else:  # messages for this topic have arrived 
+            else:  # messages for this topic have arrived
                 current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] = False # set false here, set true in raw_messages
                 current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
             i += 1
