@@ -5,7 +5,12 @@
 # Universal version allowing lots of sensors
 # typically monitoring utility power and standby power
 # turning on a LED and sending emails
-# also publishes status
+# and publishes status for others to follow
+#
+# For a sensor this is the primary function. "am I alive"
+# I am using this code as the base for other IoT sensors
+# example is adding a gpio line detect dry contacts, that is a swich or button: True or false
+# So for a door, if it is true AND "alive" it can be trusted that it is open. 
 #
 VERSION = (0, 3, 4)
 import umail
