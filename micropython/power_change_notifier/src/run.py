@@ -74,12 +74,18 @@ async def send_email(subject, body, cluster_id_only=False):
 current_watched_sensors = {} # GLOBAL
 
 #
-def add_current_watched_sensors(topic):
-    current_watched_sensors[topic] = {"got_other_message": False,
-                                            "have_we_sent_power_is_down_email": False,
-                                            "publish_cycles_without_a_message": 0,
-                                            "start_time": 0}
+GOT_OTHER_MESSAGE = "got_other_message"
+HAVE_WE_SENT_POWER_IS_DOWN_EMAIL = "have_we_sent_power_is_down_email"
+PUBLISH_CYCLES_WITHOUT_A_MESSAGE = "publish_cycles_without_a_message"
+START_TIME = "start_time"
 
+def add_current_watched_sensors(topic):
+    current_watched_sensors[topic] = {
+        GOT_OTHER_MESSAGE: True,
+        HAVE_WE_SENT_POWER_IS_DOWN_EMAIL: False,
+        PUBLISH_CYCLES_WITHOUT_A_MESSAGE: 0,
+        START_TIME: 0}
+    
 async def raw_messages(client,error_queue):  # Process all incoming messages
     global led
     global current_watched_sensors
@@ -98,53 +104,27 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
             add_current_watched_sensors(topic)
         else:
             #if (topic == dev.topic()):  # just getting the published message means utility outlet is powered, payload not important
-            current_watched_sensors[topic]["got_other_message"] = True
-            if current_watched_sensors[topic]["have_we_sent_power_is_down_email"]:
-                current_watched_sensors[topic]["have_we_sent_power_is_down_email"] = False
-                current_watched_sensors[topic]["publish_cycles_without_a_message"] = 0
-                seconds = time.time() - current_watched_sensors[topic]["start_time"]
+            current_watched_sensors[topic][GOT_OTHER_MESSAGE] = True
+            if current_watched_sensors[topic][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]:
+                current_watched_sensors[topic][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL] = False
+                current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
+                seconds = time.time() - current_watched_sensors[topic][START_TIME]
                 hours = seconds/3600
                 minutes = seconds/60
                 restored_sensors +=  ("# Power restored to [%s]\n# Down, Minutes: %.f (Hours: %.1f)\n" %
                     (topic.split("/")[2], minutes, hours))
-                current_watched_sensors[topic]["start_time"]=0
+                current_watched_sensors[topic][START_TIME]=0
         if restored_sensors:
             await send_email("Power restored", restored_sensors+make_email_body())
     print("raw_messages exiting?")
-# async def raw_messages(client,error_queue):  # Process all incoming messages
-    # global led
-    # global other_status
-    # # loop on message queue
-    # async for btopic, bmsg, retained in client.queue:
-        # topic = btopic.decode('utf-8')
-        # msg = bmsg.decode('utf-8')
-        # print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))
-        # i=0
-        # restored_sensors = ""
-        # for dev in other_status:
-            # if (topic == dev.topic()):  # just getting the published message means utility outlet is powered, payload not important
-                # cfg.got_other_message[i] = True
-                # if cfg.have_we_sent_power_is_down_email[i]:
-                    # cfg.have_we_sent_power_is_down_email[i] = False
-                    # cfg.publish_cycles_without_a_message[i] = 0
-                    # seconds = time.time() - cfg.start_time[i]
-                    # hours = seconds/3600
-                    # minutes = seconds/60
-                    # restored_sensors +=  ("# Power restored to [%s]\n# Down, Minutes: %.f (Hours: %.1f)\n" %
-                        # (cfg.devices_we_subscribe_to[i], minutes, hours))
-                    # cfg.start_time[i]=0
-            # i += 1
-        # if restored_sensors:
-            # await send_email("Power restored", restored_sensors+make_email_body())
-    # print("raw_messages exiting?")
-
-# DEBUG: show RAM messages.
+    
+# show PSRAM messages.
     async def _memory(self):
         import gc
         while True:
             await asyncio.sleep(20)
             gc.collect()
-            print("RAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc()))
+            print("PSRAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc()))
 
 
 #  called with the ERRORS listed above
