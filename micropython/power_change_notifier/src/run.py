@@ -44,12 +44,6 @@ LED solid on, indicates an outage.
 LED out, normal no outage
 '''
 
-no_broker_msg ='''Could not connect to broker:
-[%s]
-retrying ...
-''' % (cfg.broker,)
-print(no_broker_msg)
-
 # conditional formatted print
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
@@ -72,16 +66,15 @@ async def send_email(subject, body, cluster_id_only=False):
 
 #
 current_watched_sensors = {} # GLOBAL
-
 #
-GOT_OTHER_MESSAGE = "got_other_message"
+MESSAGE_THIS_CYCLE = "message_this_cycle"
 HAVE_WE_SENT_POWER_IS_DOWN_EMAIL = "have_we_sent_power_is_down_email"
 PUBLISH_CYCLES_WITHOUT_A_MESSAGE = "publish_cycles_without_a_message"
 START_TIME = "start_time"
 
 def add_current_watched_sensors(topic):
     current_watched_sensors[topic] = {
-        GOT_OTHER_MESSAGE: True,
+        MESSAGE_THIS_CYCLE: True,
         HAVE_WE_SENT_POWER_IS_DOWN_EMAIL: False,
         PUBLISH_CYCLES_WITHOUT_A_MESSAGE: 0,
         START_TIME: 0}
@@ -103,8 +96,7 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
         if topic not in current_watched_sensors:
             add_current_watched_sensors(topic)
         else:
-            #if (topic == dev.topic()):  # just getting the published message means utility outlet is powered, payload not important
-            current_watched_sensors[topic][GOT_OTHER_MESSAGE] = True
+            current_watched_sensors[topic][MESSAGE_THIS_CYCLE] = True
             if current_watched_sensors[topic][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]:
                 current_watched_sensors[topic][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL] = False
                 current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
@@ -218,24 +210,24 @@ async def main():
         down_sensors = 0
         any_start_times = 0
         print("\b[publish_check_loop]")
-        # need to loop on current_watched_sensors[topic]["got_other_message"]
+        # need to loop on current_watched_sensors[topic][MESSAGE_THIS_CYCLE]
         # print("main current_watched_sensors", current_watched_sensors)
         for sensor in  current_watched_sensors:
             #print("main sensor[%s][%s]" % (sensor, current_watched_sensors[sensor]))
-            if current_watched_sensors[sensor]["got_other_message"] == False:  # no message(s) this cycle
-                if (current_watched_sensors[sensor]["publish_cycles_without_a_message"] > cfg.other_message_threshold):
-                    if (current_watched_sensors[sensor]["start_time"] == 0):
-                        if (not current_watched_sensors[sensor]["have_we_sent_power_is_down_email"]):
+            if current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] == False:  # no message(s) this cycle
+                if (current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold):
+                    if (current_watched_sensors[sensor][START_TIME] == 0):
+                        if (not current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]):
                             down_sensors += 1
-                            current_watched_sensors[sensor]["have_we_sent_power_is_down_email"] = True
-                            current_watched_sensors[sensor]["start_time"]= time.time()
+                            current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL] = True
+                            current_watched_sensors[sensor][START_TIME]= time.time()
                 else:
-                    current_watched_sensors[sensor]["publish_cycles_without_a_message"] += 1
+                    current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] += 1
             else:  # other message(s) have arrived
-                current_watched_sensors[sensor]["got_other_message"] = False
-                current_watched_sensors[sensor]["publish_cycles_without_a_message"] = 0
+                current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] = False
+                current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
             i += 1
-            if current_watched_sensors[sensor]["start_time"] > 0:
+            if current_watched_sensors[sensor][START_TIME] > 0:
                 any_start_times += 1
         if any_start_times:
             led.turn_on()
@@ -259,8 +251,7 @@ def make_email_body():
                 parts.append("")
         except:
             parts = [name, ""]
-        # body += "[%s]%s\n" % (dev, "OFF" if cfg.publish_cycles_without_a_message[i] > cfg.other_message_threshold else "ON")
-        body += ''' [sensor.%s]\n  desc = "%s"\n  on = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic]["publish_cycles_without_a_message"] > cfg.other_message_threshold else "true # on")
+        body += ''' [sensor.%s]\n  desc = "%s"\n  on = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
         #i += 1
     name = our_status.topic().split("/")[2]
     try:
