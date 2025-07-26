@@ -106,15 +106,24 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
             await send_email("Power restored", restored_sensors+make_email_body())
     print("raw_messages exiting?")
     
+    def print_flash_usage():
+        stat = os.statvfs('/')
+        total_size = stat[1] * stat[2]
+        free_space = stat[0] * stat[3]
+        used_space = total_size - free_space
+        print("Total Flash: {:,} bytes".format(total_size))
+        print("Used Flash: {:,} bytes".format(used_space))
+        print("Free Flash: {:,} bytes".format(free_space)) 
+        
 # show PSRAM messages.
     async def _memory(self):
         import gc
+        import os
         while True:
             await asyncio.sleep(20)
             gc.collect()
-            print("PSRAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc()))
-
-
+            print("RAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc()))
+            
 #  called with the ERRORS listed above
 async def problem_reporter(error_queue):
     # wait for an error
@@ -150,7 +159,8 @@ async def main():
     global our_status
     global led
     global current_watched_sensors
-    for topic in cfg.hard_tracked_topics: # hard tracked topics are monitored from boot soft only after a publish
+    print_flash_usage()
+    for topic in cfg.hard_tracked_topics: # "hard" tracked topics are monitored from boot,  "soft" only after a publish
         add_current_watched_sensors(topic)
     error_queue = MsgQueue(20)
     # Local configuration, "config" came from mqtt_as
