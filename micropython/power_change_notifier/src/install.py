@@ -25,7 +25,7 @@ gmail_user = "??@gmail.com"
 #  do not use slashes "/" or "+" in the "name". It messes with the MQTT wild cards
 #  email = true means that the sensor sends emails when sensors lost and found
 [sensor.G]
-desc = "Generator powered outlet" # Typicaly in gally/kitchen in plain sight
+desc = "Generator powered outlet" # Typically in gally/kitchen in plain sight
 email = true  # if false this sensor does not send emails
 [sensor.U]
 desc = "Utility power company"
