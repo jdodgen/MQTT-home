@@ -2,12 +2,12 @@
 # Power Change Notifier
 # No server (except for the MQTT Broker)
 # All sensor run the same code and monitor the other sensors
-# Universal version allowing unlimited sensors
+# Universal version allowing lots of sensors
 # typically monitoring utility power and standby power
 # turning on a LED and sending emails
 # also publishes status
 #
-VERSION = (0, 3, 0)
+VERSION = (0, 3, 4)
 import umail
 import alert_handler
 from mqtt_as import MQTTClient, config
@@ -19,11 +19,6 @@ import time
 import asyncio
 import time
 from msgqueue import  MsgQueue
-
-# other_status = []
-# for dev in cfg.devices_we_subscribe_to:
-    # print("subscribing to:", dev)
-    # other_status.append(feature_power.feature(cfg.cluster_id+"/"+dev, subscribe=True))
 
 wildcard_subscribe = feature_power.feature(cfg.cluster_id+"/+", subscribe=True)
 print(wildcard_subscribe.topic())
@@ -65,13 +60,14 @@ async def send_email(subject, body, cluster_id_only=False):
             print("email failed", body, e)
 
 #
-current_watched_sensors = {} # GLOBAL
-#
+# current_watched_sensors[topic][SUB_TOPICS]
+current_watched_sensors = {} # it is GLOBAL
+# SUB_TOPICS
 MESSAGE_THIS_CYCLE = "message_this_cycle"
 HAVE_WE_SENT_POWER_IS_DOWN_EMAIL = "have_we_sent_power_is_down_email"
 PUBLISH_CYCLES_WITHOUT_A_MESSAGE = "publish_cycles_without_a_message"
 START_TIME = "start_time"
-
+#
 def add_current_watched_sensors(topic):
     current_watched_sensors[topic] = {
         MESSAGE_THIS_CYCLE: True,
@@ -211,7 +207,6 @@ async def main():
         any_start_times = 0
         print("\b[publish_check_loop]")
         # need to loop on current_watched_sensors[topic][MESSAGE_THIS_CYCLE]
-        # print("main current_watched_sensors", current_watched_sensors)
         for sensor in  current_watched_sensors:
             #print("main sensor[%s][%s]" % (sensor, current_watched_sensors[sensor]))
             if current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] == False:  # no message(s) this cycle
