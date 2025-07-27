@@ -1,13 +1,13 @@
 # James Dodgen 2023, 2024
-# MIT licence
+# MIT license
 
-# this was using interupts/IRQ and now is being polled
-# the interupts messed with the async in mqtt_as.py
+# this was using interrupts/IRQ and now is being polled
+# the interrupts messed with the async in mqtt_as.py
 # 
-# typicaly button.test() is called in the main.py 
-# loop hopefully with somthing to do or a sleep(0.3).
+# typically button.test() is called in the main.py 
+# loop hopefully with something to do or a sleep(0.3).
 #
-# shpuld redo when the IRQ/mqtt_as problem fixed.
+# should redo when the IRQ/mqtt_as problem fixed.
 # the use of polling requires this processor to run and 
 # not enter power saving sleep-and-wait mode
 # waiting for an event.
