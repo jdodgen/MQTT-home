@@ -1,4 +1,4 @@
-# copyrite James Dodgen 2025
+# copyright James Dodgen 2025
 # MIT license
 
 # typically switch.test() is called in the main.py asyncio
