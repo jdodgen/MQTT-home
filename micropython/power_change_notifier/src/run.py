@@ -268,7 +268,7 @@ def make_email_body():
                 parts.append("")
         except:
             parts = [name, ""]
-        body += ''' [sensor.%s]\n  desc = "%s"\n  on = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
+        body += ''' [sensor.%s]\n  desc = "%s"\n  state = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
         #i += 1
     name = our_status.topic().split("/")[2]
     try:
