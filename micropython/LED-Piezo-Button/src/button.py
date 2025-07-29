@@ -12,7 +12,7 @@
 # not enter power saving sleep-and-wait mode
 # waiting for an event.
 
-from universal_machine import machine
+import machine
 class button:
 	def __init__(self, pin, mqtt_client):
 		self.mqtt_client = mqtt_client # client is here when IRQ fixed

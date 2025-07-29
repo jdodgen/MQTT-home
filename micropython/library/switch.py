@@ -5,7 +5,7 @@
 # loop hopefully with something to do or a sleep(0.3).
 #
 
-from universal_machine import machine
+import machine
 class switch:
     def __init__(self, pin, mqtt_client):
         self.mqtt_client = mqtt_client # client is here when IRQ fixed
