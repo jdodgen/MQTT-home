@@ -1,6 +1,6 @@
 # alerts like LED and Piezo
-
-from universal_machine import machine, asyncio
+import machine
+#from universal_machine import machine, asyncio
 import time
 
 class alert_handler:

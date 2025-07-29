@@ -1,5 +1,5 @@
 # MIT license copyright 2024,25 Jim Dodgen
-# usage is python3 install.py snd the cluster toml file
+# usage is python3 install.py and the cluster toml file
 cluster_example_toml='''
 # this is a toml configuration file see https://toml.io/
 # this file is used by install.py to generate device cfg.py files
@@ -67,11 +67,11 @@ import feature_power
 mp_lib_offset="../../library/"
 all_lib_offset="../../../library/"
 
-def optional_value(where, val):
+def optional_value(where, val, check=True, default=False):
     if val in where:
-        if where[val] == True:
-            return True
-    return False      
+        if where[val] == check:
+            return check
+    return default
 
 if len(sys.argv) > 1:
     cluster_toml = sys.argv[1]
@@ -136,7 +136,10 @@ if sensor_to_make in sensors:
         monitor_only = True
     else:
         monitor_only = False
-        
+
+    switch = optional_value(sensors[sensor_to_make], "switch")
+    switch_type =  optional_value(sensors[sensor_to_make], "switch_type", check="NC", default="NO")
+
 else:  # these "letters" do not exist in the config but are treated as "soft_tracking"  that is not tracked until first publish
     publish_to = sensor_to_make   # single letter version
     send_email = False
@@ -193,13 +196,14 @@ cfg_template = """
 #
 led_gpio = 3  # "D3" on D1-Mini proto card
 onboard_led_gpio = 15 # built in BLUE led
+switch_gpio = 18 # only used when "switch = True"
 #
 #wifi: IoT or guest network recomended
 ssid="%s"
 wifi_password = "%s"
 #
-# 
-start_delay=0 # startup delay  
+#
+start_delay=0 # startup delay
 number_of_seconds_to_wait=30  # Alive message published and "missing sender search" conducted at this rate
 other_message_threshold=4  # how many number_of_seconds_to_wait to indicate other is down
 #
@@ -222,6 +226,8 @@ cluster_id = "%s"
 send_email =  %s
 hard_tracked_topics = %s # these get tracked from boot, others only after first publish
 monitor_only = %s  # this sensor does not publish status and therefore is not tracked
+switch = %s # if true then gpio 18 is tested if off then no publish will be sent
+switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power" publishes are sent
 """
 print("creating cfg.py")
 now = datetime.datetime.now()
@@ -240,16 +246,18 @@ cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
     cluster["cluster_id"],
     send_email,
     hard_tracked_topics,
-    monitor_only)
+    monitor_only,
+    switch,
+    switch_type)
 #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
 #   gmail_password, gmail_user ))
 with open('cfg.py', 'w') as f:
     f.write(cfg_text)
 print("created cfg.py")
 
-# install micropython kernal 
+# install micropython kernal
 did_we_flash = False
-print ("press and hold O (flat side)\nthen press R (indent) momentary\nrelease O\nto allow flashing micropython")
+print ("press and hold O (flat side)\nthen press RST (indent) momentary\nrelease O\nto allow flashing micropython")
 print("install micropython? (y,N)")
 ans = input()
 if (ans.upper() == "Y"):
@@ -257,9 +265,9 @@ if (ans.upper() == "Y"):
     os.system("esptool.py --port /dev/ttyACM0 erase_flash")
     # os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20241129-v1.24.1.bin")
     os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20250415-v1.25.0.bin")
-    print("\npress R on esp32-s2 to reset (in the indent)")
+    print("\npress RST on esp32-s2 to reset (in the indent)")
     input()
-# install library code 
+# install library code
 if did_we_flash == False:
     print("install library code? (y,N)")
     ans = input()
@@ -268,17 +276,14 @@ else:
 if (ans.upper() == "Y"):
     code = [
     mp_lib_offset+"main.py",
-    #mp_lib_offset+"mqtt_as.py",
     mp_lib_offset+"boot.py",
     mp_lib_offset+"uuid.py",
     mp_lib_offset+"alert_handler.py",
+    mp_lib_offset+"switch.py",
     mp_lib_offset+"umail.py",
     #all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_power.py",
     all_lib_offset+"msgqueue.py",
-    #mp_lib_offset+"mqtt_support.py",
-    #mp_lib_offset+"asimple.py",
-    #mp_lib_offset+"arobust.py",
     mp_lib_offset+"mqtt_as.py",
     ]
     print("now pushing python library code")

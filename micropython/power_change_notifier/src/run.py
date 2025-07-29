@@ -25,6 +25,7 @@ import time
 import asyncio
 import time
 import os
+import switch
 from msgqueue import  MsgQueue
 
 wildcard_subscribe = feature_power.feature(cfg.cluster_id+"/+", subscribe=True)
@@ -187,7 +188,7 @@ async def main():
     led.turn_on()
     await asyncio.sleep(1)  # wakeup flash
     led.turn_off()
-
+    sw = switch.switch(cfg.switch_gpio, client)
     print("creating asyncio tasks")
     asyncio.create_task(raw_messages(client, error_queue))
     asyncio.create_task(up_so_subscribe(client, error_queue))
@@ -214,8 +215,14 @@ async def main():
         else:
             print("ip address", client._addr)
             break
+    switch_detected_power = 1 if cfg.switch_type == "NO" else 0
     while True:  # top loop checking to see of other has published
-        if cfg.monitor_only == False:
+        sw_value = sw.test()
+        print("switch = %s switch_detected_power %s" % (sw_value, switch_detected_power))
+        if cfg.monitor_only == True or (cfg.switch == True and sw.test() != switch_detected_power):
+            pass
+        else:
+            print("publishing")
             await client.publish(our_status.topic(), our_status.payload_on())
         i=0
         down_sensors = 0
