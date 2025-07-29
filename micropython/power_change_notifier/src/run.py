@@ -9,9 +9,7 @@
 # This is a Simple IoT.
 # For any sensor this is the most important thing. "am I alive"
 # I am using this code as the starting point for other more complex IoT sensors
-# example is adding a gpio line to detect a swich or button:
-# So for a door, if it is "true" AND "alive" it can be trusted that it is open.
-# if not you are worried
+# example is "switch" option monitoring a gpio line to detect a swich or button:
 #
 VERSION = (0, 3, 4)
 import umail
