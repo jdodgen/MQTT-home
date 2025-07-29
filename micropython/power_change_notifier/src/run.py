@@ -115,6 +115,7 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
     print("raw_messages exiting?")
 
 def print_flash_usage():
+    import esp
     stat = os.statvfs('/')
     total_size = stat[1] * stat[2]
     free_space = stat[0] * stat[3]
