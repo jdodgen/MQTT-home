@@ -120,6 +120,9 @@ def print_flash_usage():
     free_space = stat[0] * stat[3]
     used_space = total_size - free_space
     print("Flash: total %d used %s free %d" % (total_size,used_space,free_space,))
+    flash_size = esp.flash_size()
+    flash_user_start = esp.flash_user_start()
+    print(ESP flash: total %d used  %d free %d" % (flash_size, flash_user_start, flash_size-flash_user_start))
 
 # show PSRAM messages.
 async def _memory(self):
