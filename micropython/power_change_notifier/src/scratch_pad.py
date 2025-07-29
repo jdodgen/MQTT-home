@@ -1,1 +1,0 @@
-print("foo") if False else None
