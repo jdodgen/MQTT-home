@@ -52,6 +52,15 @@ import datetime
 import tomllib
 import sys
 
+# change these as needed
+if os.name == 'nt':
+	serial_port = "COM3"
+	cluster_lib = "C:\Users\jim\Dropbox\wip\pcn_clusters"
+else: # linux
+	serial_port = "/dev/ttyACM0"
+	cluster_lib = "~jim/Dropbox\wip\pcn_clusters"
+	
+print("Device on:", serial_port)
 # Get the absolute path of the current script's directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -74,9 +83,9 @@ def optional_value(where, val, check=True, default=False):
     return default
 
 if len(sys.argv) > 1:
-    cluster_toml = sys.argv[1]
+    cluster_toml = cluster_lib+"/"+sys.argv[1]
 else:
-    print("testing from vsc")
+    print("testing from current directory")
     cluster_toml = "cluster-example.toml"  # test cluster
 try:
     with open(cluster_toml, 'rb') as toml_file:
@@ -289,7 +298,7 @@ if (ans.upper() == "Y"):
     print("now pushing python library code")
     for c in code:
         print("installing", c)
-        os.system("ampy --port /dev/ttyACM0 put "+c)
+        os.system("ampy --port %s put %s" % (serial_port,c))
 
 # install application code
 if did_we_flash == False:
@@ -310,5 +319,8 @@ print("Installed cfg.py")
 os.system("ampy --port /dev/ttyACM0 put cfg.py")
 print("\ncurrent contents of flash")
 os.system("ampy --port /dev/ttyACM0 ls")
-print("\n  picocom -b 115200 /dev/ttyACM0")
-print("\n  putty -serial COM3")
+if os.name == 'nt':
+	print("\n  putty -serial ", serial_port)
+else:
+	print("\n  picocom -b 115200 ", serial_port)
+
