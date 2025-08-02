@@ -55,10 +55,10 @@ import sys
 # change these as needed
 if os.name == 'nt':
 	serial_port = "COM3"
-	cluster_lib = "C:\Users\jim\Dropbox\wip\pcn_clusters"
+	cluster_lib = 'C:/Users/jim/Dropbox/wip/pcn_clusters'
 else: # linux
 	serial_port = "/dev/ttyACM0"
-	cluster_lib = "~jim/Dropbox\wip\pcn_clusters"
+	cluster_lib = '~jim/Dropbox/wip/pcn_clusters'
 	
 print("Device on:", serial_port)
 # Get the absolute path of the current script's directory
@@ -314,11 +314,11 @@ if (ans.upper() != "N"):
     print("now pushing python application code")
     for c in code:
         print("installing", c)
-        os.system("ampy --port /dev/ttyACM0 put "+c)
-print("Installed cfg.py")
-os.system("ampy --port /dev/ttyACM0 put cfg.py")
+        os.system("ampy --port %s put %s" % (serial_port,c))
+print("Installing cfg.py")
+os.system("ampy --port %s put %s" % (serial_port,"cfg.py"))
 print("\ncurrent contents of flash")
-os.system("ampy --port /dev/ttyACM0 ls")
+os.system("ampy --port %s ls" % (serial_port,))
 if os.name == 'nt':
 	print("\n  putty -serial ", serial_port)
 else:
