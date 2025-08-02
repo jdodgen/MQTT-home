@@ -9,9 +9,7 @@
 # This is a Simple IoT.
 # For any sensor this is the most important thing. "am I alive"
 # I am using this code as the starting point for other more complex IoT sensors
-# example is adding a gpio line to detect a swich or button:
-# So for a door, if it is "true" AND "alive" it can be trusted that it is open.
-# if not you are worried
+# example is "switch" option monitoring a gpio line to detect a swich or button:
 #
 VERSION = (0, 3, 4)
 import umail
@@ -115,11 +113,15 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
     print("raw_messages exiting?")
 
 def print_flash_usage():
+    import esp
     stat = os.statvfs('/')
     total_size = stat[1] * stat[2]
     free_space = stat[0] * stat[3]
     used_space = total_size - free_space
     print("Flash: total %d used %s free %d" % (total_size,used_space,free_space,))
+    flash_size = esp.flash_size()
+    flash_user_start = esp.flash_user_start()
+    print("ESP flash: total %d used  %d free %d" % (flash_size, flash_user_start, flash_size-flash_user_start))
 
 # show PSRAM messages.
 async def _memory(self):
@@ -268,7 +270,7 @@ def make_email_body():
                 parts.append("")
         except:
             parts = [name, ""]
-        body += ''' [sensor.%s]\n  desc = "%s"\n  on = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
+        body += ''' [sensor.%s]\n  desc = "%s"\n  state = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
         #i += 1
     name = our_status.topic().split("/")[2]
     try:
