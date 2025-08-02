@@ -54,28 +54,26 @@ import tomllib
 import sys
 
 # change these as needed
+mp_lib_offset="../../library/"  # micropython specific
+all_lib_offset="../../../library/" # both linux and micropython
 cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
 if os.name == 'nt':
 	serial_port = "COM3"
 else: # linux
 	serial_port = "/dev/ttyACM0"
-	
-	
 print("Device on:", serial_port)
+
+# for imports from libraries we need to do this:
 # Get the absolute path of the current script's directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
-
 # Add the parent directory to sys.path
 # In this example, if main.py is in 'project/', this adds 'project/'
 sys.path.append(os.path.join(current_dir, '../../../library/'))
 import feature_power
-
 # this configures and installs software
 # it replaces the cfg.py file each time it runs
 # Y N defaults are designed for rapid deployment during development
 
-mp_lib_offset="../../library/"
-all_lib_offset="../../../library/"
 
 def optional_value(where, val, check=True, default=False):
     if val in where:
