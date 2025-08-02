@@ -92,9 +92,9 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
         print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))
-        if topic == our_status.topic():  # It is me!
+        #if topic == our_status.topic():  # It is me!
             # print("raw_messages bypassing", topic)
-            continue
+            #continue
         i=0
         restored_sensors = ""
         if topic not in current_watched_sensors:
