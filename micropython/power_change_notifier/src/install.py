@@ -48,17 +48,18 @@ send_email = true
 '''
 
 import os
+from pathlib import Path
 import datetime
 import tomllib
 import sys
 
 # change these as needed
+cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
 if os.name == 'nt':
 	serial_port = "COM3"
-	cluster_lib = 'C:/Users/jim/Dropbox/wip/pcn_clusters'
 else: # linux
 	serial_port = "/dev/ttyACM0"
-	cluster_lib = '~jim/Dropbox/wip/pcn_clusters'
+	
 	
 print("Device on:", serial_port)
 # Get the absolute path of the current script's directory
@@ -238,7 +239,6 @@ monitor_only = %s  # this sensor does not publish status and therefore is not tr
 switch = %s # if true then gpio 18 is tested if off then no publish will be sent
 switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power" publishes are sent
 """
-print("creating cfg.py")
 now = datetime.datetime.now()
 cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
     ssid,
