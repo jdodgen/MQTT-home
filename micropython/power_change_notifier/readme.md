@@ -46,7 +46,12 @@ Three sites using a Broker in the cloud. One failed due to bad sensor config. Th
 
 ### Beta 3
 
-This version added soft\_tracking where the sensor is only tracked after it has published a status. This allows for the remote sensors to not cause a "power down alert" during installation. Static tracking replaced with on-the-fly discovery of devices.
+This version added soft_tracking where the sensor is only tracked after it has published a status. This allows for the remote sensors to not cause a "power down alert" during installation. Static tracking replaced with on-the-fly discovery of devices.
+
+### Beta 4
+
+Added terminal block so a dry contact or lack of, can trigger a outage. Also casn be used for other applications like door open. 
+
 
 
 
