@@ -1,5 +1,8 @@
 # MIT license copyright 2024,25 Jim Dodgen
-# usage is python3 install.py and the cluster toml file
+# this configures and installs software
+# it replaces the cfg.py file each time it runs
+# Y N defaults are designed for rapid deployment during development
+# usage is: "python3 install.py cluster_example.toml" 
 cluster_example_toml='''
 # this is a toml configuration file see https://toml.io/
 # this file is used by install.py to generate device cfg.py files
@@ -68,12 +71,10 @@ print("Device on:", serial_port)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 # Add the parent directory to sys.path
 # In this example, if main.py is in 'project/', this adds 'project/'
-sys.path.append(os.path.join(current_dir, '../../../library/'))
-import feature_power
-# this configures and installs software
-# it replaces the cfg.py file each time it runs
-# Y N defaults are designed for rapid deployment during development
+sys.path.append(os.path.join(current_dir, all_lib_offset))
+# end of stuff that needs changes
 
+import feature_power # located in all_lib_offset
 
 def optional_value(where, val, check=True, default=False):
     if val in where:
@@ -81,22 +82,26 @@ def optional_value(where, val, check=True, default=False):
             return check
     return default
 
-if len(sys.argv) > 1:
-    cluster_toml = cluster_lib+"/"+sys.argv[1]
-else:
-    print("testing from current directory")
-    cluster_toml = "cluster-example.toml"  # test cluster
-try:
-    with open(cluster_toml, 'rb') as toml_file:
-            cluster = tomllib.load(toml_file)
-            # print(cluster)
-except FileNotFoundError:
-    print("Error: ",cluster_toml," File not found")
-    sys.exit()
-except tomllib.TOMLDecodeError as e:
-    print("Error: Invalid TOML format in {file_path}: {e}")
-    sys.exit()
-
+# process cluster toml file
+def load_cluster_toml():
+	if len(sys.argv) > 1:
+	    cluster_toml = cluster_lib+"/"+sys.argv[1]
+	else:
+	    print("testing from current directory")
+	    cluster_toml = "cluster-example.toml"  # test cluster
+	try:
+	    with open(cluster_toml, 'rb') as toml_file:
+	            cluster = tomllib.load(toml_file)
+		    return cluster
+	            # print(cluster)
+	except FileNotFoundError:
+	    print("Error: ",cluster_toml," File not found")
+	    sys.exit()
+	except tomllib.TOMLDecodeError as e:
+	    print("Error: Invalid TOML format in {file_path}: {e}")
+	    sys.exit()
+		
+cluster = load_cluster_toml()
 
 # build cc: string
 cc_string = ''
@@ -321,4 +326,5 @@ if os.name == 'nt':
 	print("\n  putty -serial ", serial_port)
 else:
 	print("\n  picocom -b 115200 ", serial_port)
+
 
