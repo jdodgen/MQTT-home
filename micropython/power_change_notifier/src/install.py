@@ -296,7 +296,7 @@ if (lans.upper() == "Y"):
         os.system("ampy --port %s put %s" % (serial_port,c))
 
 # install application code
-if did_we_flash == True or lans = "Y":
+if did_we_flash == True or lans == "Y":
 	 ans = "Y"
 else:
     print("\ninstall application code? (Y,n)")
