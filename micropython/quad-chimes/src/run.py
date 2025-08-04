@@ -55,7 +55,6 @@ async def say_hello(client):
 #quad_chime = chime.chime()
 
 async def raw_messages(client):  # Respond to all incoming messages 
-    
     # loop on message queue
     async for btopic, bmsg, retained in client.queue:
         topic = btopic.decode('utf-8')
