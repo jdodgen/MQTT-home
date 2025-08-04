@@ -60,6 +60,7 @@ import sys
 mp_lib_offset="../../library/"  # micropython specific
 all_lib_offset="../../../library/" # both linux and micropython
 cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
+
 if os.name == 'nt':
     serial_port = "COM3"
 else: # linux
@@ -68,17 +69,13 @@ print("Device on:", serial_port)
 
 # for imports from libraries we need to do this:
 # Get the absolute path of the current script's directory
-current_dir = os.path.dirname(os.path.abspath(__file__))
 # Add the parent directory to sys.path
 # In this example, if main.py is in 'project/', this adds 'project/'
+current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(current_dir, all_lib_offset))
-# end of stuff that needs changes
-
 import feature_power # located in all_lib_offset
+# end of stuff that needs modification
 
-# process cluster toml file
-
-# build email cc: string
 def load_cluster(cluster_file_name):
 	if len(cluster_file_name) > 1:
 		cluster_toml = cluster_lib+"/"+cluster_file_name
@@ -95,9 +92,7 @@ def load_cluster(cluster_file_name):
 		sys.exit()
 	except tomllib.TOMLDecodeError as e:
 		print("Error: Invalid TOML format in {file_path}: {e}")
-			sys.exit()
-
-
+		sys.exit()
 
 def print_sensors(sensors):
     sensor_keys = list(sensors.keys())
@@ -119,7 +114,6 @@ class create_cfg:
 	def __init__(cluster, sensor_to_make):
 		self.cluster = cluster
 		self.sensor_to_make = sensor_to_make
-		self.load_cluster(cluster_file_name)
 		self.sensors = self.cluster["sensor"]
 		self.set_cfg_values()
 		self.write_cfg()
@@ -148,7 +142,7 @@ class create_cfg:
 
 	def make_topic(self):
 		#if sensor_to_make in self.sensors:
-		self.desc = self.sensors.get(sensor_to_make."")
+		self.desc = self.sensors.get(sensor_to_make, "")
 			# if "desc" in self.sensors[sensor_to_make]:
 				# desc = self.sensors[sensor_to_make]["desc"]
 			# else:
@@ -160,7 +154,7 @@ class create_cfg:
 		else:
 			return cluster["cluster_id"]+"/"+self.sensor_to_make+" "+self.desc
 		self.our_feature = feature_power.feature(make_topic_cluster_pub(publish_to), publish=True)   # publisher
-        print(self.our_feature.topic())
+		print(self.our_feature.topic())
 
 		# build features
 		#our_feature    = feature_power.feature(make_topic_cluster_pub(publish_to), publish=True)   # publisher
@@ -252,13 +246,13 @@ switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power"
 			self.monitor_only,
 			self.switch,
 			self.switch_type)
-			#print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
-			#   gmail_password, gmail_user ))
-			with open('cfg.py', 'w') as f:
-				f.write(cfg_text)
-			print("created cfg.py")
+		#print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
+		#   gmail_password, gmail_user ))
+		with open('cfg.py', 'w') as f:
+			f.write(cfg_text)
+		print("created cfg.py")
 
-cluster = load_cluster_toml(sys.argv)
+cluster = load_cluster(sys.argv[1])
 print_sensors(cluster["sensor"])
 print("select one (case insensitive): ", end="")
 sensor_to_make = input().upper()
@@ -280,10 +274,10 @@ if (ans.upper() == "Y"):
 # install library code
 if did_we_flash == False:
     print("install library code? (y,N)")
-    ans = input()
+    lans = input()
 else:
-    ans = "Y"
-if (ans.upper() == "Y"):
+    lans = "Y"
+if (lans.upper() == "Y"):
     code = [
     mp_lib_offset+"main.py",
     mp_lib_offset+"boot.py",
@@ -302,23 +296,21 @@ if (ans.upper() == "Y"):
         os.system("ampy --port %s put %s" % (serial_port,c))
 
 # install application code
-if did_we_flash == False:
+if did_we_flash == True or lans = "Y":
+	 ans = "Y"
+else:
     print("\ninstall application code? (Y,n)")
     ans = input()
-else:
-    ans = "Y"
-
 if (ans.upper() != "N"):
     code = [
     "run.py",
+    "cfg.py",
     ]
     print("now pushing python application code")
     for c in code:
         print("installing", c)
         os.system("ampy --port %s put %s" % (serial_port,c))
-print("Installing cfg.py")
-os.system("ampy --port %s put %s" % (serial_port,"cfg.py"))
-print("\ncurrent contents of flash")
+        
 os.system("ampy --port %s ls" % (serial_port,))
 if os.name == 'nt':
     print("\n  putty -serial ", serial_port)
