@@ -3,6 +3,7 @@
 # it replaces the cfg.py file each time it runs
 # Y N defaults are designed for rapid deployment during development
 # usage is: "python3 install.py cluster_example.toml"
+# this does as much preprocessing as it can to freeup the microprocessor
 cluster_example_toml='''
 # this is a toml configuration file see https://toml.io/
 # this file is used by install.py to generate device cfg.py files
@@ -67,7 +68,7 @@ else: # linux
     serial_port = "/dev/ttyACM0"
 print("Device on:", serial_port)
 
-# for imports from libraries we need to do this:
+# to have  imports from libraries we need to do this:
 # Get the absolute path of the current script's directory
 # Add the parent directory to sys.path
 # In this example, if main.py is in 'project/', this adds 'project/'
