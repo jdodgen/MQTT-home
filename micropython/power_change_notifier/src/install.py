@@ -147,7 +147,6 @@ class create_cfg:
         self.email_addresses()
 
     def make_topic(self, key):
-        #if sensor_to_make in self.sensors:
         print("make_topic", key)
         print("cluster_id",self.cluster["cluster_id"])
         sensor = self.sensors.get(key)
@@ -168,8 +167,6 @@ class create_cfg:
         self.cc_string = self.cc_string.rstrip(",")
         print(self.cc_string)
         return self.cc_string
-
-    # cc_string = email_addresses(cluster)
 
     def create_hard_tracked_topics(self):
         sensor_keys = list(self.sensors.keys())
@@ -198,8 +195,8 @@ wifi_password = "%s"
 #
 #
 start_delay=0 # startup delay
-number_of_seconds_to_wait=30  # Alive message published and "missing sender search" conducted at this rate
-other_message_threshold=4  # how many number_of_seconds_to_wait to indicate a sensor is down or off
+number_of_seconds_to_wait=30  # all sensors publish "power" messages every 30 seconds
+other_message_threshold=4  # how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off
 #
 broker = '%s'
 ssl = %s # true or false
@@ -248,6 +245,10 @@ switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power"
             f.write(cfg_text)
         print("created cfg.py")
 
+def flash_micropython():
+    os.system("esptool.py --port /dev/ttyACM0 erase_flash")
+    os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20250415-v1.25.0.bin")
+
 def push_library_code():
     code = [
     mp_lib_offset+"main.py",
@@ -276,6 +277,7 @@ def push_application_code():
         print("installing", c)
         os.system("ampy --port %s put %s" % (serial_port,c))
 
+# this runs from the command line
 def main():
     cluster = load_cluster(sys.argv[1])
     print_sensors(cluster["sensor"])
@@ -291,10 +293,8 @@ def main():
     ans = input()
     if (ans.upper() == "Y"):
         did_we_flash = True
-        os.system("esptool.py --port /dev/ttyACM0 erase_flash")
-        # os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20241129-v1.24.1.bin")
-        os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20250415-v1.25.0.bin")
-        print("\npress RST on esp32-s2 to reset (in the indent)")
+        flash_micropython()
+        print("\npress RST on esp32-s2 to reset (in the indent) then press Enter to continue")
         input()
     # install library code
     if did_we_flash == False:
