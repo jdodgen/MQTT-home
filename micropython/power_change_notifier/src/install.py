@@ -199,7 +199,7 @@ wifi_password = "%s"
 #
 start_delay=0 # startup delay
 number_of_seconds_to_wait=30  # Alive message published and "missing sender search" conducted at this rate
-other_message_threshold=4  # how many number_of_seconds_to_wait to indicate other is down
+other_message_threshold=4  # how many number_of_seconds_to_wait to indicate a sensor is down or off
 #
 broker = '%s'
 ssl = %s # true or false
