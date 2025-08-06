@@ -279,7 +279,17 @@ def push_application_code():
 
 # this runs from the command line
 def main():
-    cluster = load_cluster(sys.argv[1])
+    while True:
+        try:
+            cluster_name = sys.argv[1]
+        except:
+            print("Input cluster toml file name:")
+            cluster_name = input()
+        try:
+            cluster = load_cluster(cluster_name)
+            break
+        except:
+            print("Try again")		
     print_sensors(cluster["sensor"])
     print("select one (case insensitive): ", end="")
     sensor_to_make = input().upper()
