@@ -187,9 +187,9 @@ class create_cfg:
 #
 led_gpio = 3  # "D3" on D1-Mini proto card
 onboard_led_gpio = 15 # built in BLUE led
-switch_gpio = 18 # only used when "switch = True"
+switch_gpio = 12 # only used when "switch = True"
 #
-#wifi: IoT or guest network recomended
+#wifi: IoT or guest network recommended
 ssid="%s"
 wifi_password = "%s"
 #

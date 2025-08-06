@@ -228,7 +228,7 @@ async def main():
             await client.publish(our_status.topic(), our_status.payload_on())
         i=0
         down_sensors = 0
-        any_start_times = False
+        should_we_turn_on_led = False
         print("\b[publish_check_loop]")
         # need to loop on current_watched_sensors[topic][MESSAGE_THIS_CYCLE]
         for sensor in  current_watched_sensors:
@@ -246,9 +246,9 @@ async def main():
                 current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] = False # set false here, set true in raw_messages
                 current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
             i += 1
-            if current_watched_sensors[sensor][START_TIME] > 0:
-                any_start_times = True
-        if any_start_times:
+            if current_watched_sensors[sensor][START_TIME] > 0 and sensor in cfg.hard_tracked_topics:
+                should_we_turn_on_led = True
+        if should_we_turn_on_led:
             led.turn_on()
         else:
             led.turn_off()
