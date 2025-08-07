@@ -29,8 +29,8 @@ from msgqueue import  MsgQueue
 wildcard_subscribe = feature_power.feature(cfg.cluster_id+"/+", subscribe=True)
 print(wildcard_subscribe.topic())
 
-our_status = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=True)   # publisher
-print("Our topic = [%s]" % (our_status.topic(),))
+#our_status = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=True)   # publisher
+# print("Our topic = [%s]" % (our_status.topic(),))
 
 # ERRORS
 boilerplate = '''Starting up ...\nFor reference:
@@ -86,6 +86,7 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
     global current_watched_sensors
     # global other_status
     # loop on message queue
+    print("raw_messages starting")
     async for btopic, bmsg, retained in client.queue:
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
@@ -164,7 +165,7 @@ async def problem_reporter(error_queue):
 
 async def main():
     #global other_status
-    global our_status
+    #global our_status
     global led
     global current_watched_sensors
     print_flash_usage()
@@ -225,7 +226,7 @@ async def main():
             pass
         else:
             print("publishing")
-            await client.publish(our_status.topic(), our_status.payload_on())
+            await client.publish(cfg.publish, "on")
         i=0
         down_sensors = 0
         should_we_turn_on_led = False
@@ -272,7 +273,7 @@ def make_email_body():
             parts = [name, ""]
         body += ''' [sensor.%s]\n  desc = "%s"\n  state = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
         #i += 1
-    name = our_status.topic().split("/")[2]
+    name = cfg.publish.split("/")[2]
     try:
         parts = name.split(" ",1)
         if len(parts) == 1:
@@ -284,10 +285,11 @@ def make_email_body():
     return body
 
 async def up_so_subscribe(client, error_queue):
+    wild_topic = wildcard_subscribe.topic()
     while True:
         await client.up.wait()
         client.up.clear()
-        print('doing subscribes')
+        print('doing subscribes', wild_topic)
         error_queue.put(0)
         await client.subscribe(wildcard_subscribe.topic())
         print("emailing startup")

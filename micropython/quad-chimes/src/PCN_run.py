@@ -1,5 +1,5 @@
 # MIT license copyright 2025 Jim Dodgen
-# Power Change Notifier PCN used as the template for sensors and actuators 
+# Power Change Notifier PCN used as the template for sensors and actuators
 # dif this with the PCN original for updates
 # requires only a MQTT Broker. Local or in the Cloud
 # All sensor run the identical code, only "cfg.py" is different
@@ -17,7 +17,7 @@ VERSION = (0, 3, 4)
 import umail
 import alert_handler
 from mqtt_as import MQTTClient, config
-import feature_power # this stays, nice to know if it running a publish will be done every 30 seconds (check PCN for the standard) 
+import feature_power # this stays, nice to know if it running a publish will be done every 30 seconds (check PCN for the standard)
 import mqtt_hello
 import alert_handler
 import cfg
@@ -43,15 +43,15 @@ btn =          feature_button.feature(cfg.name,            publish=True)
 pin_play_all      = machine.Pin(cfg.play_all_pin,     machine.Pin.OUT)
 pin_ding_dong     = machine.Pin(cfg.ding_dong_pin,    machine.Pin.OUT)
 pin_ding_ding     = machine.Pin(cfg.ding_ding_pin,    machine.Pin.OUT)
-pin_west          = machine.Pin(cfg.westminster_pin,  machine.Pin.OUT)  
+pin_west          = machine.Pin(cfg.westminster_pin,  machine.Pin.OUT)
 pin_play_all.value(1)
 pin_ding_dong.value(1)
 pin_ding_ding.value(1)
 pin_west.value(1)
 # end of quad-chimes  stuff
 
-our_status = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=True)   # publisher
-print("Our topic = [%s]" % (our_status.topic(),))
+#our_status = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=True)   # publisher
+print("Our topic = [%s]" % (cfg.publish,))
 
 # ERRORS
 boilerplate = '''Starting up ...\nFor reference:
@@ -95,37 +95,37 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
         print("callback [%s][%s] retained[%s]" % (topic, msg, retained,)
-        # this spends a second on each chime 
-        if topic == ding_ding.topic(): 
-            print("chiming ...ding_ding")    
+        # this spends a second on each chime
+        if topic == ding_ding.topic():
+            print("chiming ...ding_ding")
             pin_ding_ding.value(0)
             await asyncio.sleep(1)
             pin_ding_ding.value(1)
             print("... chimed")
-        elif topic == ding_dong.topic():    
-            print("chiming ...ding_dong")    
+        elif topic == ding_dong.topic():
+            print("chiming ...ding_dong")
             pin_ding_dong.value(0)
             await asyncio.sleep(1)
             pin_ding_dong.value(1)
             print("... chimed")
-        elif (topic == westminster.topic()): 
-            print("chiming ...westminster")    
+        elif (topic == westminster.topic()):
+            print("chiming ...westminster")
             pin_west.value(0)
             await asyncio.sleep(1)
             pin_west.value(1)
             print("... chimed")
-        elif (topic == three_chimes.topic()):    
-            print("chiming ...play_all")     
+        elif (topic == three_chimes.topic()):
+            print("chiming ...play_all")
             pin_play_all.value(0)
             await asyncio.sleep(1)
             pin_play_all.value(1)
             print("... chimed")
         elif (topic == btn.topic() and default_chime):
-            print("chiming ...default_chime")     
+            print("chiming ...default_chime")
             default_chime.value(0)
             await asyncio.sleep(1)
             default_chime.value(1)
-            print("... chimed")  
+            print("... chimed")
         elif (topic == mqtt_hello.hello_request_topic):
             print("callback hello_request")
             await say_hello(client)
@@ -186,7 +186,7 @@ async def problem_reporter(error_queue):
 
 async def main():
     #global other_status
-    global our_status
+    # global our_status
     global led
     print_flash_usage()
     error_queue = MsgQueue(20)
@@ -263,7 +263,7 @@ def make_email_body():
             parts = [name, ""]
         body += ''' [sensor.%s]\n  desc = "%s"\n  state = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
         #i += 1
-    name = our_status.topic().split("/")[2]
+    name = cfg.publish.split("/")[2]
     try:
         parts = name.split(" ",1)
         if len(parts) == 1:
@@ -283,7 +283,7 @@ async def up_so_subscribe(client, error_queue):
         await client.subscribe(ding_ding.topic())
         await client.subscribe(ding_dong.topic())
         await client.subscribe(westminster.topic())
-        await client.subscribe(three_chimes.topic()) 
+        await client.subscribe(three_chimes.topic())
 
 async def down_report_outage(client, error_queue):
     while True:
