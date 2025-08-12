@@ -24,31 +24,6 @@ password = "password"
 to_list = ["foo@bar.com", "bar@foo.com"]
 gmail_password = "xxx xxx xxx xxx"
 gmail_user = "??@gmail.com"
-
-[sensor]
-#  do not use slashes "/" or "+" in the "name". It messes with the MQTT wild cards
-#  email = true means that the sensor sends emails when sensors lost and found
-[sensor.G]
-desc = "Generator powered outlet" # Typically in gally/kitchen in plain sight
-email = true  # if false this sensor does not send emails
-[sensor.U]
-desc = "Utility power company"
-email = true
-[sensor.3]
-id = "S"
-soft_tracking = true  # not monitored at boot only after a publish
-name = "solar_batteries"
-email = false
-[sensor.3]
-id = "R"
-desc = "Offsite monitor"
-email = false
-ssid = "otherwifi"
-wifi_password = "otherpw"
-[sensor.E]
-desc = "passive watcher"
-monitor_only = true  # this only subscribes and does NOT publish a status. it is soft_tracking by default
-send_email = true
 '''
 
 import os
@@ -68,7 +43,7 @@ else: # linux
     serial_port = "/dev/ttyACM0"
 print("Device on:", serial_port)
 
-# to have  imports from libraries we need to do this:
+# to have imports from libraries we need to do this:
 # Get the absolute path of the current script's directory
 # Add the parent directory to sys.path
 # In this example, if main.py is in 'project/', this adds 'project/'
