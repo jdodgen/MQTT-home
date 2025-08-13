@@ -33,8 +33,7 @@ import feature_quad_chimes
 import feature_button
 import feature_three_chimes
 import button
-quad_chimes =    feature_quad_chimes.feature(cfg.name,         subscribe=True)
-btn =          feature_button.feature(cfg.name,            publish=True)
+
 pin_play_all      = machine.Pin(cfg.play_all_pin,     machine.Pin.OUT)
 pin_ding_dong     = machine.Pin(cfg.ding_dong_pin,    machine.Pin.OUT)
 pin_ding_ding     = machine.Pin(cfg.ding_ding_pin,    machine.Pin.OUT)
@@ -84,45 +83,44 @@ async def send_email(subject, body, cluster_id_only=False):
 async def raw_messages(client,error_queue):  # Process all incoming messages
     global led
     global current_watched_sensors
-    # global other_status
-    # loop on message queue
+    quad_chimes =    feature_quad_chimes.feature(cfg.cluster_id)
     async for btopic, bmsg, retained in client.queue:
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
         print("callback [%s][%s] retained[%s]" % (topic, msg, retained,)
         # this spends a second on each chime
-        if topic == quad_chimes.topic():
+        if (topic == mqtt_hello.hello_request_topic):
+                print("callback hello_request")
+                await say_hello(client)
+        else:
             if (msg == quad_chimes.payload_ding_ding()):
                 print("chiming ...ding_ding", end="")
                 pin_ding_ding.value(0)
-                await asyncio.sleep(1)
+                await asyncio.sleep(cfg.time_to_trigger)
                 pin_ding_ding.value(1)
                 print("... chimed")
             elif (msg == quad_chimes.payload_ding_dong()):
                 print("chiming ...ding_dong", end="")
                 pin_ding_dong.value(0)
-                await asyncio.sleep(1)
+                await asyncio.sleep(cfg.time_to_trigger)
                 pin_ding_dong.value(1)
                 print("... chimed")
             elif (msg == quad_chimes.payload_westminster():):
                 print("chiming ...westminster", end="")
                 pin_west.value(0)
-                await asyncio.sleep(1)
+                await asyncio.sleep(cfg.time_to_trigger)
                 pin_west.value(1)
                 print("... chimed")
-            elif (msg == thquad_chimes.payload_three_chimes()):
+            elif (msg == quad_chimes.payload_three_chimes()):
                 print("chiming ...play_all", end="")
                 pin_play_all.value(0)
-                await asyncio.sleep(1)
+                await asyncio.sleep(cfg.time_to_trigger)
                 pin_play_all.value(1)
                 print("... chimed")
             else:
                 print("unknown payload")
-        elif (topic == mqtt_hello.hello_request_topic):
-                print("callback hello_request")
-                await say_hello(client)
-        else:
-             print("unknown topic")
+            else:
+                print("unknown request")
           # await send_email("Power restored", restored_sensors+make_email_body())
       print("raw_messages exiting?")
 
@@ -176,9 +174,54 @@ async def problem_reporter(error_queue):
                 else:
                     break
 
+def make_email_body():
+    body = '''\
+[cluster]
+ name = "%s"
+[sensor]\n''' %  (cfg.cluster_id,)
+    #i = 0
+    for topic in current_watched_sensors:
+        name = topic.split("/")[2]
+        try:
+            parts = name.split(" ",1)
+            if len(parts) == 1:
+                parts.append("")
+        except:
+            parts = [name, ""]
+        body += ''' [sensor.%s]\n  desc = "%s"\n  state = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
+        #i += 1
+    name = cfg.publish.split("/")[2]
+    try:
+        parts = name.split(" ",1)
+        if len(parts) == 1:
+            parts.append("")
+    except:
+        parts = [name, ""]
+    body += ''' [sensor.%s] # reporting sensor\n  desc = "%s"\n  on = true''' % (parts[0], parts[1],)
+    print(body)
+    return body
+
+async def up_so_subscribe(client, error_queue):
+    wildcard_subscribe = feature_quad_chimes.feature(cfg.cluster_id, location="+")
+    wild_topic = wildcard_subscribe.topic()
+    print(wild_topic)
+    while True:
+        await client.up.wait()
+        client.up.clear()
+        print('doing subscribes', wild_topic)
+        error_queue.put(0)
+        await client.subscribe(wild_topic)
+        print("emailing startup")
+        await send_email("Starting", "")
+
+async def down_report_outage(client, error_queue):
+    while True:
+        await client.down.wait()
+        client.down.clear()
+        print('got outage')
+        error_queue.put(5)
+
 async def main():
-    #global other_status
-    # global our_status
     global led
     print_flash_usage()
     error_queue = MsgQueue(20)
@@ -231,59 +274,17 @@ async def main():
     #
     # connected now and forever so int to the loop
     #
+    time_last_power_publish = 0
     while True:
-      if (button_press.test() == 0):
-          await client.publish(btn.topic(), btn.payload_on())
-          print("button pressed")
-          if cfg.echo_chime:
-            await client.publish(cfg.echo_chime_topic, cfg.chime)
-      await asyncio.sleep(0.1)
-
-def make_email_body():
-    body = '''\
-[cluster]
- name = "%s"
-[sensor]\n''' %  (cfg.cluster_id,)
-    #i = 0
-    for topic in current_watched_sensors:
-        name = topic.split("/")[2]
-        try:
-            parts = name.split(" ",1)
-            if len(parts) == 1:
-                parts.append("")
-        except:
-            parts = [name, ""]
-        body += ''' [sensor.%s]\n  desc = "%s"\n  state = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
-        #i += 1
-    name = cfg.publish.split("/")[2]
-    try:
-        parts = name.split(" ",1)
-        if len(parts) == 1:
-            parts.append("")
-    except:
-        parts = [name, ""]
-    body += ''' [sensor.%s] # reporting sensor\n  desc = "%s"\n  on = true''' % (parts[0], parts[1],)
-    print(body)
-    return body
-
-async def up_so_subscribe(client, error_queue):
-    while True:
-        await client.up.wait()
-        client.up.clear()
-        error_queue.put(0)
-        print('doing subscribes')
-        await client.subscribe(ding_ding.topic())
-        await client.subscribe(ding_dong.topic())
-        await client.subscribe(westminster.topic())
-        await client.subscribe(three_chimes.topic())
-
-async def down_report_outage(client, error_queue):
-    while True:
-        await client.down.wait()
-        client.down.clear()
-        print('got outage')
-        error_queue.put(5)
-
+        now = time.time()
+        if (time_last_power_publish + cfg.number_of_seconds_to_wait < now:
+            time_last_power_publish=now
+            await client.publish(cfg.PCN_publish_power, "power_detected")
+        if (button_press.test() == 0):
+            print("button pressed")
+            await client.publish(cfg.publish_button, cfg.publish_button_payload)
+            await asyncio.sleep(1) # debounce pause
+        await asyncio.sleep(0.1)
 
 ############ startup ###############
 time.sleep(cfg.start_delay)
