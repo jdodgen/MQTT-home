@@ -71,28 +71,10 @@ def load_cluster(cluster_file_name):
         print("Error: Invalid TOML format in {file_path}: {e}")
         sys.exit()
 
-# def print_sensors(devices):
-    # device_keys = list(devices.keys())
-    # device_keys.sort()
-    # for key in device_keys:
-        # #print("sensor key=", key)
-        # if len(key) != 1:
-            # print("id [%s] mist be a single letter or number" % (key, ))
-        # try:
-            # desc =sensors[key]["desc"]
-        # except:
-            # desc=""
-        # print("%s) %s" % (key, desc))
-        # if(('+' in desc) or ('/' in desc) or ('+' in key) or ('/' in key)):
-            # print("\nERROR: future topic  [%s][%s] contains a / or +,  MQTT reserved fix in toml file\n" % (key,desc,))
-            # sys.exit()
-
 class create_cfg:
     def __init__(self, cluster, payload):
         self.cluster = cluster
         self.payload =  payload
-        #self.device_to_make = device_to_make
-        #self.devices = self.cluster["sensor"]
         self.power_feature = feature_power.feature(self.cluster["cluster_id"], publish=True)   # publisher
         print(self.power_feature.topic())
         self.quad_chimes_feature = feature_quad_chimes.feature(self.cluster["cluster_id"], publish=True)
@@ -216,12 +198,12 @@ def push_library_code():
     mp_lib_offset+"alert_handler.py",
     mp_lib_offset+"button.py",
     mp_lib_offset+"umail.py",
-    #all_lib_offset+"mqtt_hello.py",
+    all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_power.py",
-    #all_lib_offset+"msgqueue.py",
+    all_lib_offset+"feature_quad_chimes.py",,
     mp_lib_offset+"mqtt_as.py",
     ]
-    print("now pushing python library code")
+    print("now pushing mqtt library code")
     for c in code:
         print("installing", c)
         os.system("ampy --port %s put %s" % (serial_port,c))
@@ -231,7 +213,7 @@ def push_application_code():
     "run.py",
     "cfg.py",
     ]
-    print("now pushing python application code")
+    print("now pushing application code")
     for c in code:
         print("installing", c)
         os.system("ampy --port %s put %s" % (serial_port,c))
