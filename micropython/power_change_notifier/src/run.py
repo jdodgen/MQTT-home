@@ -163,6 +163,51 @@ async def problem_reporter(error_queue):
                 else:
                     break
 
+def make_email_body():
+    body = '''\
+[cluster]
+ name = "%s"
+[sensor]\n''' %  (cfg.cluster_id,)
+    #i = 0
+    for topic in current_watched_sensors:
+        name = topic.split("/")[2]
+        try:
+            parts = name.split(" ",1)
+            if len(parts) == 1:
+                parts.append("")
+        except:
+            parts = [name, ""]
+        body += ''' [sensor.%s]\n  desc = "%s"\n  state = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
+        #i += 1
+    name = cfg.publish.split("/")[2]
+    try:
+        parts = name.split(" ",1)
+        if len(parts) == 1:
+            parts.append("")
+    except:
+        parts = [name, ""]
+    body += ''' [sensor.%s] # reporting sensor\n  desc = "%s"\n  on = true''' % (parts[0], parts[1],)
+    print(body)
+    return body
+
+async def up_so_subscribe(client, error_queue):
+    wild_topic = wildcard_subscribe.topic()
+    while True:
+        await client.up.wait()
+        client.up.clear()
+        print('doing subscribes', wild_topic)
+        error_queue.put(0)
+        await client.subscribe(wildcard_subscribe.topic())
+        print("emailing startup")
+        await send_email("Starting", boilerplate)
+
+async def down_report_outage(client, error_queue):
+    while True:
+        await client.down.wait()
+        client.down.clear()
+        print('got outage')
+        error_queue.put(5)
+
 async def main():
     #global other_status
     #global our_status
@@ -256,51 +301,6 @@ async def main():
         if down_sensors:
             await send_email("Power Outage(s)", make_email_body(), cluster_id_only=True)
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
-
-def make_email_body():
-    body = '''\
-[cluster]
- name = "%s"
-[sensor]\n''' %  (cfg.cluster_id,)
-    #i = 0
-    for topic in current_watched_sensors:
-        name = topic.split("/")[2]
-        try:
-            parts = name.split(" ",1)
-            if len(parts) == 1:
-                parts.append("")
-        except:
-            parts = [name, ""]
-        body += ''' [sensor.%s]\n  desc = "%s"\n  state = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
-        #i += 1
-    name = cfg.publish.split("/")[2]
-    try:
-        parts = name.split(" ",1)
-        if len(parts) == 1:
-            parts.append("")
-    except:
-        parts = [name, ""]
-    body += ''' [sensor.%s] # reporting sensor\n  desc = "%s"\n  on = true''' % (parts[0], parts[1],)
-    print(body)
-    return body
-
-async def up_so_subscribe(client, error_queue):
-    wild_topic = wildcard_subscribe.topic()
-    while True:
-        await client.up.wait()
-        client.up.clear()
-        print('doing subscribes', wild_topic)
-        error_queue.put(0)
-        await client.subscribe(wildcard_subscribe.topic())
-        print("emailing startup")
-        await send_email("Starting", boilerplate)
-
-async def down_report_outage(client, error_queue):
-    while True:
-        await client.down.wait()
-        client.down.clear()
-        print('got outage')
-        error_queue.put(5)
 
 
 ############ startup ###############
