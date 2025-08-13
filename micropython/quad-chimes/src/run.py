@@ -29,16 +29,11 @@ import switch
 from msgqueue import  MsgQueue
 
 # quad-chimes  stuff
-import feature_ding_ding
-import feature_ding_dong
-import feature_westminster
+import feature_quad_chimes
 import feature_button
 import feature_three_chimes
 import button
-ding_ding =    feature_ding_ding.feature(cfg.name,         subscribe=True)
-ding_dong =    feature_ding_dong.feature(cfg.name,         subscribe=True)
-westminster =  feature_westminster.feature(cfg.name,       subscribe=True)
-three_chimes = feature_three_chimes.feature(cfg.name,      subscribe=True)
+quad_chimes =    feature_quad_chimes.feature(cfg.name,         subscribe=True)
 btn =          feature_button.feature(cfg.name,            publish=True)
 pin_play_all      = machine.Pin(cfg.play_all_pin,     machine.Pin.OUT)
 pin_ding_dong     = machine.Pin(cfg.ding_dong_pin,    machine.Pin.OUT)

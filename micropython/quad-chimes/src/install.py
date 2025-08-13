@@ -50,6 +50,7 @@ print("Device on:", serial_port)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(current_dir, all_lib_offset))
 import feature_power # located in all_lib_offset
+import feature_quad_chimes
 ###### end of stuff that needs modification ######
 
 def load_cluster(cluster_file_name):
@@ -70,69 +71,34 @@ def load_cluster(cluster_file_name):
         print("Error: Invalid TOML format in {file_path}: {e}")
         sys.exit()
 
-def print_sensors(devices):
-    device_keys = list(devices.keys())
-    device_keys.sort()
-    for key in device_keys:
-        #print("sensor key=", key)
-        if len(key) != 1:
-            print("id [%s] mist be a single letter or number" % (key, ))
-        try:
-            desc =sensors[key]["desc"]
-        except:
-            desc=""
-        print("%s) %s" % (key, desc))
-        if(('+' in desc) or ('/' in desc) or ('+' in key) or ('/' in key)):
-            print("\nERROR: future topic  [%s][%s] contains a / or +,  MQTT reserved fix in toml file\n" % (key,desc,))
-            sys.exit()
+# def print_sensors(devices):
+    # device_keys = list(devices.keys())
+    # device_keys.sort()
+    # for key in device_keys:
+        # #print("sensor key=", key)
+        # if len(key) != 1:
+            # print("id [%s] mist be a single letter or number" % (key, ))
+        # try:
+            # desc =sensors[key]["desc"]
+        # except:
+            # desc=""
+        # print("%s) %s" % (key, desc))
+        # if(('+' in desc) or ('/' in desc) or ('+' in key) or ('/' in key)):
+            # print("\nERROR: future topic  [%s][%s] contains a / or +,  MQTT reserved fix in toml file\n" % (key,desc,))
+            # sys.exit()
 
 class create_cfg:
-    def __init__(self, cluster, device_to_make):
+    def __init__(self, cluster, payload):
         self.cluster = cluster
-        self.device_to_make = device_to_make
-        self.devices = self.cluster["sensor"]
-        self.our_feature = feature_power.feature(self.make_topic(device_to_make), publish=True)   # publisher
-        print(self.our_feature.topic())
-        self.set_cfg_values()
-        self.write_cfg()
-
-    def set_cfg_values(self,):
-        if self.device_to_make in self.devices:
-            desc = self.devices[self.device_to_make].get("desc")
-
-            #self.publish_to = self.device_to_make+" "+desc if desc else self.device_to_make
-
-            self.send_email = self.devices[self.device_to_make].get("send_email",False)
-            self.ssid = self.devices[self.device_to_make].get("ssid", self.cluster["network"]["ssid"])
-            self.wifi_password = self.devices[self.device_to_make].get("wifi_password", self.cluster["network"]["wifi_password"])
-            self.monitor_only = self.devices[self.device_to_make].get("monitor_only", False)
-            self.switch = self.devices[self.device_to_make].get("switch", False)
-            self.switch_type = self.devices[self.device_to_make].get("switch_type","NO")
-        else:  # these "letters" do not exist in the toml file but are treated as "soft_tracking"  that is not tracked until first publish
-            #self.publish_to = self.device_to_make   # single letter version
-            self.send_email = False
-            self.ssid = self.cluster["network"]["ssid"]
-            self.wifi_password = self.cluster["network"]["wifi_password"]
-            self.monitor_only = False
-            self.switch = False
-            self.switch_type = False
-        print("send_email [%s] ssid[%s] pw[%s] monitor_only [%s] switch [%s] switch_type [%s]" %
-            (self.send_email, self.ssid, self.wifi_password, self.monitor_only, self.switch, self.switch_type))
+        self.payload =  payload
+        #self.device_to_make = device_to_make
+        #self.devices = self.cluster["sensor"]
+        self.power_feature = feature_power.feature(self.cluster["cluster_id"], publish=True)   # publisher
+        print(self.power_feature.topic())
+        self.quad_chimes_feature = feature_quad_chimes.feature(self.cluster["cluster_id"], publish=True)
+        print(self.quad_chimes_feature.topic())
         self.email_addresses()
-
-    def make_topic(self, key):
-        print("make_topic", key)
-        print("cluster_id",self.cluster["cluster_id"])
-        sensor = self.devices.get(key)
-        if sensor:
-            desc = sensor.get("desc", "")
-        else:
-            desc = ""
-        if desc == '':
-            name =  self.cluster["cluster_id"]+"/"+key
-        else:
-            name =  self.cluster["cluster_id"]+"/"+key+" "+desc
-        return name
+        self.write_cfg()
 
     def email_addresses(self):
         self.cc_string = ''
@@ -184,15 +150,17 @@ gmail_password = "%s" # gmail generates this and it can change it in the future
 gmail_user = "%s"
 cc_string = "%s"  # a smtp Cc: string
 
-publish = "%s"
+
+publish_power = "%s"
+publish_button = "%s"
+publish_power_payload = "%s"
 cluster_id = "%s"
 send_email =  %s
-button_chime_request_topic = "%s"
 """
         now = datetime.datetime.now()
         cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
-            self.ssid,
-            self.wifi_password,
+            self.cluster["network"]["ssid"],
+            self.cluster["network"]["wifi_password"],
             self.cluster["mqtt_broker"]["broker"],
             self.cluster["mqtt_broker"]["ssl"],
             self.cluster["mqtt_broker"]["user"],
@@ -201,10 +169,12 @@ button_chime_request_topic = "%s"
             self.cluster["email"]["gmail_password"],
             self.cluster["email"]["gmail_user"],
             self.cc_string,
-            self.our_feature.topic(),
+            self.power_feature.topic(),
+            self.quad_chimes_feature.topic(),
+            self.payload,
             self.cluster["cluster_id"],
-            self.send_email,
-            self.button_chime_request_topic)
+            sself.cluster["send_email"],
+            )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))
         with open('cfg.py', 'w') as f:
@@ -224,8 +194,8 @@ def push_library_code():
     mp_lib_offset+"button.py",
     mp_lib_offset+"umail.py",
     #all_lib_offset+"mqtt_hello.py",
-    #all_lib_offset+"feature_power.py",
-    all_lib_offset+"msgqueue.py",
+    all_lib_offset+"feature_power.py",
+    #all_lib_offset+"msgqueue.py",
     mp_lib_offset+"mqtt_as.py",
     ]
     print("now pushing python library code")
@@ -256,11 +226,26 @@ def main():
             break
         except:
             print("Try again")
-    print_device_keys(cluster["device_keys"])
+    print("Button publishes:")
+    print("1) Westminster")
+    print("2) Ding dong")
+    print("3) Ding ding")
+    print("4) All three")
     print("select one (case insensitive): ", end="")
-    device_keys_to_make = input().upper()
-    print("request = ", device_keys_to_make)
-    create_cfg(cluster, device_keys_to_make) # drops cfg.py file
+    chime_selected = input().upper()
+    print("chime_selected = ", chime_selected)
+
+    if (chime_selected == "1"):
+        payload = feature_quad_chimes.payload_westminster()
+    elif (chime_selected == "2"):
+        payload = feature_quad_chimes.payload_ding_dong()
+    elif (chime_selected == "3"):
+        payload = feature_quad_chimes.payload_ding_ding()
+    elif (chime_selected == "4"):
+        payload = feature_quad_chimes.payload_three_chimes()
+    else:
+        print("invalid responce")
+    create_cfg(cluster, payload) # drops cfg.py file
 
     # install micropython kernal
     did_we_flash = False
