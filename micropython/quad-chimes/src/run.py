@@ -91,41 +91,38 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
         msg = bmsg.decode('utf-8')
         print("callback [%s][%s] retained[%s]" % (topic, msg, retained,)
         # this spends a second on each chime
-        if topic == ding_ding.topic():
-            print("chiming ...ding_ding")
-            pin_ding_ding.value(0)
-            await asyncio.sleep(1)
-            pin_ding_ding.value(1)
-            print("... chimed")
-        elif topic == ding_dong.topic():
-            print("chiming ...ding_dong")
-            pin_ding_dong.value(0)
-            await asyncio.sleep(1)
-            pin_ding_dong.value(1)
-            print("... chimed")
-        elif (topic == westminster.topic()):
-            print("chiming ...westminster")
-            pin_west.value(0)
-            await asyncio.sleep(1)
-            pin_west.value(1)
-            print("... chimed")
-        elif (topic == three_chimes.topic()):
-            print("chiming ...play_all")
-            pin_play_all.value(0)
-            await asyncio.sleep(1)
-            pin_play_all.value(1)
-            print("... chimed")
-        elif (topic == btn.topic() and default_chime):
-            print("chiming ...default_chime")
-            default_chime.value(0)
-            await asyncio.sleep(1)
-            default_chime.value(1)
-            print("... chimed")
+        if topic == quad_chimes.topic():
+            if (msg == quad_chimes.payload_ding_ding()):
+                print("chiming ...ding_ding", end="")
+                pin_ding_ding.value(0)
+                await asyncio.sleep(1)
+                pin_ding_ding.value(1)
+                print("... chimed")
+            elif (msg == quad_chimes.payload_ding_dong()):
+                print("chiming ...ding_dong", end="")
+                pin_ding_dong.value(0)
+                await asyncio.sleep(1)
+                pin_ding_dong.value(1)
+                print("... chimed")
+            elif (msg == quad_chimes.payload_westminster():):
+                print("chiming ...westminster", end="")
+                pin_west.value(0)
+                await asyncio.sleep(1)
+                pin_west.value(1)
+                print("... chimed")
+            elif (msg == thquad_chimes.payload_three_chimes()):
+                print("chiming ...play_all", end="")
+                pin_play_all.value(0)
+                await asyncio.sleep(1)
+                pin_play_all.value(1)
+                print("... chimed")
+            else:
+                print("unknown payload")
         elif (topic == mqtt_hello.hello_request_topic):
-            print("callback hello_request")
-            await say_hello(client)
+                print("callback hello_request")
+                await say_hello(client)
         else:
-             print("unknown message")
+             print("unknown topic")
           # await send_email("Power restored", restored_sensors+make_email_body())
       print("raw_messages exiting?")
 
