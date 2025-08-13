@@ -88,19 +88,30 @@ def load_cluster(cluster_file_name):
             # sys.exit()
 
 class create_cfg:
-    def __init__(self, cluster, payload):
+    def __init__(self, cluster):
         self.cluster = cluster
-        self.payload =  payload
-        #self.device_to_make = device_to_make
-        #self.devices = self.cluster["sensor"]
-        self.power_feature = feature_power.feature(self.cluster["cluster_id"], publish=True)   # publisher
+        self.payload = ""
+        self.location = "nowhere"
+        self.get_location()
+        self.power_feature = feature_power.feature(self.cluster["cluster_id"], location=self.location)   # publisher
         print(self.power_feature.topic())
-        self.quad_chimes_feature = feature_quad_chimes.feature(self.cluster["cluster_id"], publish=True)
+        self.quad_chimes_feature = feature_quad_chimes.feature(self.cluster["cluster_id"], location=self.location, publish=True)
         print(self.quad_chimes_feature.topic())
         self.get_button_chime()
         self.email_addresses()
         self.write_cfg()
-        
+
+    def get_location(self):
+        ndx=0
+        locations = self.cluster["locations"]
+        for loc in locations:
+            ndx += 1
+            print("%s) %s" % (str(ndx), loc,))
+        print("select one (case insensitive): ", end="")
+        loc_selected = input().upper()
+        self.location = locations[int(loc_selected)-1]
+        print("Location:", loc_selected, self.location)
+
     def get_button_chime(self):
         print("Button publishes:")
         print("1) Westminster")
@@ -109,8 +120,7 @@ class create_cfg:
         print("4) All three")
         print("select one (case insensitive): ", end="")
         chime_selected = input().upper()
-        print("chime_selected = ", chime_selected)
-
+        #print("chime_selected = ", chime_selected)
         if (chime_selected == "1"):
             self.payload = self.quad_chimes_feature.payload_westminster()
         elif (chime_selected == "2"):
@@ -121,8 +131,8 @@ class create_cfg:
            self.payload = self.quad_chimes_feature.payload_three_chimes()
         else:
             print("invalid responce")
-        print("payload", self.payload)
-            
+        print("Chime selected", self.payload)
+
     def email_addresses(self):
         self.cc_string = ''
         for addr in self.cluster["email"]["to_list"]:
@@ -158,6 +168,7 @@ wifi_password = "%s"
 start_delay=0 # startup delay
 number_of_seconds_to_wait=30  # all sensors publish "power" messages every 30 seconds
 other_message_threshold=4  # how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off
+
 #
 broker = '%s'
 ssl = %s # true or false
@@ -174,11 +185,12 @@ gmail_user = "%s"
 cc_string = "%s"  # a smtp Cc: string
 
 
-publish_power = "%s"
+PCN_publish_power = "%s"
 publish_button = "%s"
-publish_power_payload = "%s"
+publish_button_payload = "%s"
 cluster_id = "%s"
 send_email =  %s
+location = "%s"
 """
         now = datetime.datetime.now()
         cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
@@ -196,7 +208,8 @@ send_email =  %s
             self.quad_chimes_feature.topic(),
             self.payload,
             self.cluster["cluster_id"],
-            sself.cluster["send_email"],
+            self.cluster["send_email"],
+            self.location,
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))
@@ -249,8 +262,8 @@ def main():
             break
         except:
             print("Try again")
-    
-    create_cfg(cluster, payload) # drops cfg.py file
+
+    create_cfg(cluster) # drops cfg.py file
 
     # install micropython kernal
     did_we_flash = False
