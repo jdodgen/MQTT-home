@@ -112,15 +112,16 @@ class create_cfg:
         print("chime_selected = ", chime_selected)
 
         if (chime_selected == "1"):
-            payload = self.quad_chimes_feature.payload_westminster()
+            self.payload = self.quad_chimes_feature.payload_westminster()
         elif (chime_selected == "2"):
-            payload = self.quad_chimes_feature.payload_ding_dong()
+            self.payload = self.quad_chimes_feature.payload_ding_dong()
         elif (chime_selected == "3"):
-            payload = self.quad_chimes_feature.payload_ding_ding()
+            self.payload = self.quad_chimes_feature.payload_ding_ding()
         elif (chime_selected == "4"):
-            payload = self.quad_chimes_feature.payload_three_chimes()
+           self.payload = self.quad_chimes_feature.payload_three_chimes()
         else:
             print("invalid responce")
+        print("payload", self.payload)
             
     def email_addresses(self):
         self.cc_string = ''
