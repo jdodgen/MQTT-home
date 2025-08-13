@@ -97,9 +97,31 @@ class create_cfg:
         print(self.power_feature.topic())
         self.quad_chimes_feature = feature_quad_chimes.feature(self.cluster["cluster_id"], publish=True)
         print(self.quad_chimes_feature.topic())
+        self.get_button_chime()
         self.email_addresses()
         self.write_cfg()
+        
+    def get_button_chime(self):
+        print("Button publishes:")
+        print("1) Westminster")
+        print("2) Ding dong")
+        print("3) Ding ding")
+        print("4) All three")
+        print("select one (case insensitive): ", end="")
+        chime_selected = input().upper()
+        print("chime_selected = ", chime_selected)
 
+        if (chime_selected == "1"):
+            payload = self.quad_chimes_feature.payload_westminster()
+        elif (chime_selected == "2"):
+            payload = self.quad_chimes_feature.payload_ding_dong()
+        elif (chime_selected == "3"):
+            payload = self.quad_chimes_feature.payload_ding_ding()
+        elif (chime_selected == "4"):
+            payload = self.quad_chimes_feature.payload_three_chimes()
+        else:
+            print("invalid responce")
+            
     def email_addresses(self):
         self.cc_string = ''
         for addr in self.cluster["email"]["to_list"]:
@@ -226,25 +248,7 @@ def main():
             break
         except:
             print("Try again")
-    print("Button publishes:")
-    print("1) Westminster")
-    print("2) Ding dong")
-    print("3) Ding ding")
-    print("4) All three")
-    print("select one (case insensitive): ", end="")
-    chime_selected = input().upper()
-    print("chime_selected = ", chime_selected)
-
-    if (chime_selected == "1"):
-        payload = feature_quad_chimes.payload_westminster()
-    elif (chime_selected == "2"):
-        payload = feature_quad_chimes.payload_ding_dong()
-    elif (chime_selected == "3"):
-        payload = feature_quad_chimes.payload_ding_ding()
-    elif (chime_selected == "4"):
-        payload = feature_quad_chimes.payload_three_chimes()
-    else:
-        print("invalid responce")
+    
     create_cfg(cluster, payload) # drops cfg.py file
 
     # install micropython kernal
