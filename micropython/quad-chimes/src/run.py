@@ -13,7 +13,7 @@
 # example is "switch" option monitoring a gpio line to detect a swich or button:
 # quad_chimes is both a sensor, the button. An actuator which is doing one of the four chimes
 #
-VERSION = (0, 3, 4)
+VERSION = (0, 0, 1)
 import umail
 import alert_handler
 from mqtt_as import MQTTClient, config
@@ -23,18 +23,21 @@ import alert_handler
 import cfg
 import time
 import asyncio
-import time
 import os
-import switch
 from msgqueue import  MsgQueue
 
+PCN_heart_beat = feature_power.feature(cfg.cluster_id,)
+
+# app imports
 # quad-chimes  stuff
 import feature_quad_chimes
 import feature_button
-import feature_three_chimes
 import button
-quad_chimes =    feature_quad_chimes.feature(cfg.name,         subscribe=True)
-btn =          feature_button.feature(cfg.name,            publish=True)
+
+
+quad_chimes =    feature_quad_chimes.feature(cfg.cluster_id,)
+btn =          feature_button.feature(cfg.cluster_id,)
+
 pin_play_all      = machine.Pin(cfg.play_all_pin,     machine.Pin.OUT)
 pin_ding_dong     = machine.Pin(cfg.ding_dong_pin,    machine.Pin.OUT)
 pin_ding_ding     = machine.Pin(cfg.ding_ding_pin,    machine.Pin.OUT)
@@ -45,7 +48,7 @@ pin_ding_ding.value(1)
 pin_west.value(1)
 # end of quad-chimes  stuff
 
-#our_status = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=True)   # publisher
+
 print("Our topic = [%s]" % (cfg.publish,))
 
 # ERRORS
@@ -67,20 +70,31 @@ def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
     xprint("[run]", *args, **kwargs) # the copied real print
 
+subject="button pressed"
+body="Quad chimes button pressed"
 async def send_email(subject, body, cluster_id_only=False):
     if cfg.send_email:
         try:
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-            id = cfg.cluster_id if cluster_id_only else cfg.cluster_id+"/"+cfg.publish
-            print("our id [%s]" % (id,))
-            smtp.write("CC: %s\nSubject:[PCN %s] %s\n\n%s\n" % (cfg.cc_string, id, subject, body,))
+            print("our id [%s]" % (cfg.cluster_id,))
+            smtp.write("CC: %s\nSubject:[PCN %s] %s\n\n%s\n" % (cfg.cc_string, cfg.cluster_id, subject, body,))
             smtp.send()
             smtp.quit()
         except Exception as e:
             print("email failed", body, e)
-
+            
+hardcoded_generic_description ="Four different chimes and a button" 
+async def say_hello(client):
+ # who am I sends a hello 
+    print("say_hello: sending hello")
+    await mqtt_hello.send_hello(client, cfg.name, 
+                        hardcoded_generic_description, 
+                        quad_chimes.get(),
+                        three_chimes.get(),
+                        btn.get(), 
+                        )
 async def raw_messages(client,error_queue):  # Process all incoming messages
     global led
     global current_watched_sensors
@@ -95,25 +109,25 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
             if (msg == quad_chimes.payload_ding_ding()):
                 print("chiming ...ding_ding", end="")
                 pin_ding_ding.value(0)
-                await asyncio.sleep(1)
+                await asyncio.sleep(cfg.time_to_trigger)
                 pin_ding_ding.value(1)
                 print("... chimed")
             elif (msg == quad_chimes.payload_ding_dong()):
                 print("chiming ...ding_dong", end="")
                 pin_ding_dong.value(0)
-                await asyncio.sleep(1)
+                await asyncio.sleep(cfg.time_to_trigger)
                 pin_ding_dong.value(1)
                 print("... chimed")
             elif (msg == quad_chimes.payload_westminster():):
                 print("chiming ...westminster", end="")
                 pin_west.value(0)
-                await asyncio.sleep(1)
+                await asyncio.sleep(cfg.time_to_trigger)
                 pin_west.value(1)
                 print("... chimed")
             elif (msg == thquad_chimes.payload_three_chimes()):
                 print("chiming ...play_all", end="")
                 pin_play_all.value(0)
-                await asyncio.sleep(1)
+                await asyncio.sleep(cfg.time_to_trigger)
                 pin_play_all.value(1)
                 print("... chimed")
             else:
@@ -177,9 +191,8 @@ async def problem_reporter(error_queue):
                     break
 
 async def main():
-    #global other_status
-    # global our_status
     global led
+    button_press = button.button(cfg.button_pin)
     print_flash_usage()
     error_queue = MsgQueue(20)
     # Local configuration, "config" came from mqtt_as
@@ -231,13 +244,18 @@ async def main():
     #
     # connected now and forever so int to the loop
     #
+    time_last_power_publish = 0;
     while True:
-      if (button_press.test() == 0):
-          await client.publish(btn.topic(), btn.payload_on())
-          print("button pressed")
-          if cfg.echo_chime:
-            await client.publish(cfg.echo_chime_topic, cfg.chime)
-      await asyncio.sleep(0.1)
+        now = time.time()
+        if (time_last_power_publish + cfg.number_of_seconds_to_wait < now:
+            time_last_power_publish=now
+            await client.publish(PCN_heart_beat.topic(), "power_detected")
+        if (button_press.test() == 0):
+            await client.publish(btn.topic(), btn.payload_on())
+            print("button pressed")
+            if cfg.echo_chime:
+                await client.publish(cfg.echo_chime_topic, cfg.chime)
+        await asyncio.sleep(0.1)
 
 def make_email_body():
     body = '''\

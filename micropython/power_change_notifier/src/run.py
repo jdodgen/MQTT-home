@@ -203,6 +203,7 @@ async def main():
     # it recovers and notifies automaticly
     #
     while True:
+        # Even know mqtt_as automaticly reconnects an initial connection is required
         try:
             await client.connect()
         except Exception as e:
@@ -225,8 +226,8 @@ async def main():
         if cfg.monitor_only == True or (cfg.switch == True and sw.test() != switch_detected_power):
             pass
         else:
-            print("publishing")
-            await client.publish(cfg.publish, "on")
+            print("publishing powered up message")
+            await client.publish(cfg.publish, "power detected")
         i=0
         down_sensors = 0
         should_we_turn_on_led = False
