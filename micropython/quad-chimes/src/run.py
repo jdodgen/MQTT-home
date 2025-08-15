@@ -279,8 +279,8 @@ async def main():
         if (button_press.test() == 0):
             print("button pressed")
             await client.publish(cfg.publish_button, cfg.publish_button_payload)
-            await asyncio.sleep(1) # debounce pause
-        await asyncio.sleep(0.1)
+            await asyncio.sleep(0.5) # debounce pause
+        await asyncio.sleep(0)
 
 ############ startup ###############
 time.sleep(cfg.start_delay)
