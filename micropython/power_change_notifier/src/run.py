@@ -63,7 +63,7 @@ async def send_email(subject, body, cluster_id_only=False):
             smtp.send()
             smtp.quit()
         except Exception as e:
-            print("email failed", body, e)
+            print("email failed", e)
 
 #
 # current_watched_sensors[topic][SUB_TOPICS]

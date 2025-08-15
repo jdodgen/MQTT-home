@@ -183,6 +183,8 @@ send_messages_to = %s # a python list
 gmail_password = "%s" # gmail generates this and it can change it in the future
 gmail_user = "%s"
 cc_string = "%s"  # a smtp Cc: string
+# a python list of one or more email addresses ["9095551212@tmomail.net", "you@gmail.com"]
+send_messages_to = %s # a python list
 
 
 PCN_publish_power = "%s"
@@ -204,6 +206,7 @@ location = "%s"
             self.cluster["email"]["gmail_password"],
             self.cluster["email"]["gmail_user"],
             self.cc_string,
+            self.cluster["email"]["to_list"],
             self.power_feature.topic(),
             self.quad_chimes_feature.topic(),
             self.payload,
@@ -229,10 +232,11 @@ def push_library_code():
     mp_lib_offset+"alert_handler.py",
     mp_lib_offset+"button.py",
     mp_lib_offset+"umail.py",
-    #all_lib_offset+"mqtt_hello.py",
-    all_lib_offset+"feature_power.py",
-    #all_lib_offset+"msgqueue.py",
     mp_lib_offset+"mqtt_as.py",
+    all_lib_offset+"mqtt_hello.py",
+    all_lib_offset+"feature_quad_chimes.py",
+    all_lib_offset+"feature_power.py",
+    all_lib_offset+"msgqueue.py",
     ]
     print("now pushing python library code")
     for c in code:

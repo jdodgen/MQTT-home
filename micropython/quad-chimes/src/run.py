@@ -25,13 +25,13 @@ import time
 import asyncio
 import time
 import os
-import switch
+# import switch
 from msgqueue import  MsgQueue
-
+import machine
 # quad-chimes  stuff
 import feature_quad_chimes
-import feature_button
-import feature_three_chimes
+# import feature_button
+# import feature_three_chimes
 import button
 
 pin_play_all      = machine.Pin(cfg.play_all_pin,     machine.Pin.OUT)
@@ -45,7 +45,6 @@ pin_west.value(1)
 # end of quad-chimes  stuff
 
 #our_status = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=True)   # publisher
-print("Our topic = [%s]" % (cfg.publish,))
 
 # ERRORS
 boilerplate = '''Starting up ...\nFor reference:
@@ -72,13 +71,13 @@ async def send_email(subject, body, cluster_id_only=False):
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-            id = cfg.cluster_id if cluster_id_only else cfg.cluster_id+"/"+cfg.publish
+            id = cfg.cluster_id+"/"+cfg.location
             print("our id [%s]" % (id,))
-            smtp.write("CC: %s\nSubject:[PCN %s] %s\n\n%s\n" % (cfg.cc_string, id, subject, body,))
+            smtp.write("CC: %s\nSubject:[quad_chimes %s] %s\n\n%s\n" % (cfg.cc_string, id, subject, body,))
             smtp.send()
             smtp.quit()
         except Exception as e:
-            print("email failed", body, e)
+            print("email failed", e)
 
 async def raw_messages(client,error_queue):  # Process all incoming messages
     global led
@@ -87,11 +86,11 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
     async for btopic, bmsg, retained in client.queue:
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
-        print("callback [%s][%s] retained[%s]" % (topic, msg, retained,)
+        print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))
         # this spends a second on each chime
         if (topic == mqtt_hello.hello_request_topic):
-                print("callback hello_request")
-                await say_hello(client)
+            print("callback hello_request")
+            await say_hello(client)
         else:
             if (msg == quad_chimes.payload_ding_ding()):
                 print("chiming ...ding_ding", end="")
@@ -105,7 +104,7 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
                 await asyncio.sleep(cfg.time_to_trigger)
                 pin_ding_dong.value(1)
                 print("... chimed")
-            elif (msg == quad_chimes.payload_westminster():):
+            elif (msg == quad_chimes.payload_westminster()):
                 print("chiming ...westminster", end="")
                 pin_west.value(0)
                 await asyncio.sleep(cfg.time_to_trigger)
@@ -118,11 +117,8 @@ async def raw_messages(client,error_queue):  # Process all incoming messages
                 pin_play_all.value(1)
                 print("... chimed")
             else:
-                print("unknown payload")
-            else:
-                print("unknown request")
-          # await send_email("Power restored", restored_sensors+make_email_body())
-      print("raw_messages exiting?")
+                print("unknown payload", msg)
+    print("raw_messages exiting?")
 
 def print_flash_usage():
     import esp
@@ -244,7 +240,7 @@ async def main():
     led.turn_on()
     await asyncio.sleep(1)  # wakeup flash
     led.turn_off()
-    sw = switch.switch(cfg.switch_gpio, client)
+    button_press = button.button(cfg.button_pin, client)
     print("creating asyncio tasks")
     asyncio.create_task(raw_messages(client, error_queue))
     asyncio.create_task(up_so_subscribe(client, error_queue))
@@ -277,7 +273,7 @@ async def main():
     time_last_power_publish = 0
     while True:
         now = time.time()
-        if (time_last_power_publish + cfg.number_of_seconds_to_wait < now:
+        if (time_last_power_publish + cfg.number_of_seconds_to_wait < now):
             time_last_power_publish=now
             await client.publish(cfg.PCN_publish_power, "power_detected")
         if (button_press.test() == 0):
