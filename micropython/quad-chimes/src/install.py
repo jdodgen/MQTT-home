@@ -1,15 +1,14 @@
 # MIT license copyright 2024,25 Jim Dodgen
 # this configures and installs software
 # it replaces the cfg.py file each time it runs
-# Y N defaults are designed for rapid deployment during development
 # usage is: "python3 install.py cluster_example.toml"
-# this does as much preprocessing as it can to freeup the microprocessor
+# this does as much preprocessing as it can to free up the microprocessor
 cluster_example_toml='''
 # this is a toml configuration file see https://toml.io/
 # this file is used by install.py to generate device cfg.py files
 
 cluster_id = "your place"  # as in: "/home/your place/Big Generator/power"
-
+send_email = false
 [network]
 ssid =  "mywifi"
 wifi_password = '12345678'
@@ -71,29 +70,18 @@ def load_cluster(cluster_file_name):
         print("Error: Invalid TOML format in {file_path}: {e}")
         sys.exit()
 
-# def print_sensors(devices):
-    # device_keys = list(devices.keys())
-    # device_keys.sort()
-    # for key in device_keys:
-        # #print("sensor key=", key)
-        # if len(key) != 1:
-            # print("id [%s] mist be a single letter or number" % (key, ))
-        # try:
-            # desc =sensors[key]["desc"]
-        # except:
-            # desc=""
-        # print("%s) %s" % (key, desc))
-        # if(('+' in desc) or ('/' in desc) or ('+' in key) or ('/' in key)):
-            # print("\nERROR: future topic  [%s][%s] contains a / or +,  MQTT reserved fix in toml file\n" % (key,desc,))
-            # sys.exit()
-
 class create_cfg:
     def __init__(self, cluster):
         self.cluster = cluster
+<<<<<<< HEAD
         self.payload = ""
         self.location = "nowhere"
         self.get_location()
         self.power_feature = feature_power.feature(self.cluster["cluster_id"], location=self.location)   # publisher
+=======
+        self.payload =  payload
+        self.power_feature = feature_power.feature(self.cluster["cluster_id"], publish=True)   # publisher
+>>>>>>> 0f08b038b768efed5f7f330ab85d59035d6bf900
         print(self.power_feature.topic())
         self.quad_chimes_feature = feature_quad_chimes.feature(self.cluster["cluster_id"], location=self.location, publish=True)
         print(self.quad_chimes_feature.topic())
@@ -149,17 +137,6 @@ class create_cfg:
 # Date: %s
 # MAKE YOUR CHANGES IN install.py
 #
-led_gpio          = 3  # optional
-onboard_led_gpio  = 15 # built in BLUE led
-button_pin        = 12  # D8
-play_all_pin      = 35  # D1
-ding_dong_pin     = 33  # D2
-ding_ding_pin     = 18  # D3
-westminster_pin   = 16  # D4
-
-time_to_trigger = 1  # how long to hold down for a chime
-#
-#
 # wifi: IoT or guest network recommended
 ssid="%s"
 wifi_password = "%s"
@@ -183,16 +160,36 @@ send_messages_to = %s # a python list
 gmail_password = "%s" # gmail generates this and it can change it in the future
 gmail_user = "%s"
 cc_string = "%s"  # a smtp Cc: string
+<<<<<<< HEAD
 # a python list of one or more email addresses ["9095551212@tmomail.net", "you@gmail.com"]
 send_messages_to = %s # a python list
 
 
 PCN_publish_power = "%s"
+=======
+#
+# app stuff
+led_gpio          = 3  # optional
+onboard_led_gpio  = 15 # built in BLUE led
+button_pin        = 12  # D8
+play_all_pin      = 35  # D1
+ding_dong_pin     = 33  # D2
+ding_ding_pin     = 18  # D3
+westminster_pin   = 16  # D4
+#
+time_to_trigger = 1  # seconds to hold down for a chime
+#
+publish_power = "%s"
+>>>>>>> 0f08b038b768efed5f7f330ab85d59035d6bf900
 publish_button = "%s"
 publish_button_payload = "%s"
 cluster_id = "%s"
+<<<<<<< HEAD
 send_email =  %s
 location = "%s"
+=======
+send_email =  false  # %s # future feature
+>>>>>>> 0f08b038b768efed5f7f330ab85d59035d6bf900
 """
         now = datetime.datetime.now()
         cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
@@ -233,12 +230,21 @@ def push_library_code():
     mp_lib_offset+"button.py",
     mp_lib_offset+"umail.py",
     mp_lib_offset+"mqtt_as.py",
+<<<<<<< HEAD
     all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_quad_chimes.py",
     all_lib_offset+"feature_power.py",
     all_lib_offset+"msgqueue.py",
+=======
+    mp_lib_offset+"msgqueue.py",
+    all_lib_offset+"mqtt_hello.py",
+    all_lib_offset+"feature_power.py",
+    # app imports
+    all_lib_offset+"feature_quad_chimes.py",
+    all_lib_offset+"feature_button.py",
+>>>>>>> 0f08b038b768efed5f7f330ab85d59035d6bf900
     ]
-    print("now pushing python library code")
+    print("now pushing mqtt library code")
     for c in code:
         print("installing", c)
         os.system("ampy --port %s put %s" % (serial_port,c))
@@ -248,7 +254,7 @@ def push_application_code():
     "run.py",
     "cfg.py",
     ]
-    print("now pushing python application code")
+    print("now pushing application code")
     for c in code:
         print("installing", c)
         os.system("ampy --port %s put %s" % (serial_port,c))
