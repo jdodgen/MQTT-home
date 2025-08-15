@@ -13,7 +13,7 @@
 # example is "switch" option monitoring a gpio line to detect a swich or button:
 # quad_chimes is both a sensor, the button. An actuator which is doing one of the four chimes
 #
-VERSION = (0, 0, 1)
+VERSION = (0, 3, 4)
 import umail
 import alert_handler
 from mqtt_as import MQTTClient, config
@@ -23,8 +23,8 @@ import alert_handler
 import cfg
 import time
 import asyncio
+import time
 import os
-<<<<<<< HEAD
 # import switch
 from msgqueue import  MsgQueue
 import machine
@@ -34,22 +34,6 @@ import feature_quad_chimes
 # import feature_three_chimes
 import button
 
-=======
-from msgqueue import  MsgQueue
-
-PCN_heart_beat = feature_power.feature(cfg.cluster_id,)
-
-# app imports
-# quad-chimes  stuff
-import feature_quad_chimes
-import feature_button
-import button
-
-
-quad_chimes =    feature_quad_chimes.feature(cfg.cluster_id,)
-btn =          feature_button.feature(cfg.cluster_id,)
-
->>>>>>> 0f08b038b768efed5f7f330ab85d59035d6bf900
 pin_play_all      = machine.Pin(cfg.play_all_pin,     machine.Pin.OUT)
 pin_ding_dong     = machine.Pin(cfg.ding_dong_pin,    machine.Pin.OUT)
 pin_ding_ding     = machine.Pin(cfg.ding_ding_pin,    machine.Pin.OUT)
@@ -60,12 +44,7 @@ pin_ding_ding.value(1)
 pin_west.value(1)
 # end of quad-chimes  stuff
 
-<<<<<<< HEAD
 #our_status = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=True)   # publisher
-=======
-
-print("Our topic = [%s]" % (cfg.publish,))
->>>>>>> 0f08b038b768efed5f7f330ab85d59035d6bf900
 
 # ERRORS
 boilerplate = '''Starting up ...\nFor reference:
@@ -86,15 +65,12 @@ def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
     xprint("[run]", *args, **kwargs) # the copied real print
 
-subject="button pressed"
-body="Quad chimes button pressed"
 async def send_email(subject, body, cluster_id_only=False):
     if cfg.send_email:
         try:
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-<<<<<<< HEAD
             id = cfg.cluster_id+"/"+cfg.location
             print("our id [%s]" % (id,))
             smtp.write("CC: %s\nSubject:[quad_chimes %s] %s\n\n%s\n" % (cfg.cc_string, id, subject, body,))
@@ -103,25 +79,6 @@ async def send_email(subject, body, cluster_id_only=False):
         except Exception as e:
             print("email failed", e)
 
-=======
-            print("our id [%s]" % (cfg.cluster_id,))
-            smtp.write("CC: %s\nSubject:[PCN %s] %s\n\n%s\n" % (cfg.cc_string, cfg.cluster_id, subject, body,))
-            smtp.send()
-            smtp.quit()
-        except Exception as e:
-            print("email failed", body, e)
-            
-hardcoded_generic_description ="Four different chimes and a button" 
-async def say_hello(client):
- # who am I sends a hello 
-    print("say_hello: sending hello")
-    await mqtt_hello.send_hello(client, cfg.name, 
-                        hardcoded_generic_description, 
-                        quad_chimes.get(),
-                        three_chimes.get(),
-                        btn.get(), 
-                        )
->>>>>>> 0f08b038b768efed5f7f330ab85d59035d6bf900
 async def raw_messages(client,error_queue):  # Process all incoming messages
     global led
     global current_watched_sensors
@@ -262,7 +219,6 @@ async def down_report_outage(client, error_queue):
 
 async def main():
     global led
-    button_press = button.button(cfg.button_pin)
     print_flash_usage()
     error_queue = MsgQueue(20)
     # Local configuration, "config" came from mqtt_as
@@ -314,7 +270,6 @@ async def main():
     #
     # connected now and forever so int to the loop
     #
-<<<<<<< HEAD
     time_last_power_publish = 0
     while True:
         now = time.time()
@@ -326,66 +281,6 @@ async def main():
             await client.publish(cfg.publish_button, cfg.publish_button_payload)
             await asyncio.sleep(1) # debounce pause
         await asyncio.sleep(0.1)
-=======
-    time_last_power_publish = 0;
-    while True:
-        now = time.time()
-        if (time_last_power_publish + cfg.number_of_seconds_to_wait < now:
-            time_last_power_publish=now
-            await client.publish(PCN_heart_beat.topic(), "power_detected")
-        if (button_press.test() == 0):
-            await client.publish(btn.topic(), btn.payload_on())
-            print("button pressed")
-            if cfg.echo_chime:
-                await client.publish(cfg.echo_chime_topic, cfg.chime)
-        await asyncio.sleep(0.1)
-
-def make_email_body():
-    body = '''\
-[cluster]
- name = "%s"
-[sensor]\n''' %  (cfg.cluster_id,)
-    #i = 0
-    for topic in current_watched_sensors:
-        name = topic.split("/")[2]
-        try:
-            parts = name.split(" ",1)
-            if len(parts) == 1:
-                parts.append("")
-        except:
-            parts = [name, ""]
-        body += ''' [sensor.%s]\n  desc = "%s"\n  state = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
-        #i += 1
-    name = cfg.publish.split("/")[2]
-    try:
-        parts = name.split(" ",1)
-        if len(parts) == 1:
-            parts.append("")
-    except:
-        parts = [name, ""]
-    body += ''' [sensor.%s] # reporting sensor\n  desc = "%s"\n  on = true''' % (parts[0], parts[1],)
-    print(body)
-    return body
-
-async def up_so_subscribe(client, error_queue):
-    while True:
-        await client.up.wait()
-        client.up.clear()
-        error_queue.put(0)
-        print('doing subscribes')
-        await client.subscribe(ding_ding.topic())
-        await client.subscribe(ding_dong.topic())
-        await client.subscribe(westminster.topic())
-        await client.subscribe(three_chimes.topic())
-
-async def down_report_outage(client, error_queue):
-    while True:
-        await client.down.wait()
-        client.down.clear()
-        print('got outage')
-        error_queue.put(5)
-
->>>>>>> 0f08b038b768efed5f7f330ab85d59035d6bf900
 
 ############ startup ###############
 time.sleep(cfg.start_delay)
