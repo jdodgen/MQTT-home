@@ -1,4 +1,0 @@
-AuthType	basic
-AuthName	"Secured area"
-AuthUserFile	/home/jdodgen/.htmaster/.ok_user
-Require	valid-user
