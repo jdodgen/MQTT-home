@@ -1,0 +1,16 @@
+Content-Type: text/html
+
+	<html>
+	<head>
+	<title>Test System</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+	</head>
+	<body  bgcolor=khaki>
+	<form action='https://chart.googleapis.com/chart' method='POST'>
+	<input type='hidden' name='cht' value='gv:circo'  />
+	<input type='hidden' name='chs' value='600x200' />
+	<input type='hidden' name='chl' value="Graph+Network+%7B%2294146%5CnTest+System%5CnCoordinator%22+%5Bshape%3Dbox%2Ccolor%3Dgreen%2Cstyle%3Dfilled%5D%3B%0A%229BC2%5Cnoffice+alarm%5CnAlarm%22+%5Bcolor%3Dyellow%2Cstyle%3Dfilled%5D%3B%0A%22394A%5Cnupstairs+alarm%5CnAlarm%22+%5Bcolor%3Dyellow%2Cstyle%3Dfilled%5D%3B%0A%2235BB%5Cnhand+button%5CnButton%22+%5Bcolor%3Dlightblue%2Cstyle%3Dfilled%5D%3B%0A%229DE2%5CnID-D174%5CnButton%22+%5Bcolor%3Dlightblue%2Cstyle%3Dfilled%5D%3B%0A%2235BB%5Cnhand+button%5CnButton%22+--+%2294146%5CnTest+System%5CnCoordinator%22%3B%0A%229DE2%5CnID-D174%5CnButton%22+--+%229BC2%5Cnoffice+alarm%5CnAlarm%22%3B%0A%229BC2%5Cnoffice+alarm%5CnAlarm%22+--+%2294146%5CnTest+System%5CnCoordinator%22%3B%0A%229BC2%5Cnoffice+alarm%5CnAlarm%22+--+%22394A%5Cnupstairs+alarm%5CnAlarm%22%3B%0A%7D%0A" /> 
+	<input type="submit"/>
+    </form>
+    </body>
+    </html>

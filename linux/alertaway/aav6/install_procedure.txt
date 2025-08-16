@@ -1,0 +1,95 @@
+mod date Aug 2017, Jan 2023
+this is on ubuntu 16.10+   current 22.04 LTS
+
+make host name "alertaway'
+user alertaway password "foobar"
+
+ignore this   ---------- network enp1so and enp3so looks like the pcie card became enp1so
+install with as little as possable, just required utilities  -- DO NOT select LAMP server too much baggage
+
+use entire disk --- typicaly ext4
+
+only install:
+OpenSSH Server
+basic utilities  -- seems to be missing 22.04 LTS
+
+
+no automatic updates, install grub on hard drive if asked
+
+soon to reboot
+
+login and get the ip address with ip -c a
+apt install iputils-ping
+
+
+if needed as root on console
+adduser alertaway
+usermod -aG sudo alertaway
+
+login as alertaway foobar
+sudo su
+
+passwd root     --- foobar
+passwd -u root
+
+logout and back in as root or sudo su
+setterm -blank 0   -- only needed from console
+
+reboot
+
+===================================
+now The AlertAway install starts
+note: all the instalation goes into /root
+
+easiest to do with a remote terminal like Putty
+
+if going remote login as alertaway and
+
+sudo su   --- to become root
+
+do a "cd" to position you at /root
+
+now pull in the things needed or push to alertaway
+
+sftp jim@192.168.1.??    ## currently desk linux machine login as jim foobar
+get Dropbox/source/aav5/loader.pl
+get Dropbox/source/aav5/Python-3.8.2.tgz ?? 
+get Dropbox/source/aav5/configure.pl
+exit
+
+perl configure.pl
+reboot
+
+Notes:
+
+to replace an existing xbee/PAN use this
+
+perl -I . HomeMonitor.pl <panid 64> <panid 16> <op channel> <stack>
+
+example perl -I . HomeMonitor.pl 34ef 29BE 14 1
+
+all values are hex
+This reprograms the xbee to be on the chosen network
+
+
+the new systemd is scripted ubuntu 15+n
+this auto runs:  vi /etc/init/tty1.conf (ubuntu)  or /etc/inittab (debian)
+## ubuntu --- exec /sbin/mingetty --autologin root tty1  ### pre 15
+## debian --- "1:1234:respawn:/sbin/mingetty --autologin root tty1
+
+reboot #we are done now so just reboot
+additional for booting from compact flash SOMETIMES
+# vi /etc/default/grub.
+GRUB_CMDLINE_LINUX=”libata.dma=3?
+then
+# update grub
+Add libata.dama=0 in this file:
+
+root@ismo:~# cat /etc/grub.d/40_custom
+#!/bin/sh
+exec tail -n +3 $0
+# This file provides an easy way to add custom menu entries.  Simply type the
+# menu entries you want to add after this comment.  Be careful not to change
+# the 'exec tail' line above.
+libata.dma=0
+root@ismo:~#
