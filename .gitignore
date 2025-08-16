@@ -8,3 +8,4 @@ ESP32*.bin
 cfg.py
 *.jpg
 cluster_*.toml
+cfg.pm
