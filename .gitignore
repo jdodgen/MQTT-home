@@ -9,3 +9,5 @@ cfg.py
 *.jpg
 cluster_*.toml
 cfg.pm
+*.zip
+*.gz
