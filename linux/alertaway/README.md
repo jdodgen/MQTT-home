@@ -9,5 +9,9 @@ Progress:
 currently working on mqtt_processor.py
 Updatingthe database with both mqtt configuration as well as the callbacks   
 from the subscribes.   
-This has pulled in a modified db.pm as well as some common python code   
+This has pulled in a modified db.pm as well as some common python code 
+17-Aug-2025
+aav6 directory is the current working version   
+src is the deveopment area.   
+
 
