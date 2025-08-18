@@ -107,7 +107,7 @@ sub process_request
         elsif ($method eq "whoareyou")
         {
             my ($icon) = favicon::get();
-            $client->send("HTTP/1.0 200 OK\nContent-Type: text/html\n\nalertaway");
+            $client->send("HTTP/1.0 200 OK\nContent-Type: text/html\n\nalertaway".$icon);
             close $client;
             return;
         }

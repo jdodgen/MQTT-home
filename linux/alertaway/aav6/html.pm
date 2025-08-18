@@ -1660,10 +1660,4 @@ return \$stuff;
 }
 
 
-# test area
-main() if not caller();
-sub main {
-    main_page();
-}
-
 1;

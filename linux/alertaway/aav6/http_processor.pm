@@ -823,10 +823,10 @@ sub extern
     }
     elsif ($form{name} eq "commission")
     {
-        DBG&&$fp->prt("commission"); # zigbee commision
+        DBG&&$fp->prt("commission");
         http_processor::permit_join($dt, $XbeeSendQueue); # testing without the 1 , 1); # the 1 causes only CB2 to be sent to routers
     }
-    else # normal extern commands like WeMo
+    else
     {
         use constant ONLY_WEMO => 1;
         extern::do_extern_device ($dt, $form{location}, $form{device}, $form{action}, ONLY_WEMO, $EvaluateQueue, $XbeeSendQueue); # 1 means screened for wemo
@@ -1953,15 +1953,4 @@ EOF
     DBG&&$fp->prt("requests sent");
     $XbeeSendQueue->enqueue({request => 'HA_ENDPOINTS', ah => 0xffffffff, al => 0xffffffff, na => 0xffff}) if $on;  # broadcast for HA devices
 }
-
-# test area
-main() if not caller();
-sub main {
-    my $t;
-    my $menu_submit;
-    ($t,$menu_submit)=main_page($dt, $now, $WorkerBeeQueue,  $Watchdog, %form);
-
-}
-
-
 1;

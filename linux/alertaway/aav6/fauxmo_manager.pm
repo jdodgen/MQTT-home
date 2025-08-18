@@ -17,7 +17,7 @@ use constant DBG => 1;
 
 my $fp = filterPrint->new();
 
-#my $port_nbr_base = 52004; # also status port.  removed,  now in config table
+my $port_nbr_base = 52004; # also status port
 
 my $fauxmo_cfg = <<EOF;
 {
@@ -52,9 +52,8 @@ EOF
     if (@rows)
     {
         my @items;
-        #push @items, 'status:'.$port_nbr_base++;  # might bring back later 2/4/2023  JED
-        $port_nbr_base++;    #  
-        #push @items, 'commission:'.$port_nbr_base;
+        push @items, 'status:'.$port_nbr_base++;
+        push @items, 'commission:'.$port_nbr_base;
         my $devices;
         foreach my $r (@rows)
         {

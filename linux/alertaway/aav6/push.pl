@@ -13,19 +13,6 @@ if (!$sftp)
       print "could not open the ftp connection\n";
       exit -1;
 }
-#print "FTP connected, now logging in\n";
-
-#if (!$sftp->login('alerta', 'R1kjed'))
-#{
-   #printf  "Could not login [%s]\n", $sftp->last_message();
-   #exit -1;
-#}
-
-#if (!$sftp->binary())
-#{
-     #printf "Could not set binary [%s]\n", $sftp->last_message;
-     #exit -1;
-#}
 
 my $remote_files = $sftp->ls('.');
 ## print "ls returned ", Dumper \@remote_files, "/n";

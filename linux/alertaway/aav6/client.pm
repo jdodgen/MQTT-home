@@ -17,7 +17,7 @@ use filterPrint;
 use constant DBG => 1;
 my $fp = filterPrint->new();
 
-use constant SLEEPTIME => 50;
+use constant SLEEPTIME => 30;
 use constant MAXFAILS => 10000;
 
 sub task
