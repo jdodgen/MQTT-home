@@ -1,7 +1,7 @@
 # MIT Licence copyright 2025 Jim dodgen
 # a character lookup dictionary/hash
 # 8x8 matrix tested on TM1640 driver
-# thanks to xantorohara
+# thanks to xantorohara https://xantorohara.github.io/led-matrix-editor/#
 
 CHARS = [
   "A": 0x6666667e66663c00,
@@ -67,14 +67,18 @@ CHARS = [
   "8": 0x3c66663c66663c00,
   "9": 0x3c66607c66663c00,
   "0": 0x3c66666e76663c00,
+  "wifi": 0x455d455d00142a41,
 ]
 
 def char8x8(string):  # convert first char of a string to 8x8 matrix
     try:
-        return CHARS[string[0]]
-    else:
-        print("Unable to convert", string)
-        return None
+        return CHARS[string]
+    except:
+        try:
+            return CHARS[string[0]]
+        except:
+            print("Unable to convert", string)
+            return None
 
 if __ name __ == '__ main __':
     print(char8x8("x"))
