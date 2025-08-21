@@ -1,8 +1,9 @@
 # MIT Licence copyright 2025 Jim dodgen
 # a character lookup dictionary/hash
 # 8x8 matrix tested on TM1640 driver
-# thanks to xantorohara 
-CHAR8x8 = [
+# thanks to xantorohara
+
+CHARS = [
   "A": 0x6666667e66663c00,
   "B": 0x3e66663e66663e00,
   "C": 0x3c66060606663c00,
@@ -68,5 +69,14 @@ CHAR8x8 = [
   "0": 0x3c66666e76663c00,
 ]
 
-“if __ name __ == '__ main __':
-	print(CHAR8x8["x"])
+def char8x8(string):  # convert first char of a string to 8x8 matrix
+    try:
+        return CHARS[string[0]]
+    else:
+        print("Unable to convert", string)
+        return None
+
+if __ name __ == '__ main __':
+    print(char8x8("x"))
+    print(char8x8("querty")
+    print(char8x8("*") # must be A-Z,a-z,0-9
