@@ -67,7 +67,9 @@ CHARS = [
   "8": 0x3c66663c66663c00,
   "9": 0x3c66607c66663c00,
   "0": 0x3c66666e76663c00,
-  "wifi": 0x455d455d00142a41,
+  "wifi": 0x01012955554501ff,   # problem with wifi connection
+  "broker": 0x39494939493901ff, # problem with broker connection
+  "?": 0x1800183860663c00.
 ]
 
 def char8x8(string):  # convert first char of a string to 8x8 matrix
@@ -78,7 +80,7 @@ def char8x8(string):  # convert first char of a string to 8x8 matrix
             return CHARS[string[0]]
         except:
             print("Unable to convert", string)
-            return None
+            return CHARS["?"]
 
 if __ name __ == '__ main __':
     print(char8x8("x"))
