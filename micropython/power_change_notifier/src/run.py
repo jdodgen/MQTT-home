@@ -287,10 +287,10 @@ async def main():
     MQTTClient.DEBUG = True  # Optional: print diagnostic messages
     client = MQTTClient(config)
 
-    led = alert_handler.alert_handler(cfg.led_gpio, None, onboard_led_pin=cfg.onboard_led_gpio)
-    led.turn_on()
+    # led = alert_handler.alert_handler(cfg.led_gpio, None, onboard_led_pin=cfg.onboard_led_gpio)
+    led_queue.put(1)
     await asyncio.sleep(1)  # wakeup flash
-    led.turn_off()
+    led_queue.put(0)
     sw = switch.switch(cfg.switch_gpio, client)
     print("creating asyncio tasks")
     asyncio.create_task(raw_messages(client, led_queue))
