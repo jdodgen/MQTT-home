@@ -134,6 +134,7 @@ class create_cfg:
             self.monitor_only = self.sensors[self.sensor_to_make].get("monitor_only", False)
             self.switch = self.sensors[self.sensor_to_make].get("switch", False)
             self.switch_type = self.sensors[self.sensor_to_make].get("switch_type","NO")
+            self.matrix_8x8 = self.sensors[self.sensor_to_make].get("matrix_8x8",False)
         else:  # these "letters" do not exist in the toml file but are treated as "soft_tracking"  that is not tracked until first publish
             #self.publish_to = self.sensor_to_make   # single letter version
             self.send_email = False
@@ -142,6 +143,7 @@ class create_cfg:
             self.monitor_only = False
             self.switch = False
             self.switch_type = False
+            self.single_led = True
         print("send_email [%s] ssid[%s] pw[%s] monitor_only [%s] switch [%s] switch_type [%s]" %
             (self.send_email, self.ssid, self.wifi_password, self.monitor_only, self.switch, self.switch_type))
         self.email_addresses()
@@ -187,7 +189,10 @@ class create_cfg:
 #
 led_gpio = 3  # "D3" on D1-Mini proto card
 onboard_led_gpio = 15 # built in BLUE led
-switch_gpio = 12 # only used when "switch = True"
+switch_gpio = 12  # only used when "switch = True"
+clock8X8_pin = 7  # D1 mini  D5
+data8x8_pin = 11  # D1 mini D7
+brightness8x8 = 0  # half
 #
 #wifi: IoT or guest network recommended
 ssid="%s"
@@ -219,6 +224,7 @@ hard_tracked_topics = %s # these get tracked from boot, others only after first 
 monitor_only = %s  # if True this sensor does not publish status and therefore is not tracked
 switch = %s # if true then "switch_gpio" is tested if off then no publish will be sent
 switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power" publishes are sent
+matrix_8x8 = True
 """
         now = datetime.datetime.now()
         cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
@@ -238,7 +244,8 @@ switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power"
             self.hard_tracked_topics,
             self.monitor_only,
             self.switch,
-            self.switch_type)
+            self.switch_type,
+            )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))
         with open('cfg.py', 'w') as f:
@@ -257,6 +264,8 @@ def push_library_code():
     mp_lib_offset+"alert_handler.py",
     mp_lib_offset+"switch.py",
     mp_lib_offset+"umail.py",
+    mp_lib_offset+"tm1640.py",
+    mp_lib_offset+"char8x8.py",
     #all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_power.py",
     all_lib_offset+"msgqueue.py",

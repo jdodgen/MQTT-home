@@ -43,7 +43,7 @@ Flashing LED error codes
 3 ERROR_BROKER_LOOKUP_FAILED or
   ERROR_BROKER_CONNECT_FAILED
 5 Runtime failure, re-connecting
-LED solid on, indicates an outage.
+LED solid on or letter on 8x8, indicates an outage.
 LED out, normal no outage
 '''
 
@@ -134,7 +134,7 @@ async def _memory(self):
         await asyncio.sleep(20)
         gc.collect()
         print("RAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc(), ))
-        
+
 class display8x8:
     def __init__(self, clk=14, dio=13, bright=7):
         if clk is None:
@@ -147,13 +147,12 @@ class display8x8:
         self.tm = tm1640.TM1640(clk=Pin(clk), dio=Pin(dio))
         # all LEDs bright
         self.tm.brightness(bright)
-    
-    def write(self, char8x8):
+
+    def write(self, bit_map):
         if self.ignore is False:
-            self.tm.write(char8x8) 
-        print(self.cooked)
-        
-def do_single_led(error_code)
+            self.tm.write(bit_map)
+
+async def do_single_led(error_code):
     if error_code < 1:
         led.turn_off()
     else:
@@ -175,49 +174,50 @@ def do_single_led(error_code)
                 continue
             else:
                 break
-                
-def do_8x8_list(topic_list)
-    while True: # displays letters until another message arrives
-        for topic in topic_list:
-            if isinstance(topic, str)
-                # parse topic get letter
-                try:
-                    first_char = msg.split("/")[1][0]
+
+class do_8x8_list:
+    def __init__(self, led_queue):
+        self.led_queue = led_queue
+        self.c8x8 = char8x8(invert=True)
+        self.d=display8x8(clk=cfg.clock8X8_pin, dio=cfg.data8x8_pin, bright=cfg.brightness8x8)
+
+    async def write(self, topic_list):
+        print("do_8x8_list.write", topic_list)
+        while True: # displays letters until another message arrives
+            for topic in topic_list:
+                if isinstance(topic, str):
+                    # parse topic get letter
+                    try:
+                        first_char = topic.split("/")[1][0]
+                    except:
+                        first_char = topic[0]
+                    print("do_8x8_list look up", first_char)
+                    self.d.write(self.c8x8.map(first_char))
                 else:
-                    first_char = msg[0]
-                print("led_display topic id", )
-                d.write(char8x8(first_char))
+                    self.d.write(self.c8x8.map("?"))  # error
                 await asyncio.sleep(0.5)
-            else:
-                d.write(char8x8("?"))  # error
-        d.write(char8x8(" "))
-        if not led_queue.empty():
-            break
-        await asyncio.sleep(1)
-                
-#  called with the ERRORS listed above
+            self.d.write(self.c8x8.map("all_off"))
+            if not self.led_queue.empty():
+                break
+            await asyncio.sleep(1)
+
+#  asyncio task to display information
 async def led_display(led_queue):
     # wait for an error
     error_code = 0
     next_code = 0
-    d=display8x8(clk=cfg.clock8X8_pin, dio=cfg.data8x8_pin, bright=cfg.brightness8x8)
+    list8x8 = do_8x8_list(led_queue)
     led = alert_handler.alert_handler(cfg.led_gpio, None, onboard_led_pin=cfg.onboard_led_gpio)
     async for msg, in led_queue:
-        print(".led_display", error_code)
         while not led_queue.empty(): # flush the queue, use last item
-            async for error_code, in led_queue:
+            async for msg, in led_queue:
                 break
-        if msg is None:  # default turn off 
-            msg = 0  # force OFF as a int
-        if isinstance(msg, int):
-            error_code = msg 
-            if cfg.single_led:
-                do_single_led(error_code)
-            else:
-                do_8x8_list([str(error_code),])
-        elif isinstance(msg, list): # a list of strings to display on 8x8 led matrix
-            do_8x8_list(msg)
-            
+        print("led_display", msg, "type", type(msg))
+        if isinstance(msg, list): # a list of strings to display on 8x8 led matrix
+            await list8x8.write(msg)
+        else:
+            await list8x8.write(["?",])
+
 def make_email_body():
     body = '''\
 [cluster]
@@ -251,7 +251,7 @@ async def up_so_subscribe(client, led_queue):
         await client.up.wait()
         client.up.clear()
         print('doing subscribes', wild_topic)
-        led_queue.put(0)
+        led_queue.put(["all_off",])
         await client.subscribe(wildcard_subscribe.topic())
         print("emailing startup")
         await send_email("Starting", boilerplate)
@@ -261,7 +261,7 @@ async def down_report_outage(client, led_queue):
         await client.down.wait()
         client.down.clear()
         print('got outage')
-        led_queue.put(5)
+        led_queue.put(["wifi",])
 
 async def main():
     #global other_status
@@ -288,9 +288,7 @@ async def main():
     client = MQTTClient(config)
 
     # led = alert_handler.alert_handler(cfg.led_gpio, None, onboard_led_pin=cfg.onboard_led_gpio)
-    led_queue.put(1)
-    await asyncio.sleep(1)  # wakeup flash
-    led_queue.put(0)
+    led_queue.put(["boot1","boot2",])
     sw = switch.switch(cfg.switch_gpio, client)
     print("creating asyncio tasks")
     asyncio.create_task(raw_messages(client, led_queue))
@@ -311,14 +309,15 @@ async def main():
             try:
                 x=client._addr
                 print("we have ip address broker not connecting", client._addr)
-                led_queue.put(3) # report 3
+                led_queue.put(["wifi", ]) # report 3
             except:
                 print("wifi failed no ip address")
-                led_queue.put(2) #
+                led_queue.put(["broker",]) #
             await asyncio.sleep(10)
         else:
             print("ip address", client._addr)
             break
+    led_queue.put(["all_off"])
     switch_detected_power = 1 if cfg.switch_type == "NO" else 0
     while True:  # top loop checking to see of other has published
         sw_value = sw.test()
@@ -352,13 +351,10 @@ async def main():
             #i += 1
             if current_watched_sensors[sensor][START_TIME] > 0 and sensor in cfg.hard_tracked_topics:
                 should_we_turn_on_led = True
-        if cfg.single_led:
-            if should_we_turn_on_led:
-                led_queue.put(1)
-            else:
-                led_queue.put(0)
-        else: # flash out "/home/%s/power" part message
+        if sensor_down:
             led_queue.put(sensor_down) # list of problem topics
+        else:
+            led_queue.put(["all_off", ])
         if need_email:
             await send_email("Power Outage(s)", make_email_body(), cluster_id_only=True)
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
