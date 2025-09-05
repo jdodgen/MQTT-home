@@ -188,16 +188,16 @@ class do_8x8_list:
                 if isinstance(topic, str):
                     # parse topic get letter
                     try:
-                        first_char = topic.split("/")[1][0]
+                        ident = topic.split("/")[1]
                     except:
-                        first_char = topic[0]
-                    print("do_8x8_list look up", first_char)
-                    self.d.write(self.c8x8.map(first_char))
+                        ident = topic
+                    print("do_8x8_list look up", ident)
+                    self.d.write(self.c8x8.map(ident))
                 else:
                     self.d.write(self.c8x8.map("?"))  # error
                 await asyncio.sleep(0.5)
             self.d.write(self.c8x8.map("all_off"))
-            if not self.led_queue.empty():
+            if not self.led_queue.empty():  # this loops until another msg availble
                 break
             await asyncio.sleep(1)
 

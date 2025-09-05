@@ -83,12 +83,12 @@ class char8x8:
     def map(self, string):  # convert first char of a string to 8x8 matrix
         print("char8x8.map", string)
         try:
-            item = CHARS[string]
+            item = CHARS[string] # might be a full word match like boot1
         except:
             try:
-                item = CHARS[string[0]]
+                item = CHARS[string[0]] # Just lookup the first char 
             except:
-                print("Unable to convert", string)
+                print("char8x8 not found in CHARS", string)
                 item = CHARS["?"]
         parts = [item[i:i+2] for i in range(0, 16, 2)]
         if self.invert:
