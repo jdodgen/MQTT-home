@@ -10,7 +10,7 @@ class MsgQueue:
         self.discards = 0
 
     def put(self, *v):
-        print(".MsgQueue", v)
+        print("MsgQueue", v)
         self._q[self._wi] = v
         self._evt.set()
         self._wi = (self._wi + 1) % self._size
@@ -19,18 +19,18 @@ class MsgQueue:
             self.discards += 1
 
     def empty(self):  # added by Jim Dodgen 2025
-        #print(".MsgQueue empty ri wi", self._ri, self._wi)
+        #print("MsgQueue empty ri wi", self._ri, self._wi)
         return True if self._ri == self._wi else False
 
     def __aiter__(self):
         return self
 
     async def __anext__(self):
-        #print(".MsgQueue __anext__ ri wi", self._ri, self._wi)
+        #print("MsgQueue __anext__ ri wi", self._ri, self._wi)
         if self._ri == self._wi:  # Empty
             self._evt.clear()
             await self._evt.wait()
         r = self._q[self._ri]
         self._ri = (self._ri + 1) % self._size
-        #print(".MsgQueue __anext__ return ", r)
+        #print("MsgQueue __anext__ return ", r)
         return r
