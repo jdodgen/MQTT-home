@@ -4,8 +4,10 @@ use <usb_hole.scad>
 logo = "R"; //  U + 
 LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=true) ; //3.7);
 */
-logo = "A"; //  U + 
-LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=false) ; //3.7);
+logo = "G"; //  U + 
+// LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=false) ; //3.7);
+
+LED_8x8_top(height=5, cut_text=logo, xoff=9,yoff=32, top_stripe=false) ; //3.7);
 
 //rotate([180,0,0]) 
    //LED_pizo_buzzer_top();
@@ -209,7 +211,7 @@ module LED_top(flat=false, height=top_thickness,cut_text=false, xoff=20, yoff=12
                 translate([35,4,0])
                     rotate([0,180,-90]) 
                     //linear_extrude(height*3)
-                        center_text(cut_text, size=12,extrude=30,scale=1.2);
+                        center_text(cut_text, extrude=30,scale=1.2);
                         //text(cut_text, size=12, font=font);
             }
         }
@@ -219,7 +221,38 @@ module LED_top(flat=false, height=top_thickness,cut_text=false, xoff=20, yoff=12
             cube([1,20,1]);   
 }
 
-module center_text(text, size, font="Liberation Mono:style=Regular", width=0, length=0, extrude=0.6, scale=1) {
+module LED_8x8_top(height=5,cut_text=false, xoff=20, yoff=12, top_stripe=false)
+{
+    8x8_x = 21;
+    8x8_y = 21;
+    x_adj = 27;
+    led_loc = [x_adj,-(8x8_y+outer_y)/2, -height/2];
+    
+    difference() 
+    {
+        $fn = 80;
+        flat_top(height=height, need_board_stop=false );
+        // cutouts
+        translate(led_loc)
+            cube([8x8_x,8x8_y, 40]);
+        if (cut_text)
+        {
+            color("red") translate([xoff,-yoff, height*3/2])
+            { 
+                translate([7,5,height])
+                    rotate([0,180,-90]) 
+                    //linear_extrude(height*3)
+                        center_text(cut_text,extrude=90,scale=1);
+                        //text(cut_text, size=12, font=font);
+            }
+        }
+    }
+    if (top_stripe)
+        translate([xoff+8,-yoff-5, 0])
+            cube([1,20,1]);   
+}
+
+module center_text(text, width=0, length=0, extrude=0.6, scale=1) {
     $fn = 30;
     translate([-5.5, -4, -extrude/2]) 
       scale([1.3,1,1])
@@ -289,8 +322,8 @@ module usb_stop(height=top_wall_height)
 }
 
 //translate([0,80,0]) 
-//flat_top(height=3.7);
-module flat_top(height=3.7)
+//flat_top(height=15);
+module flat_top(height=3.7, need_board_stop=true )
 {
     shrink=-2;
     fillet_adjustment = -7;
@@ -305,13 +338,14 @@ module flat_top(height=3.7)
                 {
                     difference()
                     {
-                        cube([outer_x, outer_y, 5], center=true) ;
+                        cube([outer_x, outer_y, height], center=true) ;
                         translate([0, 0, -top_thickness/2]) 
                             shell(height=height, shrink=shrink, fillets=true, adjust_fillet_r=fillet_adjustment);
                     }
                     case_mounts(height=height, filler_cubes=true);
                     usb_stop(height=height);
-                    board_stop(height=height);
+                    if (need_board_stop == true)
+                        board_stop(height=height);
                 }
             }
             difference()
