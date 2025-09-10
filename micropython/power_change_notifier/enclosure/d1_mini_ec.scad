@@ -1,14 +1,22 @@
 //  MIT license copyright 2025 Jim Dodgen
+// This file was copied from another project and has some artifacts
 use <usb_hole.scad>
+<<<<<<< HEAD
 /*
 logo = "R"; //  U + 
 LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=true) ; //3.7);
 */
 logo = "R"; //  U + 
+=======
+
+logo = "R";
+//LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=true) ; //3.7);
+//logo = "G"; //  U + 
+>>>>>>> d82078398cd774d325a34cd25626cf652df211f8
 // LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=false) ; //3.7);
 
-LED_8x8_top(height=5, cut_text=logo, xoff=9,yoff=32, top_stripe=false) ; //3.7);
-
+//LED_8x8_top(height=5, cut_text=logo, xoff=9,yoff=32, top_stripe=false) ; //3.7);
+//LED_pizo_buzzer_top();
 //rotate([180,0,0]) 
    //LED_pizo_buzzer_top();
    //empty_top();
