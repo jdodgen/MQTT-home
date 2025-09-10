@@ -4,7 +4,7 @@ use <usb_hole.scad>
 logo = "R"; //  U + 
 LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=true) ; //3.7);
 */
-logo = "G"; //  U + 
+logo = "R"; //  U + 
 // LED_top(flat=true, height=3.7, cut_text=logo, xoff=9,yoff=32, top_stripe=false) ; //3.7);
 
 LED_8x8_top(height=5, cut_text=logo, xoff=9,yoff=32, top_stripe=false) ; //3.7);

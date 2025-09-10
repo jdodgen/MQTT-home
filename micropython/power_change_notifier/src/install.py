@@ -193,6 +193,7 @@ switch_gpio = 12  # only used when "switch = True"
 clock8X8_pin = 7  # D1 mini  D5
 data8x8_pin = 11  # D1 mini D7
 brightness8x8 = 0  # half
+invert8x8 = True
 #
 #wifi: IoT or guest network recommended
 ssid="%s"
@@ -298,7 +299,7 @@ def main():
             cluster = load_cluster(cluster_name)
             break
         except:
-            print("Try again")		
+            print("Try again")
     print_sensors(cluster["sensor"])
     print("select one (case insensitive): ", end="")
     sensor_to_make = input().upper()

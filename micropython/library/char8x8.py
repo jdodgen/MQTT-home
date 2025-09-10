@@ -75,31 +75,57 @@ CHARS = {
 
 }
 
+def reverse_bits_in_byte(byte_value):
+    """Reverses the order of bits within a single byte."""
+    reversed_byte = 0
+    for i in range(8):
+        if (byte_value >> i) & 1:  # Check if the i-th bit is set
+            reversed_byte |= (1 << (7 - i))  # Set the corresponding bit in the reversed byte
+    return reversed_byte
+
+
 class char8x8:
     global CHARS
     def __init__(self, invert=False):
         self.invert = invert
 
     def map(self, string):  # convert first char of a string to 8x8 matrix
-        print("char8x8.map", string)
         try:
             item = CHARS[string] # might be a full word match like boot1
         except:
             try:
-                item = CHARS[string[0]] # Just lookup the first char 
+                item = CHARS[string[0]] # Just lookup the first char
             except:
                 print("char8x8 not found in CHARS", string)
                 item = CHARS["?"]
+        #print("char8x8 item", string, item)
         parts = [item[i:i+2] for i in range(0, 16, 2)]
-        if self.invert:
-            parts.reverse()
-        int_parts = [int(part, 16) for part in parts]
-        print("char8x8", string, int_parts)
+        #print("char8x8 parts", string, parts)
+        #if self.invert:
+            #parts.reverse()
+        int_parts = []
+        for part in parts:
+            hex_part = int(part, 16)
+            if self.invert:
+                hex_part = reverse_bits_in_byte(hex_part)
+            int_parts.append(hex_part)
+        #print("char8x8 int_parts", string, int_parts)
         if self.invert:
             int_parts.reverse()
+        #print("char8x8 reverse", string, int_parts)
         return int_parts
 
-# if __ name __ == '__ main __':
-    # print(char8x8("x"))
-    # print(char8x8("querty")
-    # print(char8x8("*") # must be A-Z,a-z,0-9
+
+# t=char8x8(invert=True)
+# print("true", t.map("B"))
+# f=char8x8(invert=False)
+# print("false", f.map("B"))
+
+
+# hex_byte_value = 0xAA  # Example: 10101010 in binary
+# reversed_byte = reverse_bits_in_byte(hex_byte_value)
+
+# print(f"Original byte (hex): {hex(hex_byte_value)}")
+# print(f"Original byte (binary): {bin(hex_byte_value)}")
+# print(f"Reversed byte (hex): {hex(reversed_byte)}")
+# print(f"Reversed byte (binary): {bin(reversed_byte)}")
