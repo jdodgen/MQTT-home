@@ -74,7 +74,9 @@ print("Device on:", serial_port)
 # In this example, if main.py is in 'project/', this adds 'project/'
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(current_dir, all_lib_offset))
+sys.path.append(os.path.join(current_dir, mp_lib_offset))
 import feature_power # located in all_lib_offset
+from char8x8 import char8x8 # located in mp_lib_offset
 ###### end of stuff that needs modification ######
 
 def load_cluster(cluster_file_name):
@@ -120,8 +122,9 @@ class create_cfg:
         print(self.our_feature.topic())
         self.set_cfg_values()
         self.create_hard_tracked_topics()
+        self.c8x8 = char8x8(invert=self.cluster.get("invert_8x8", False))
         self.write_cfg()
-
+       
     def set_cfg_values(self,):
         if self.sensor_to_make in self.sensors:
             desc = self.sensors[self.sensor_to_make].get("desc")
@@ -225,7 +228,7 @@ hard_tracked_topics = %s # these get tracked from boot, others only after first 
 monitor_only = %s  # if True this sensor does not publish status and therefore is not tracked
 switch = %s # if true then "switch_gpio" is tested if off then no publish will be sent
 switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power" publishes are sent
-matrix_8x8 = True
+tm1640_chars = %s
 """
         now = datetime.datetime.now()
         cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
@@ -246,6 +249,7 @@ matrix_8x8 = True
             self.monitor_only,
             self.switch,
             self.switch_type,
+            c8x8.create_tm1640_dict(),
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))
