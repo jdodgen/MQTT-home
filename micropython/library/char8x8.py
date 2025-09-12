@@ -2,6 +2,9 @@
 # a character lookup dictionary/hash
 # 8x8 matrix tested on TM1640 driver
 # thanks to xantorohara https://xantorohara.github.io/led-matrix-editor/#
+# this mamming is not correct for the tm1640.py driver but used for ease
+# of customization using xantorohara's tool
+# 
 
 CHARS = {
   "A": "6666667e66663c00",   # 66 66 66 7e 66 66 3c 00
@@ -115,8 +118,22 @@ class char8x8:
         #print("char8x8 reverse", string, int_parts)
         return int_parts
 
+    def create_tm1640_dict(self):
+        tm1620_chars =  {}
+        for key in CHARS:
+            #print("%s[%s]" % (key, CHARS[key]))
+            tm1620_chars[key] = self.map(CHARS[key])
+        return tm1620_chars
+            
 
-# t=char8x8(invert=True)
+
+     
+
+
+
+
+#t=char8x8(invert=True)
+#print(t.create_tm1640_dict())
 # print("true", t.map("B"))
 # f=char8x8(invert=False)
 # print("false", f.map("B"))
