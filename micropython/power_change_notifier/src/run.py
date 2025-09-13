@@ -19,7 +19,6 @@ import feature_power
 #import mqtt_hello
 import alert_handler
 import cfg
-from char8x8 import char8x8
 import tm1640
 import time
 import asyncio
@@ -101,16 +100,20 @@ async def raw_messages(client,led_8x8_queue):  # Process all incoming messages
         if topic not in current_watched_sensors:
             add_current_watched_sensors(topic)
         else:
-            current_watched_sensors[topic][MESSAGE_THIS_CYCLE] = True
-            if current_watched_sensors[topic][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]:
-                current_watched_sensors[topic][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL] = False
-                current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
-                seconds = time.time() - current_watched_sensors[topic][START_TIME]
-                hours = seconds/3600
-                minutes = seconds/60
-                restored_sensors +=  ("# Power restored to [%s]\n# Down, Minutes: %.f (Hours: %.1f)\n" %
-                    (topic.split("/")[2], minutes, hours))
-            current_watched_sensors[topic][START_TIME]=0
+            if msg == "down":  # this is from a switch
+                current_watched_sensors[topic][MESSAGE_THIS_CYCLE] = False  # act like this sensor is down
+                current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 99999  # force a down condition in main loop
+            else:    
+                current_watched_sensors[topic][MESSAGE_THIS_CYCLE] = True
+                if current_watched_sensors[topic][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]:
+                    current_watched_sensors[topic][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL] = False
+                    current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
+                    seconds = time.time() - current_watched_sensors[topic][START_TIME]
+                    hours = seconds/3600
+                    minutes = seconds/60
+                    restored_sensors +=  ("# Power restored to [%s]\n# Down, Minutes: %.f (Hours: %.1f)\n" %
+                        (topic.split("/")[2], minutes, hours))
+                current_watched_sensors[topic][START_TIME]=0
         if restored_sensors:
             await send_email("Power restored", restored_sensors+make_email_body())
     print("raw_messages exiting?")
@@ -133,7 +136,17 @@ async def _memory(self):
     while True:
         await asyncio.sleep(20)
         gc.collect()
-        print("RAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc(), ))
+        print("RAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc(),))
+        
+def get_8x8_matrix(string):
+    try:
+        item = cfg.tm1640_chars[string] # might be a full word match like boot1
+    except:
+        try:
+            item = cfg.tm1640_chars[string[0]] # Just lookup the first char
+        except:
+            print("char8x8 not found in CHARS", string)
+            item = cfg.tm1640_chars["?"]
 
 class display8x8:
     def __init__(self, clk=14, dio=13, bright=7):
@@ -184,8 +197,8 @@ class do_8x8_list:
         self.led_8x8_queue = led_8x8_queue
         self.c8x8 = char8x8(invert=cfg.invert8x8)
         self.d=display8x8(clk=cfg.clock8X8_pin, dio=cfg.data8x8_pin, bright=cfg.brightness8x8)
-        self.question_mark = self.c8x8.map("?")
-        self.turn_off = self.c8x8.map("all_off")
+        self.question_mark = get_8x8_matrix("?")
+        self.turn_off = get_8x8_matrix("all_off")
         self.d.write(self.turn_off)
 
     async def write(self, topic_list):
@@ -200,7 +213,7 @@ class do_8x8_list:
                 except:
                     ident = topic
                 #print("do_8x8_list look up", ident)
-                char_matrix.append(self.c8x8.map(ident))
+                char_matrix.append(get_8x8_matrix(ident))
             else:
                 char_matrix.append(self.question_mark)  # error
         while True: # displays letters until another message arrives
@@ -338,15 +351,15 @@ async def main():
             break
     led_8x8_queue.put(("all_off",))
     single_led_queue.put("all_off")
-    switch_detected_power = 1 if cfg.switch_type == "NO" else 0
+    switch_detected_power = 1 if cfg.switch_type == "NO" else 0  # NO Normaly Open
     while True:  # top loop checking to see of other has published
         sw_value = sw.test()
         print("switch = %s switch_detected_power %s" % (sw_value, switch_detected_power))
         if cfg.monitor_only == True or (cfg.switch == True and sw.test() != switch_detected_power):
-            pass
+            await client.publish(cfg.publish, "down")
         else:
             print("publishing powered up message")
-            await client.publish(cfg.publish, "power detected")
+            await client.publish(cfg.publish, "up")
         # i=0
         need_email = 0
         sensor_down = []
