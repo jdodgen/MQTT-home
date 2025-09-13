@@ -123,7 +123,8 @@ class char8x8:
         for key in CHARS:
             #print("%s[%s]" % (key, CHARS[key]))
             tm1620_chars[key] = self.map(CHARS[key])
-        return tm1620_chars
+        as_string = str(tm1620_chars)
+        return as_string.replace(" ","")
             
 
 

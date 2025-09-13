@@ -4,52 +4,9 @@
 # Y N defaults are designed for rapid deployment during development
 # usage is: "python3 install.py cluster_example.toml"
 # this does as much preprocessing as it can to freeup the microprocessor
-cluster_example_toml='''
-# this is a toml configuration file see https://toml.io/
+# see cluster_example.toml
+# this reads a toml configuration file see https://toml.io/
 # this file is used by install.py to generate device cfg.py files
-
-cluster_id = "your place"  # as in: "/home/your place/Big Generator/power"
-
-[network]
-ssid =  "mywifi"
-wifi_password = '12345678'
-
-[mqtt_broker]
-broker="home-broker.local"  # or where ever your MQTT broker is
-ssl = true/false
-user = "user"
-password = "password"
-
-[email]
-to_list = ["foo@bar.com", "bar@foo.com"]
-gmail_password = "xxx xxx xxx xxx"
-gmail_user = "??@gmail.com"
-
-[sensor]
-#  do not use slashes "/" or "+" in the "name". It messes with the MQTT wild cards
-#  email = true means that the sensor sends emails when sensors lost and found
-[sensor.G]
-desc = "Generator powered outlet" # Typically in gally/kitchen in plain sight
-email = true  # if false this sensor does not send emails
-[sensor.U]
-desc = "Utility power company"
-email = true
-[sensor.3]
-id = "S"
-soft_tracking = true  # not monitored at boot only after a publish
-name = "solar_batteries"
-email = false
-[sensor.3]
-id = "R"
-desc = "Offsite monitor"
-email = false
-ssid = "otherwifi"
-wifi_password = "otherpw"
-[sensor.E]
-desc = "passive watcher"
-monitor_only = true  # this only subscribes and does NOT publish a status. it is soft_tracking by default
-send_email = true
-'''
 
 import os
 from pathlib import Path
@@ -58,9 +15,11 @@ import tomllib
 import sys
 
 ###### modify these as needed ######
+## i use shared source librararys
 mp_lib_offset="../../library/"  # micropython specific
 all_lib_offset="../../../library/" # both linux and micropython
 cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
+##
 
 if os.name == 'nt':
     serial_port = "COM3"
@@ -137,7 +96,6 @@ class create_cfg:
             self.monitor_only = self.sensors[self.sensor_to_make].get("monitor_only", False)
             self.switch = self.sensors[self.sensor_to_make].get("switch", False)
             self.switch_type = self.sensors[self.sensor_to_make].get("switch_type","NO")
-            self.matrix_8x8 = self.sensors[self.sensor_to_make].get("matrix_8x8",False)
         else:  # these "letters" do not exist in the toml file but are treated as "soft_tracking"  that is not tracked until first publish
             #self.publish_to = self.sensor_to_make   # single letter version
             self.send_email = False
@@ -146,7 +104,6 @@ class create_cfg:
             self.monitor_only = False
             self.switch = False
             self.switch_type = False
-            self.single_led = True
         print("send_email [%s] ssid[%s] pw[%s] monitor_only [%s] switch [%s] switch_type [%s]" %
             (self.send_email, self.ssid, self.wifi_password, self.monitor_only, self.switch, self.switch_type))
         self.email_addresses()
@@ -249,7 +206,7 @@ tm1640_chars = %s
             self.monitor_only,
             self.switch,
             self.switch_type,
-            c8x8.create_tm1640_dict(),
+            self.c8x8.create_tm1640_dict(),
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))
