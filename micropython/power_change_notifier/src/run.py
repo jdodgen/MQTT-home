@@ -76,6 +76,7 @@ PUBLISH_CYCLES_WITHOUT_A_MESSAGE = "publish_cycles_without_a_message"
 START_TIME = "start_time"
 #
 def add_current_watched_sensors(topic):
+    global current_watched_sensors
     current_watched_sensors[topic] = {
         MESSAGE_THIS_CYCLE: True,
         HAVE_WE_SENT_POWER_IS_DOWN_EMAIL: False,
@@ -102,7 +103,7 @@ async def raw_messages(client,led_8x8_queue):  # Process all incoming messages
         else:
             if msg == "down":  # this is from a switch
                 current_watched_sensors[topic][MESSAGE_THIS_CYCLE] = False  # act like this sensor is down
-                check_sensors = True if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] < 9998 else False                    
+                check_sensors = True if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] < 99998 else False                    
                 current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 99999  # force a down condition in check_sensors
                 if check_sensors:
                     await check_sensors()
@@ -248,6 +249,7 @@ async def led_8x8_display(led_8x8_queue):
             #await list8x8.write(["?",])
 
 def make_email_body():
+    global current_watched_sensors
     body = '''\
 [cluster]
  name = "%s"
@@ -295,6 +297,10 @@ async def down_report_outage(client, led_8x8_queue, single_led_queue):
         single_led_queue.put("outage")
 
 async def check_sensors():
+    global current_watched_sensors
+    should_we_turn_on_led = False
+    need_email = 0
+    sensor_down = []
     for sensor in  current_watched_sensors:
         #print("main sensor[%s][%s]" % (sensor, current_watched_sensors[sensor]))
         if current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] == False:  # no message this cycle
@@ -323,10 +329,7 @@ async def check_sensors():
         await send_email("Power Outage(s)", make_email_body(), cluster_id_only=True)
 
 async def main():
-    #global other_status
-    #global our_status
     global led
-    global current_watched_sensors
     print_flash_usage()
     for topic in cfg.hard_tracked_topics: # "hard" tracked topics are monitored from boot,  "soft" only after a publish
         add_current_watched_sensors(topic)
@@ -385,10 +388,10 @@ async def main():
     led_8x8_queue.put(("all_off",))
     single_led_queue.put("all_off")
     switch_detected_power = 1 if cfg.switch_type == "NO" else 0  # NO Normaly Open
-    while True:  # top loop checking to see of other has published
+    while True:  # Main loop checking to see of other has published
         # first publish alive status
-        if cfg.monitor_only == True:
-            pass  # we don't publish or get tracked
+        if cfg.monitor_only == True: # we don't publish or get tracked
+            pass  
         else:
             sw_value = sw.test()
             print("switch = %s switch_detected_power %s" % (sw_value, switch_detected_power))
@@ -398,11 +401,8 @@ async def main():
                 print("publishing powered up message")
                 await client.publish(cfg.publish, "up")
         # i=0
-        need_email = 0
-        sensor_down = []
-        should_we_turn_on_led = False
+        
         print("\b[publish_check_loop]")
-        # need to loop on current_watched_sensors[topic][MESSAGE_THIS_CYCLE]
         await check_sensors()
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
 
