@@ -102,8 +102,10 @@ async def raw_messages(client,led_8x8_queue):  # Process all incoming messages
         else:
             if msg == "down":  # this is from a switch
                 current_watched_sensors[topic][MESSAGE_THIS_CYCLE] = False  # act like this sensor is down
-                current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 99999  # force a down condition in main loop
-                await check_sensors()
+                check_sensors = True if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] < 9998 else False                    
+                current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 99999  # force a down condition in check_sensors
+                if check_sensors:
+                    await check_sensors()
             else:    
                 current_watched_sensors[topic][MESSAGE_THIS_CYCLE] = True
                 if current_watched_sensors[topic][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]:
