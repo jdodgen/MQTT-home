@@ -2,16 +2,18 @@
 # Power Change Notifier
 # requires only a MQTT Broker. Local or in the Cloud
 # All sensor run the identical code, only "cfg.py" is different
-# No real limit to the number of sensors. Only  CPU and memory.
-# typically application is monitoring utility power and standby (Generator) power
-# It monitors and turns on a LED also sends emails.
-# It optionally publishes status for others to follow
-# This is a Simple IoT.
-# For any sensor this is the most important thing. "am I alive"
+# No real limit to the number of sensors. Only  Typical CPU and memory limatations.
+# The original application was monitoring utility power and standby (Generator) power
+# now monitoring a cluster of things for both power and optionaly the "dry contact" state
+# which could be a power state like a solar system or even if a door is open.  
+# It monitors and turns on a single or 8x8 LED's and sends emails.
+# It publishes status for others to follow, it can be just a listener.
+# This is a Simple IoT and a basis for other sensor and action IoT's.
+# For any sensor/action this is the most important thing. "am I alive"
 # I am using this code as the starting point for other more complex IoT sensors
-# example is "switch" option monitoring a gpio line to detect a swich or button:
+# example is a "dry_contact" switch option monitoring a gpio line to detect a swich or button:
 #
-VERSION = (0, 3, 4)
+VERSION = (1, 0, 1)
 import umail
 import alert_handler
 from mqtt_as import MQTTClient, config
