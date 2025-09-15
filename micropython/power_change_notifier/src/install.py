@@ -96,6 +96,7 @@ class create_cfg:
             self.monitor_only = self.sensors[self.sensor_to_make].get("monitor_only", False)
             self.switch = self.sensors[self.sensor_to_make].get("switch", False)
             self.switch_type = self.sensors[self.sensor_to_make].get("switch_type","NO")
+
         else:  # these "letters" do not exist in the toml file but are treated as "soft_tracking"  that is not tracked until first publish
             #self.publish_to = self.sensor_to_make   # single letter version
             self.send_email = False
@@ -153,7 +154,6 @@ switch_gpio = 12  # only used when "switch = True"
 clock8X8_pin = 7  # D1 mini  D5
 data8x8_pin = 11  # D1 mini D7
 brightness8x8 = 0  # half
-invert8x8 = True
 #
 #wifi: IoT or guest network recommended
 ssid="%s"
@@ -186,6 +186,7 @@ monitor_only = %s  # if True this sensor does not publish status and therefore i
 switch = %s # if true then "switch_gpio" is tested if off then no publish will be sent
 switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power" publishes are sent
 tm1640_chars = %s
+
 """
         now = datetime.datetime.now()
         cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
@@ -227,8 +228,8 @@ def push_library_code():
     mp_lib_offset+"switch.py",
     mp_lib_offset+"umail.py",
     mp_lib_offset+"tm1640.py",
-    mp_lib_offset+"char8x8.py",
-    #all_lib_offset+"mqtt_hello.py",
+    # mp_lib_offset+"char8x8.py",
+    # all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_power.py",
     all_lib_offset+"msgqueue.py",
     mp_lib_offset+"mqtt_as.py",

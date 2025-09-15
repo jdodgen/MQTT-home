@@ -145,8 +145,10 @@ def get_8x8_matrix(string):
         try:
             item = cfg.tm1640_chars[string[0]] # Just lookup the first char
         except:
-            print("char8x8 not found in CHARS", string)
+            print("get_8x8_matrix not found in cfg.tm1640_chars", string)
             item = cfg.tm1640_chars["?"]
+    print("get_8x8_matrix [%s] returning [%s]" % (string,item))
+    return item
 
 class display8x8:
     def __init__(self, clk=14, dio=13, bright=7):
@@ -195,7 +197,6 @@ async def do_single_led(single_led_queue):
 class do_8x8_list:
     def __init__(self, led_8x8_queue):
         self.led_8x8_queue = led_8x8_queue
-        self.c8x8 = char8x8(invert=cfg.invert8x8)
         self.d=display8x8(clk=cfg.clock8X8_pin, dio=cfg.data8x8_pin, bright=cfg.brightness8x8)
         self.question_mark = get_8x8_matrix("?")
         self.turn_off = get_8x8_matrix("all_off")
@@ -353,13 +354,17 @@ async def main():
     single_led_queue.put("all_off")
     switch_detected_power = 1 if cfg.switch_type == "NO" else 0  # NO Normaly Open
     while True:  # top loop checking to see of other has published
-        sw_value = sw.test()
-        print("switch = %s switch_detected_power %s" % (sw_value, switch_detected_power))
-        if cfg.monitor_only == True or (cfg.switch == True and sw.test() != switch_detected_power):
-            await client.publish(cfg.publish, "down")
+        # first publish alive status
+        if cfg.monitor_only == True:
+            pass  # we don't publish or get tracked
         else:
-            print("publishing powered up message")
-            await client.publish(cfg.publish, "up")
+            sw_value = sw.test()
+            print("switch = %s switch_detected_power %s" % (sw_value, switch_detected_power))
+            if (cfg.switch == True and sw.test() != switch_detected_power):
+                await client.publish(cfg.publish, "down")
+            else:
+                print("publishing powered up message")
+                await client.publish(cfg.publish, "up")
         # i=0
         need_email = 0
         sensor_down = []
