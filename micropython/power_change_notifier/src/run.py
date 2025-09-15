@@ -70,12 +70,12 @@ async def send_email(subject, body, cluster_id_only=False):
 
 #
 # current_watched_sensors[topic][SUB_TOPICS]
-current_watched_sensors = {} # it is GLOBAL
+current_watched_sensors = {}
 # SUB_TOPICS
-MESSAGE_THIS_CYCLE = "message_this_cycle"
-HAVE_WE_SENT_POWER_IS_DOWN_EMAIL = "have_we_sent_power_is_down_email"
-PUBLISH_CYCLES_WITHOUT_A_MESSAGE = "publish_cycles_without_a_message"
-START_TIME = "start_time"
+MESSAGE_THIS_CYCLE = "MTC" # "message_this_cycle"
+HAVE_WE_SENT_POWER_IS_DOWN_EMAIL = "HWSPISE" # "have_we_sent_power_is_down_email"
+PUBLISH_CYCLES_WITHOUT_A_MESSAGE = "PCWAM" # "publish_cycles_without_a_message"
+START_TIME = "ST" # "start_time"
 #
 def add_current_watched_sensors(topic):
     global current_watched_sensors
