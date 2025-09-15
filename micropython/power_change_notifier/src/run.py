@@ -103,6 +103,7 @@ async def raw_messages(client,led_8x8_queue):  # Process all incoming messages
             if msg == "down":  # this is from a switch
                 current_watched_sensors[topic][MESSAGE_THIS_CYCLE] = False  # act like this sensor is down
                 current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 99999  # force a down condition in main loop
+                await check_sensors()
             else:    
                 current_watched_sensors[topic][MESSAGE_THIS_CYCLE] = True
                 if current_watched_sensors[topic][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]:
@@ -114,8 +115,9 @@ async def raw_messages(client,led_8x8_queue):  # Process all incoming messages
                     restored_sensors +=  ("# Power restored to [%s]\n# Down, Minutes: %.f (Hours: %.1f)\n" %
                         (topic.split("/")[2], minutes, hours))
                 current_watched_sensors[topic][START_TIME]=0
-        if restored_sensors:
+        if restored_sensors: 
             await send_email("Power restored", restored_sensors+make_email_body())
+            await check_sensors()
     print("raw_messages exiting?")
 
 def print_flash_usage():
@@ -290,6 +292,34 @@ async def down_report_outage(client, led_8x8_queue, single_led_queue):
         led_8x8_queue.put(("wifi",))
         single_led_queue.put("outage")
 
+async def check_sensors():
+    for sensor in  current_watched_sensors:
+        #print("main sensor[%s][%s]" % (sensor, current_watched_sensors[sensor]))
+        if current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] == False:  # no message this cycle
+            if (current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold):
+                sensor_down.append(sensor)
+                if (current_watched_sensors[sensor][START_TIME] == 0):   # did it just start?
+                    if (not current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]):
+                        need_email += 1
+                        current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL] = True
+                        current_watched_sensors[sensor][START_TIME]= time.time()
+            else:
+                current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] += 1
+        else:  # messages for this topic have arrived
+            current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] = False # set false here, set true in raw_messages
+            current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
+        #i += 1
+        if current_watched_sensors[sensor][START_TIME] > 0 and sensor in cfg.hard_tracked_topics:
+            should_we_turn_on_led = True
+    if sensor_down:
+        led_8x8_queue.put(sensor_down) # list of problem topics
+        single_led_queue.put("sensor_down")
+    else:
+        led_8x8_queue.put(("all_off",))
+        single_led_queue.put("all_off")
+    if need_email:
+        await send_email("Power Outage(s)", make_email_body(), cluster_id_only=True)
+
 async def main():
     #global other_status
     #global our_status
@@ -371,34 +401,8 @@ async def main():
         should_we_turn_on_led = False
         print("\b[publish_check_loop]")
         # need to loop on current_watched_sensors[topic][MESSAGE_THIS_CYCLE]
-        for sensor in  current_watched_sensors:
-            #print("main sensor[%s][%s]" % (sensor, current_watched_sensors[sensor]))
-            if current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] == False:  # no message this cycle
-                if (current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold):
-                    sensor_down.append(sensor)
-                    if (current_watched_sensors[sensor][START_TIME] == 0):   # did it just start?
-                        if (not current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]):
-                            need_email += 1
-                            current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL] = True
-                            current_watched_sensors[sensor][START_TIME]= time.time()
-                else:
-                    current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] += 1
-            else:  # messages for this topic have arrived
-                current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] = False # set false here, set true in raw_messages
-                current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
-            #i += 1
-            if current_watched_sensors[sensor][START_TIME] > 0 and sensor in cfg.hard_tracked_topics:
-                should_we_turn_on_led = True
-        if sensor_down:
-            led_8x8_queue.put(sensor_down) # list of problem topics
-            single_led_queue.put("sensor_down")
-        else:
-            led_8x8_queue.put(("all_off",))
-            single_led_queue.put("all_off")
-        if need_email:
-            await send_email("Power Outage(s)", make_email_body(), cluster_id_only=True)
+        await check_sensors()
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
-
 
 ############ startup ###############
 time.sleep(cfg.start_delay)
