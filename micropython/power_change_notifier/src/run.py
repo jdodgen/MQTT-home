@@ -258,11 +258,7 @@ async def led_8x8_display(led_8x8_queue):
 
 def make_email_body():
     global current_watched_sensors
-    body = '''\
-[cluster]
- name = "%s"
-[sensor]\n''' %  (cfg.cluster_id,)
-    #i = 0
+    body = 'name = "%s"\n' %  (cfg.cluster_id,)
     for topic in current_watched_sensors:
         name = topic.split("/")[2]
         try:
@@ -271,8 +267,7 @@ def make_email_body():
                 parts.append("")
         except:
             parts = [name, ""]
-        body += ''' [sensor.%s]\n  desc = "%s"\n  state = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
-        #i += 1
+        body += '%s - %s - state = %s\n' % (parts[0], parts[1], "False/Open/Powered Down" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "True/Closed/Powered Up")
     name = cfg.publish.split("/")[2]
     try:
         parts = name.split(" ",1)
@@ -280,7 +275,7 @@ def make_email_body():
             parts.append("")
     except:
         parts = [name, ""]
-    body += '       # reporting sensor %s - %s]' % (parts[0], parts[1],)
+   # body += '       # reporting sensor %s - %s]' % (parts[0], parts[1],)
     print(body)
     return body
 
