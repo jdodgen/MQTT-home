@@ -85,7 +85,7 @@ def add_current_watched_sensors(topic):
         PUBLISH_CYCLES_WITHOUT_A_MESSAGE: 0,
         START_TIME: 0}
 
-async def raw_messages(client,led_8x8_queue):  # Process all incoming messages
+async def raw_messages(client,led_8x8_queue, single_led_queue):  # Process all incoming messages
     # global led
     global current_watched_sensors
     # global other_status
@@ -103,12 +103,12 @@ async def raw_messages(client,led_8x8_queue):  # Process all incoming messages
         if topic not in current_watched_sensors:
             add_current_watched_sensors(topic)
         else:
-            if msg == "down":  # this is from a switch
+            if msg == "down":  # this is from a switch/button/dry contacts
                 current_watched_sensors[topic][MESSAGE_THIS_CYCLE] = False  # act like this sensor is down
                 check_sensors = True if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] < 99998 else False                    
                 current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 99999  # force a down condition in check_sensors
                 if check_sensors:
-                    await check_sensors()
+                    await check_for_down_sensors(led_8x8_queue, single_led_queue)
             else:    
                 current_watched_sensors[topic][MESSAGE_THIS_CYCLE] = True
                 if current_watched_sensors[topic][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]:
@@ -121,8 +121,9 @@ async def raw_messages(client,led_8x8_queue):  # Process all incoming messages
                         (topic.split("/")[2], minutes, hours))
                 current_watched_sensors[topic][START_TIME]=0
         if restored_sensors: 
+            await check_for_down_sensors(led_8x8_queue, single_led_queue)
             await send_email("Power restored", restored_sensors+make_email_body())
-            await check_sensors()
+            
     print("raw_messages exiting?")
 
 def print_flash_usage():
@@ -224,6 +225,7 @@ class do_8x8_list:
                 char_matrix.append(get_8x8_matrix(ident))
             else:
                 char_matrix.append(self.question_mark)  # error
+        await asyncio.sleep(0)
         while True: # displays letters until another message arrives
             for char8x8 in char_matrix:
                 self.d.write(char8x8)
@@ -274,7 +276,7 @@ def make_email_body():
             parts.append("")
     except:
         parts = [name, ""]
-    body += ''' [sensor.%s] # reporting sensor\n  desc = "%s"\n  on = true''' % (parts[0], parts[1],)
+    body += '       # reporting sensor %s - %s]' % (parts[0], parts[1],)
     print(body)
     return body
 
@@ -298,7 +300,7 @@ async def down_report_outage(client, led_8x8_queue, single_led_queue):
         led_8x8_queue.put(("wifi",))
         single_led_queue.put("outage")
 
-async def check_sensors():
+async def check_for_down_sensors(led_8x8_queue, single_led_queue):
     global current_watched_sensors
     should_we_turn_on_led = False
     need_email = 0
@@ -360,7 +362,7 @@ async def main():
     asyncio.create_task(led_8x8_display(led_8x8_queue))
     asyncio.create_task(do_single_led(single_led_queue))
     await asyncio.sleep(2)
-    asyncio.create_task(raw_messages(client, led_8x8_queue))
+    asyncio.create_task(raw_messages(client, led_8x8_queue, single_led_queue))
     asyncio.create_task(up_so_subscribe(client, led_8x8_queue, single_led_queue))
     asyncio.create_task(down_report_outage(client, led_8x8_queue, single_led_queue))
     #
@@ -405,7 +407,7 @@ async def main():
         # i=0
         
         print("\b[publish_check_loop]")
-        await check_sensors()
+        await check_for_down_sensors(led_8x8_queue, single_led_queue)
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
 
 ############ startup ###############
