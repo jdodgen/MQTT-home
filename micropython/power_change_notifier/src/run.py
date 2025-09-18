@@ -36,16 +36,22 @@ print(wildcard_subscribe.topic())
 # print("Our topic = [%s]" % (our_status.topic(),))
 
 # ERRORS
-boilerplate = '''Starting up ...\nFor reference:
+boilerplate = '''Starting up:
 Flashing LED error codes
-1 Hello, starting up
-2 ERROR_AP_NOT_FOUND or
-  ERROR_BAD_PASSWORD
-3 ERROR_BROKER_LOOKUP_FAILED or
-  ERROR_BROKER_CONNECT_FAILED
-5 Runtime failure, re-connecting
-LED solid on or letter on 8x8, indicates an outage.
-LED out, normal no outage
+It displays a flashing single LED and optionaly a LED character.
+If the LED square is expanding or just one LED flash --- Sarting up
+
+flashing/display counts are as follows:
+2 flashes, ERROR_AP_NOT_FOUND or ERROR_BAD_PASSWORD
+3 flashes, ERROR_BROKER_LOOKUP_FAILED or ERROR_BROKER_CONNECT_FAILED
+5 flashes, Runtime connection failure, standby, re-connecting.
+
+Outage/alert issues are reported by:
+The LED is solid on and/or one or more "sensors letters" scroll by. 
+This indicates an alert usualy an outage.
+If the LED is out or screen is blank, Indicates all is normal and no alerts. 
+The sensor does NOT do any flashes when just waiting or an outage, it is passive. 
+The Other sensors will tell you if it fails. 
 '''
 
 # conditional formatted print
@@ -258,7 +264,7 @@ async def led_8x8_display(led_8x8_queue):
 
 def make_email_body():
     global current_watched_sensors
-    body = 'name = "%s"\n' %  (cfg.cluster_id,)
+    body = 'Cluster = "%s"\n' %  (cfg.cluster_id,)
     for topic in current_watched_sensors:
         name = topic.split("/")[2]
         try:
@@ -297,7 +303,7 @@ async def down_report_outage(client, led_8x8_queue, single_led_queue):
         client.down.clear()
         print('got outage')
         led_8x8_queue.put(("wifi",))
-        single_led_queue.put("outage")
+        single_led_queue.put("5")
 
 async def check_for_down_sensors(led_8x8_queue, single_led_queue):
     global current_watched_sensors
@@ -378,11 +384,11 @@ async def main():
             try:
                 x=client._addr
                 print("we have ip address broker not connecting", client._addr)
-                led_8x8_queue.put(("broker",)) # report 3 flashes
+                led_8x8_queue.put(("3",)) # report 3 flashes
                 single_led_queue.put("broker")
             except:
                 print("wifi failed no ip address")
-                led_8x8_queue.put(("wifi",))  # report 2 flashes
+                led_8x8_queue.put(("2",))  # report 2 flashes
                 single_led_queue.put("wifi")
             await asyncio.sleep(10)
         else:
