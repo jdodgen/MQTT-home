@@ -267,7 +267,7 @@ def make_email_body():
                 parts.append("")
         except:
             parts = [name, ""]
-        body += '%s - %s - state = %s\n' % (parts[0], parts[1], "False/Open/Powered Down" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "True/Closed/Powered Up")
+        body += '%s - %s - state = %s\n' % (parts[0], parts[1], "FALSE / OPEN / POWERED DOWN" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "True / Closed / Powered Up")
     name = cfg.publish.split("/")[2]
     try:
         parts = name.split(" ",1)
