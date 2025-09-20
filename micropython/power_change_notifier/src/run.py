@@ -186,7 +186,7 @@ class display8x8:
             self.tm.write(bit_map)
 
 async def do_single_led(single_led_queue):
-    led = alert_handler.alert_handler(cfg.led_gpio, None, onboard_led_pin=cfg.onboard_led_gpio)
+    led = alert_handler.alert_handler(cfg.big_led_pin, None, onboard_led_pin=cfg.onboard_led_pin)
     async for cmd,  in single_led_queue:
         while not single_led_queue.empty(): # flush the queue, use last item
             async for cmd, in single_led_queue:
@@ -359,10 +359,9 @@ async def main():
     MQTTClient.DEBUG = True  # Optional: print diagnostic messages
     client = MQTTClient(config)
 
-    # led = alert_handler.alert_handler(cfg.led_gpio, None, onboard_led_pin=cfg.onboard_led_gpio)
     led_8x8_queue.put(["boot1","boot2",])
     single_led_queue.put("boot")
-    sw = switch.switch(cfg.switch_gpio, client)
+    sw = switch.switch(cfg.switch_pin, client)
     print("creating asyncio tasks")
     asyncio.create_task(led_8x8_display(led_8x8_queue))
     asyncio.create_task(do_single_led(single_led_queue))

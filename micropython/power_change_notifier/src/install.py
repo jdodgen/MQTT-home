@@ -148,11 +148,17 @@ class create_cfg:
 # Date: %s
 # MAKE YOUR CHANGES IN install.py
 #
-led_gpio = 3  # "D3" on D1-Mini proto card
-onboard_led_gpio = 15 # built in BLUE led
-switch_gpio = 12  # only used when "switch = True"
-clock8X8_pin = 7  # D1 mini  D5
-data8x8_pin = 11  # D1 mini D7
+led_gpio          = 3   $ D3" on D1-Mini proto card
+onboard_led_pin  = 15  # built in BLUE led
+switch_gpio       = 12  # only used when "switch = True"
+button_pin        = 12  # D8
+play_all_pin      = 35  # D1
+ding_dong_pin     = 33  # D2
+ding_ding_pin     = 18  # D3
+westminster_pin   = 16  # D4
+data8x8_pin       = 11  # D7
+clock8X8_pin      = 7   # D5
+
 brightness8x8 = 0  # half
 #
 #wifi: IoT or guest network recommended
