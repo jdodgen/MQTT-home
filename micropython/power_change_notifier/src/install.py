@@ -148,9 +148,10 @@ class create_cfg:
 # Date: %s
 # MAKE YOUR CHANGES IN install.py
 #
-led_gpio          = 3   $ D3" on D1-Mini proto card
-onboard_led_pin  = 15  # built in BLUE led
-switch_gpio       = 12  # only used when "switch = True"
+# current pin assignements
+big_led_pin        = 3  # D3" on D1-Mini proto card
+onboard_led_pin   = 15  # built-in BLUE led
+switch_pin        = 12  # D8 # shared with button_pin
 button_pin        = 12  # D8
 play_all_pin      = 35  # D1
 ding_dong_pin     = 33  # D2
