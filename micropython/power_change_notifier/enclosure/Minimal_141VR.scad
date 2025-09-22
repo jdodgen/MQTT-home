@@ -14,11 +14,11 @@ module make_one(letter="X")
     make_relay_lid(letter=letter);
 }
 
-make_lids("HHHXXZZTT", chars_per_row=5);
+//make_lids("HHHXXZZTT", chars_per_row=5);
 module make_lids(letters, chars_per_row=5)
 {
    x_spacing = 55;
-   y_spacing = 30;
+   y_spacing = 32;
    char_list = [ for (i = [0 : len(letters) - 1]) letters[i] ];
    
    for (x = [0: floor(len(letters)/chars_per_row)])
