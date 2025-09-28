@@ -41,7 +41,7 @@ module make_lids(letters, chars_per_row=5)
    
     
 }
-letter="D";
+letter="H";
 make_somthing = 2;    // 1 base, 2=lid, 3 buttons
 if (make_somthing == 1) {
     make_s2_base();
@@ -245,6 +245,9 @@ module make_relay_lid(letter="W")
     width=12;
     translate([4,((shell_y)/2)+(width/2),0])
         rotate([0,0,180])
+            tab(width=width, thickness=shell_wall_thickness,hole_d=5, $fn=60);
+    translate([shell_x-4,((shell_y)/2)-(width/2),0])
+        rotate([0,0,0])
             tab(width=width, thickness=shell_wall_thickness,hole_d=5, $fn=60);
     }
     
