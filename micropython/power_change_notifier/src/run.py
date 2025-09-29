@@ -132,7 +132,7 @@ async def raw_messages(client,led_8x8_queue, single_led_queue):  # Process all i
                 current_watched_sensors[topic][START_TIME]=0
         if restored_sensors: 
             await check_for_down_sensors(led_8x8_queue, single_led_queue)
-            await send_email("Power restored", restored_sensors+make_email_body())
+            await send_email("Power restored to: %s" % (topic.split("/")[2],),  restored_sensors+make_email_body())
             
     print("raw_messages exiting?")
 
