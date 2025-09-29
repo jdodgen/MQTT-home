@@ -68,7 +68,7 @@ async def send_email(subject, body, cluster_id_only=False):
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             await asyncio.sleep(0)
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-            id = cfg.cluster_id if cluster_id_only else cfg.publish
+            id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
             print("our id [%s]" % (id,))
             smtp.write("CC: %s\nSubject:PCN %s, %s\n\n%s\n" % (cfg.cc_string, subject, id,  body,))
             await asyncio.sleep(0)
@@ -132,7 +132,7 @@ async def raw_messages(client,led_8x8_queue, single_led_queue):  # Process all i
                 current_watched_sensors[topic][START_TIME]=0
         if restored_sensors: 
             await check_for_down_sensors(led_8x8_queue, single_led_queue)
-            await send_email("Power restored", restored_sensors+make_email_body())
+            await send_email("Power restored or Event cleared: %s" % (topic.split("/")[2],),  restored_sensors+make_email_body())
             
     print("raw_messages exiting?")
 
@@ -342,7 +342,7 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
         led_8x8_queue.put((("all_off", False),))
         single_led_queue.put("all_off")
     if need_email:
-        await send_email("Power Outage(s)", make_email_body(), cluster_id_only=True)
+        await send_email("One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
 
 async def main():
     global led
