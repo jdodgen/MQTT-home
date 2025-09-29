@@ -224,15 +224,19 @@ class do_8x8_list:
         print("do_8x8_list.write", topic_list)
         # first convert to 8x8
         char_matrix = []
-        for topic in topic_list:
+        for topic_and_dry_contact in topic_list:
+            (topic, dry_contact) = topic_and_dry_contact
             if isinstance(topic, str):
                 # parse topic get letter
                 try:
                     ident = topic.split("/")[2]
                 except:
                     ident = topic
-                #print("do_8x8_list look up", ident)
-                char_matrix.append(get_8x8_matrix(ident))
+                print("do_8x8_list ident", ident)
+                matrix_list = get_8x8_matrix(ident)
+                if dry_contact:
+                    matrix_list[0] = 0x80
+                char_matrix.append(matrix_list)
             else:
                 char_matrix.append(self.question_mark)  # error
         await asyncio.sleep(0)
@@ -252,7 +256,7 @@ async def led_8x8_display(led_8x8_queue):
     error_code = 0
     next_code = 0
     list8x8 = do_8x8_list(led_8x8_queue)
-    async for msg_list,  in led_8x8_queue:
+    async for msg_list, in led_8x8_queue:
         while not led_8x8_queue.empty(): # flush the queue, use last item
             async for msg_list, in led_8x8_queue:
                 break
@@ -291,7 +295,7 @@ async def up_so_subscribe(client, led_8x8_queue, single_led_queue):
         await client.up.wait()
         client.up.clear()
         print('doing subscribes', wild_topic)
-        led_8x8_queue.put(("all_off",))
+        led_8x8_queue.put((("all_off",False), ))
         single_led_queue.put("all_off")
         await client.subscribe(wildcard_subscribe.topic())
         print("emailing startup")
@@ -302,7 +306,7 @@ async def down_report_outage(client, led_8x8_queue, single_led_queue):
         await client.down.wait()
         client.down.clear()
         print('got outage')
-        led_8x8_queue.put(("wifi",))
+        led_8x8_queue.put((("wifi",False),))
         single_led_queue.put("5")
 
 async def check_for_down_sensors(led_8x8_queue, single_led_queue):
@@ -314,7 +318,10 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
         #print("main sensor[%s][%s]" % (sensor, current_watched_sensors[sensor]))
         if current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] == False:  # no message this cycle
             if (current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold):
-                sensor_down.append(sensor)
+                if (current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > 99998):  # this was a dry contact action
+                   sensor_down.append((sensor, True))  
+                else:
+                    sensor_down.append((sensor, False)) 
                 if (current_watched_sensors[sensor][START_TIME] == 0):   # did it just start?
                     if (not current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]):
                         need_email += 1
@@ -332,7 +339,7 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
         led_8x8_queue.put(sensor_down) # list of problem topics
         single_led_queue.put("sensor_down")
     else:
-        led_8x8_queue.put(("all_off",))
+        led_8x8_queue.put((("all_off", False),))
         single_led_queue.put("all_off")
     if need_email:
         await send_email("Power Outage(s)", make_email_body(), cluster_id_only=True)
@@ -359,7 +366,7 @@ async def main():
     MQTTClient.DEBUG = True  # Optional: print diagnostic messages
     client = MQTTClient(config)
 
-    led_8x8_queue.put(["boot1","boot2",])
+    led_8x8_queue.put([("boot1",False),("boot2",False),])
     single_led_queue.put("boot")
     sw = switch.switch(cfg.switch_pin, client)
     print("creating asyncio tasks")
@@ -383,17 +390,17 @@ async def main():
             try:
                 x=client._addr
                 print("we have ip address broker not connecting", client._addr)
-                led_8x8_queue.put(("3",)) # report 3 flashes
+                led_8x8_queue.put((("3", False),)) # report 3 flashes
                 single_led_queue.put("broker")
             except:
                 print("wifi failed no ip address")
-                led_8x8_queue.put(("2",))  # report 2 flashes
+                led_8x8_queue.put((("2",False),))  # report 2 flashes
                 single_led_queue.put("wifi")
             await asyncio.sleep(10)
         else:
             print("ip address", client._addr)
             break
-    led_8x8_queue.put(("all_off",))
+    led_8x8_queue.put((("all_off", False),))
     single_led_queue.put("all_off")
     switch_detected_power = 1 if cfg.switch_type == "NO" else 0  # NO Normaly Open
     while True:  # Main loop checking to see of other has published
