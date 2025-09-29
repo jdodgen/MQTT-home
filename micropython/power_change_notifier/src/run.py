@@ -68,7 +68,7 @@ async def send_email(subject, body, cluster_id_only=False):
             smtp.login(cfg.gmail_user, cfg.gmail_password)
             await asyncio.sleep(0)
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-            id = cfg.cluster_id if cluster_id_only else cfg.publish
+            id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
             print("our id [%s]" % (id,))
             smtp.write("CC: %s\nSubject:PCN %s, %s\n\n%s\n" % (cfg.cc_string, subject, id,  body,))
             await asyncio.sleep(0)
