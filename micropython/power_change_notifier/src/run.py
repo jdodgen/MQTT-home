@@ -132,7 +132,7 @@ async def raw_messages(client,led_8x8_queue, single_led_queue):  # Process all i
                 current_watched_sensors[topic][START_TIME]=0
         if restored_sensors: 
             await check_for_down_sensors(led_8x8_queue, single_led_queue)
-            await send_email("Power restored to: %s" % (topic.split("/")[2],),  restored_sensors+make_email_body())
+            await send_email("Power restored or Event cleared: %s" % (topic.split("/")[2],),  restored_sensors+make_email_body())
             
     print("raw_messages exiting?")
 
@@ -342,7 +342,7 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
         led_8x8_queue.put((("all_off", False),))
         single_led_queue.put("all_off")
     if need_email:
-        await send_email("Power Outage(s)", make_email_body(), cluster_id_only=True)
+        await send_email("One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
 
 async def main():
     global led
