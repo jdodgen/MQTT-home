@@ -19,7 +19,7 @@ import sys
 mp_lib_offset="../../library/"  # micropython specific
 all_lib_offset="../../../library/" # both linux and micropython
 cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
-##
+
 
 if os.name == 'nt':
     serial_port = "COM3"
@@ -36,6 +36,7 @@ sys.path.append(os.path.join(current_dir, all_lib_offset))
 sys.path.append(os.path.join(current_dir, mp_lib_offset))
 import feature_power # located in all_lib_offset
 from char8x8 import char8x8 # located in mp_lib_offset
+from esp32s2_flasher import flasher
 ###### end of stuff that needs modification ######
 
 def load_cluster(cluster_file_name):
@@ -225,10 +226,6 @@ tm1640_chars = %s
             f.write(cfg_text)
         print("created cfg.py")
 
-def flash_micropython():
-    os.system("esptool.py --port /dev/ttyACM0 erase_flash")
-    os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20250415-v1.25.0.bin")
-
 def push_library_code():
     code = [
     mp_lib_offset+"main.py",
@@ -280,14 +277,13 @@ def main():
 
     # install micropython kernal
     did_we_flash = False
-    print ("press and hold O (flat side)\nthen press RST (indent) momentary\nrelease O\nto allow flashing micropython")
-    print("install micropython? (y,N)")
+    print("\ninstall micropython? (y,N)")
     ans = input()
     if (ans.upper() == "Y"):
         did_we_flash = True
-        flash_micropython()
-        print("\npress RST on esp32-s2 to reset (in the indent) then press Enter to continue")
+        print ("\npress and hold O (flat side)\nthen press RST (indent) momentary\nrelease O\nthen press Enter to continue")
         input()
+        flasher()
     # install library code
     if did_we_flash == False:
         print("install library code? (y,N)")
@@ -309,6 +305,8 @@ def main():
         print("\n  putty -serial ", serial_port)
     else:
         print("\n  picocom -b 115200 ", serial_port)
+    if (ans.upper() != "N"):
+        print("\nCreated [%s:%s] device" % (cluster["cluster_id"],sensor_to_make)) 
 
 if __name__ == "__main__":
     main()
