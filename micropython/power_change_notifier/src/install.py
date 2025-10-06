@@ -83,6 +83,7 @@ class create_cfg:
         self.set_cfg_values()
         self.create_hard_tracked_topics()
         self.c8x8 = char8x8(invert=self.cluster.get("invert_8x8", False))
+        self.pretty_name = "From: %s %s" % (self.sensor_to_make, self.sensors[self.sensor_to_make].get("desc", self.sensor_to_make))
         self.write_cfg()
        
     def set_cfg_values(self,):
@@ -187,6 +188,7 @@ gmail_user = "%s"
 cc_string = "%s"  # a smtp Cc: string
 
 publish = "%s"
+pretty_name = "%s"
 cluster_id = "%s"
 send_email =  %s
 hard_tracked_topics = %s # these get tracked from boot, others only after first publish
@@ -209,6 +211,7 @@ tm1640_chars = %s
             self.cluster["email"]["gmail_user"],
             self.cc_string,
             self.our_feature.topic(),
+            self.pretty_name,
             self.cluster["cluster_id"],
             self.send_email,
             self.hard_tracked_topics,
