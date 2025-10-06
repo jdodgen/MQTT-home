@@ -383,6 +383,7 @@ async def main():
     #
     while True:
         # Even know mqtt_as automaticly reconnects an initial connection is required
+        print("switch is",sw.test())
         try:
             await client.connect()
         except Exception as e:
