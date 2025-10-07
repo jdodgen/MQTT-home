@@ -44,10 +44,15 @@ module make_lids(letters, chars_per_row=5)
     
 }
 letter="T";
+8x8_cutout = false;
+double_cut_out = false;
+small_terminal_block = true;
 tabs = false;
-short_base = true;  // false makes 
+short_base = false;  // false makes upside down box, overide_z overides
 overide_z = 10.5; // if  greater than  0 it overrides the short and tall boxes also this + 11 is the total Z
-make_somthing = 1;    // 1 base, 2=lid, 3 buttons
+
+make_somthing = 2;    // 1 base, 2=lid, 3 buttons
+
 if (make_somthing == 1) {
     make_s2_base();
 } else if (make_somthing == 2) {
@@ -85,12 +90,12 @@ double_cutout_y = 8.3;
 double_cutout_x = 13.5;
 double_cutout_z = shell_wall_thickness;
 double_cutout_y_offset = 14;
-double_cut_out = false;
+
 
 8x8_cutout_x = 21;
 8x8_cutout_y = 21;
 8x8_loc = [0,0,0];  
-8x8_cutout = true;
+
 
 offset_z = (overide_z > 0) 
     ? overide_z
@@ -126,7 +131,7 @@ module make_s2_base() {
     {
         union()
         {
-            if (short_base == true ||  override_z > 0) 
+            if (short_base == true ||  overide_z > 0) 
                 make_s2_mini_mount(front_stops=false);
             //translate([-(shell_x-s2_x)+shell_wall_thickness,(-(shell_y-s2_y)/2),0])
             {
@@ -147,19 +152,19 @@ module make_s2_base() {
         }
         
         if (double_cut_out == true)
-            translate([shell_x-double_cutout_x-3, 
-            shell_y-double_cutout_y-double_cutout_y_offset, 0])
-                cube([double_cutout_x, double_cutout_y, double_cutout_z]);
+           double_hole() ;
         if (8x8_cutout == true)
             translate([shell_x*0.6, shell_y*.47, 0])
                     rotate([0,0,90])
                         center_text(letter, size=8, extrude=shell_wall_thickness*2);
-        
-            
-   
-    }
-    
-    
+    } 
+}
+
+module double_hole()
+{
+    translate([shell_x-double_cutout_x-3, 
+      shell_y-double_cutout_y-double_cutout_y_offset, 0])
+     cube([double_cutout_x, double_cutout_y, double_cutout_z]);    
 }
 
 //lid_mount_Loc_1 = [shell_x/2,shell_wall_thickness,shell_z-2];
@@ -224,7 +229,9 @@ module make_relay_lid(letter="W")
                 union()
                 {
                     color("orange") cube([shell_x, shell_y, shell_wall_thickness]);
-                    if (8x8_cutout == false)
+                    if (8x8_cutout == false && small_terminal_block == false
+                        || double_cut_out == true 
+                        )
                     {
                         hold_down_width=6;
                         translate([3,(shell_y-hold_down_width)/2, -tab_height]) 
@@ -247,7 +254,9 @@ module make_relay_lid(letter="W")
                     }
                     hold_down_h = 6.7;
                     hold_down_d = 3;
-                    if (8x8_cutout == false)
+                    if (8x8_cutout == false && small_terminal_block == false
+                        || double_cut_out == true 
+                        )
                     {
                         translate([(lip_x+hold_down_d/2+shrinkage)-hold_down_d/2, 
                                   (hold_down_d/2+shrinkage)+hold_down_d/2,   -hold_down_h])
@@ -264,11 +273,14 @@ module make_relay_lid(letter="W")
                     translate([shell_x-8x8_cutout_x-9, 
                         shell_y-8x8_cutout_y/2-15, 0])
                     cube([8x8_cutout_x, 8x8_cutout_y, shell_wall_thickness]);
+                } else if (small_terminal_block == true)
+                {
+                    double_hole();
                 } else {
                 translate([slop, (-led_view_hole/2)+shell_y/4.16, 
                         -view_hole_h+shell_wall_thickness])
                     cube([led_view_hole,led_view_hole, view_hole_h]); 
-                if (overide_z > 0)
+                if (overide_z > 0 || short_base == true)
                     translate([shell_x*0.6, shell_y*.47, 0])
                         rotate([0,0,90])
                             center_text(letter, size=8, extrude=shell_wall_thickness*2);
