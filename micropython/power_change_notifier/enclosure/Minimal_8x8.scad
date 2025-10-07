@@ -44,14 +44,14 @@ module make_lids(letters, chars_per_row=5)
     
 }
 letter="T";
-8x8_cutout = false;
+8x8_cutout = true;
 double_cut_out = false;
-small_terminal_block = true;
+small_terminal_block = false;
 tabs = false;
 short_base = false;  // false makes upside down box, overide_z overides
 overide_z = 9.8; // if  greater than  0 it overrides the short and tall boxes also this + 11 is the total Z
 
-make_somthing = 1;    // 1 base, 2=lid, 3 buttons
+make_somthing = 2;    // 1 base, 2=lid, 3 buttons
 
 if (make_somthing == 1) {
     make_s2_base();
@@ -81,7 +81,7 @@ s2_x=35;
 s2_thickness=4;
 shell_wall_thickness = 1.5;
 shell_post_d = 7;
-rounded_radius = 1;
+rounded_radius = 2;
 usb_c_hole_width = 13;
 usb_c_hole_height = 8;
 
@@ -217,7 +217,7 @@ module make_relay_lid(letter="W")
     led_view_hole = 4;
     lip_x = shell_x-slop*2;
     lip_y = shell_y-slop*2;
-    //rotate([0,180.0])  // print upside down
+    rotate([0,180.0])  // print upside down
     {
     difference()
     {
@@ -244,7 +244,7 @@ module make_relay_lid(letter="W")
                              //shrinkage+shell_wall_thickness,-lip_depth])
                         translate([(shell_x-lip_x)/2, (shell_y-lip_y)/2, -lip_depth])
                         {
-                            color("green") cube([lip_x, lip_y, lip_depth]);
+                            color("green") RoundCube([lip_x, lip_y, lip_depth], radius=rounded_radius*0.7);
                         }
                         cut_out_x = lip_x-lip_width*2+10;
                         cut_out_y = lip_y-lip_width*2+4.5;
