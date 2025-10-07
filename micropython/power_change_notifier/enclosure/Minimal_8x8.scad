@@ -2,6 +2,8 @@
 modular enclosure for ESP32-S2 style of wemos D1 Mini 
 MIT Licence
 Copyright 2023-2025 James Dodgen
+this gets copied and renamed for each new enclosure
+the the previous enclosures can be configured 
 */
 
 //make_one(letter="D");
