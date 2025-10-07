@@ -49,9 +49,9 @@ double_cut_out = false;
 small_terminal_block = true;
 tabs = false;
 short_base = false;  // false makes upside down box, overide_z overides
-overide_z = 10.5; // if  greater than  0 it overrides the short and tall boxes also this + 11 is the total Z
+overide_z = 9.8; // if  greater than  0 it overrides the short and tall boxes also this + 11 is the total Z
 
-make_somthing = 2;    // 1 base, 2=lid, 3 buttons
+make_somthing = 1;    // 1 base, 2=lid, 3 buttons
 
 if (make_somthing == 1) {
     make_s2_base();
@@ -81,7 +81,7 @@ s2_x=35;
 s2_thickness=4;
 shell_wall_thickness = 1.5;
 shell_post_d = 7;
-
+rounded_radius = 1;
 usb_c_hole_width = 13;
 usb_c_hole_height = 8;
 
@@ -175,10 +175,10 @@ module shell()
 {
     difference()
     {
-        cube([shell_x, shell_y, shell_z]) ;
+        RoundCube([shell_x, shell_y, shell_z], radius = rounded_radius) ;
         translate([shell_wall_thickness, shell_wall_thickness ,shell_wall_thickness])
         {
-            cube([shell_x - (shell_wall_thickness*2), shell_y-shell_wall_thickness*2, shell_z]);
+            RoundCube([shell_x - (shell_wall_thickness*2), shell_y-shell_wall_thickness*2, shell_z],radius = rounded_radius*0.7);
         }
         mid_y = shell_y/2-0.5;
        
@@ -217,7 +217,7 @@ module make_relay_lid(letter="W")
     led_view_hole = 4;
     lip_x = shell_x-slop*2;
     lip_y = shell_y-slop*2;
-    rotate([0,180.0])  // print upside down
+    //rotate([0,180.0])  // print upside down
     {
     difference()
     {
@@ -228,7 +228,8 @@ module make_relay_lid(letter="W")
             {
                 union()
                 {
-                    color("orange") cube([shell_x, shell_y, shell_wall_thickness]);
+                    translate([0, shell_y, shell_wall_thickness]) rotate([180,0,0])
+                    color("orange") RoundCube([shell_x, shell_y, shell_wall_thickness], radius= rounded_radius);
                     if (8x8_cutout == false && small_terminal_block == false
                         || double_cut_out == true 
                         )
@@ -484,4 +485,54 @@ module center_text(text, size, font="Liberation Mono:style=Regular", width=0, le
         linear_extrude(extrude) 
             import(file="stencil_TNH.dxf", layer=text, scale=1);
             //text(text, size=size, font=font, halign="center", valign="center");
+}
+//RoundCube([20, 10, 10], center = false, radius = 1);
+
+module RoundCube(size = [1, 1, 1], center = false,radius = 1.5,fn=60, round_top=true){
+
+    obj_translate = (center == false) 
+        ? [0, 0, 0] 
+        : [ -(size[0] / 2),
+            -(size[1] / 2),
+            - (size[2] / 2)
+          ];
+    x = size[0];
+    y = size[1];
+    z = size[2];
+    echo (obj_translate);
+    translate(obj_translate) 
+    {
+        echo("obj_translate=",obj_translate);
+        difference()
+        {
+            // do Z 
+            cube(size, center=false); 
+            translate([0,0,0]) fillet(0,r=radius,h=z*2, $fn=fn);
+            translate([0,y-radius,0]) fillet(-90,r=radius,h=z*2, $fn=fn);
+            translate([x-radius,y-radius,0]) fillet(180,r=radius,h=z*2, $fn=fn);
+            translate([x-radius,0,0]) fillet(90,r=radius,h=z*2, $fn=fn);
+            // do Y bottom
+            translate([0,0,radius]) rotate([-90,0,0]) fillet(-90,r=radius,h=y*2, $fn=fn);
+            translate([x-radius,0,radius]) rotate([-90,0,0]) fillet(180,r=radius,h=y*2, $fn=fn);
+            // do X bottom
+            translate([0,0,radius]) rotate([0,90,0]) fillet(90,r=radius,h=x*2, $fn=fn);
+            translate([0,y-radius,radius]) rotate([0,90,0]) fillet(180,r=radius,h=x*2, $fn=fn);
+            // do tops TBD not needed yet
+            //if (round_top == true)
+                // do Y top
+                // do X top
+                
+
+        }
+        
+    }
+}
+
+module fillet(rot, r=1, h=10) {
+    translate([r / 2, r / 2, h/2])
+    rotate([0,0,rot]) difference() {
+        cube([r + 0.01, r + 0.01, h], center = true);
+        translate([r/2, r/2, 0])
+            cylinder(r = r, h = h + 1, center = true);
+    }
 }
