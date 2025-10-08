@@ -48,8 +48,9 @@ def load_cluster(cluster_file_name):
     try:
         with open(cluster_toml, 'rb') as toml_file:
             cluster = tomllib.load(toml_file)
+            print(cluster)
             return cluster
-                # print(cluster)
+               
     except FileNotFoundError:
         print("Error: ",cluster_toml," File not found")
         sys.exit()
