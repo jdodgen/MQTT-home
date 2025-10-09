@@ -351,6 +351,9 @@ async def main():
         add_current_watched_sensors(topic)
     led_8x8_queue = MsgQueue(20)
     single_led_queue = MsgQueue(20)
+    # loop through possable wifi connections
+    while True:
+
     # Local configuration, "config" came from mqtt_as
     print("wifi ssid[%s] pw[%s]" % (cfg.ssid, cfg.wifi_password,))
     config['ssid'] = cfg.ssid
