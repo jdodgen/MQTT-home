@@ -43,7 +43,7 @@ module make_lids(letters, chars_per_row=5)
    
     
 }
-letter="T";
+letter="";  // "" for no character
 8x8_cutout = true;
 double_cut_out = false;
 small_terminal_block = false;
@@ -51,7 +51,7 @@ tabs = false;
 short_base = false;  // false makes upside down box, overide_z overides
 overide_z = 9.8; // if  greater than  0 it overrides the short and tall boxes also this + 11 is the total Z
 
-make_somthing = 2;    // 1 base, 2=lid, 3 buttons
+make_somthing = 1;    // 1 base, 2=lid, 3 buttons
 
 if (make_somthing == 1) {
     make_s2_base();
@@ -111,13 +111,13 @@ holes_cutout_z = usb_c_hole_height+shell_wall_thickness*2;
 
 button_cutout_z =
     (overide_z > 0) 
-    ? holes_cutout_z/2-0.4
+    ? (holes_cutout_z/2) + 0.1 //-0.4
     : (short_base == true) 
     ? holes_cutout_z/2-0.4 
     : shell_z-usb_c_hole_height+2.0;
 
 usb_c_hole_z = (overide_z > 0) 
-    ? holes_cutout_z/2-usb_c_hole_height/2
+    ? (holes_cutout_z/2-usb_c_hole_height/2) + 0.5
     : (short_base == true) 
     ? holes_cutout_z/2-usb_c_hole_height/2 
     : shell_z -usb_c_hole_height-2;
@@ -153,7 +153,7 @@ module make_s2_base() {
         
         if (double_cut_out == true)
            double_hole() ;
-        if (8x8_cutout == true)
+        if (8x8_cutout == true && letter > "")
             translate([shell_x*0.6, shell_y*.47, 0])
                     rotate([0,0,90])
                         center_text(letter, size=8, extrude=shell_wall_thickness*2);
