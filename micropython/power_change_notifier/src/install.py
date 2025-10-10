@@ -211,6 +211,7 @@ monitor_only = %s  # if True this sensor does not publish status and therefore i
 switch = %s # if true then "switch_gpio" is tested if off then no publish will be sent
 switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power" publishes are sent
 tm1640_chars = %s
+device_letter = "%s"
 
 """
         now = datetime.datetime.now()
@@ -233,6 +234,7 @@ tm1640_chars = %s
             self.switch,
             self.switch_type,
             self.c8x8.create_tm1640_dict(),
+            self.sensor_to_make[0],
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))

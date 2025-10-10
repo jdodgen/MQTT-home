@@ -339,7 +339,7 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
         led_8x8_queue.put(sensor_down) # list of problem topics
         single_led_queue.put("sensor_down")
     else:
-        led_8x8_queue.put((("all_off", False),))
+        led_8x8_queue.put([("all_off", False),("life", False)])
         single_led_queue.put("all_off")
     if need_email:
         await send_email("One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
@@ -356,8 +356,7 @@ async def main():
 
     # Local configuration, "config" came from mqtt_as
     print("wifi ssid[%s] pw[%s]" % (cfg.ssid, cfg.wifi_password,))
-    config['ssid'] = cfg.ssid
-    config['wifi_pw'] = cfg.wifi_password
+    
     config['server'] = cfg.broker
     config["user"] = cfg.user
     config["password"] = cfg.password
@@ -367,9 +366,8 @@ async def main():
     config["response_time"] = 30
 
     MQTTClient.DEBUG = True  # Optional: print diagnostic messages
-    client = MQTTClient(config)
 
-    led_8x8_queue.put([("boot1",False),("boot2",False),])
+    led_8x8_queue.put([("boot1",False),(cfg.device_letter,False),("boot2",False),])
     single_led_queue.put("boot")
     sw = switch.switch(cfg.switch_pin, client)
     print("creating asyncio tasks")
@@ -384,27 +382,38 @@ async def main():
     # mqtt_as requires a good connection to the broker/server at startup
     # it recovers and notifies automaticly
     #
+    client = None
+    got_connection = False
     while True:
         # Even know mqtt_as automaticly reconnects an initial connection is required
-        print("switch is",sw.test())
-        try:
-            await client.connect()
-        except Exception as e:
-            print("connection problem [", e,);
+        for w in cfg.wifi:
+            print("trying ...", w)
+            config['ssid'] = w[0]
+            config['wifi_pw'] = w[1]
+            client = MQTTClient(config)
+            print("switch is",sw.test())
             try:
-                x=client._addr
-                print("we have ip address broker not connecting", client._addr)
-                led_8x8_queue.put((("3", False),)) # report 3 flashes
-                single_led_queue.put("broker")
-            except:
-                print("wifi failed no ip address")
-                led_8x8_queue.put((("2",False),))  # report 2 flashes
-                single_led_queue.put("wifi")
-            await asyncio.sleep(10)
-        else:
-            print("ip address", client._addr)
+                await client.connect()
+            except Exception as e:
+                print("connection problem [", e,);
+                try:
+                    x=client._addr
+                    print("we have ip address broker not connecting", client._addr)
+                    led_8x8_queue.put((("3", False),)) # report 3 flashes
+                    single_led_queue.put("broker")
+                except:
+                    print("wifi failed no ip address")
+                    led_8x8_queue.put((("2",False),))  # report 2 flashes
+                    single_led_queue.put("wifi")
+                await asyncio.sleep(10)
+            else:
+                print("ip address", client._addr)
+                got_connection = True
+                break
+        if got_connection == True:
             break
-    led_8x8_queue.put((("all_off", False),))
+            
+    led_8x8_queue.put([("all_off", False),("life", False)])
     single_led_queue.put("all_off")
     switch_detected_power = 1 if cfg.switch_type == "NO" else 0  # NO Normaly Open
     while True:  # Main loop checking to see of other has published
