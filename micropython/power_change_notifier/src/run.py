@@ -367,7 +367,7 @@ async def main():
 
     MQTTClient.DEBUG = True  # Optional: print diagnostic messages
 
-    led_8x8_queue.put([("boot1",False),(cfg.device_letter,False),("boot2",False),])
+    led_8x8_queue.put([("boot1",False),(cfg.device_letter,False),("boot2",False),(cfg.device_letter,False),])
     single_led_queue.put("boot")
     sw = switch.switch(cfg.switch_pin, client)
     print("creating asyncio tasks")
