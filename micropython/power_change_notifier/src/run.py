@@ -386,7 +386,7 @@ async def main():
     got_connection = False
     while True:
         # Even know mqtt_as automaticly reconnects an initial connection is required
-        for w in cfg.wifi:
+        for w in cfg.wifi:  # a list of lists each "w" is (ssid,password)
             print("trying ...", w)
             config['ssid'] = w[0]
             config['wifi_pw'] = w[1]
