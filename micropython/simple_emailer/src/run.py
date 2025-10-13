@@ -83,30 +83,42 @@ async def send_email(subject, body, cluster_id_only=False):
 
 #
 # current_watched_sensors[topic][SUB_TOPICS]
-current_watched_sensors = {}
+#current_watched_sensors = {}
 # SUB_TOPICS
 MESSAGE_THIS_CYCLE = "MTC" # "message_this_cycle"
 HAVE_WE_SENT_POWER_IS_DOWN_EMAIL = "HWSPISE" # "have_we_sent_power_is_down_email"
 PUBLISH_CYCLES_WITHOUT_A_MESSAGE = "PCWAM" # "publish_cycles_without_a_message"
 START_TIME = "ST" # "start_time"
 #
-def add_current_watched_sensors(topic):
-    global current_watched_sensors
-    current_watched_sensors[topic] = {
-        MESSAGE_THIS_CYCLE: True,
-        HAVE_WE_SENT_POWER_IS_DOWN_EMAIL: False,
-        PUBLISH_CYCLES_WITHOUT_A_MESSAGE: 0,
-        START_TIME: 0}
+# def add_current_watched_sensors(topic):
+    # global current_watched_sensors
+    # current_watched_sensors[topic] = {
+        # MESSAGE_THIS_CYCLE: True,
+        # HAVE_WE_SENT_POWER_IS_DOWN_EMAIL: False,
+        # PUBLISH_CYCLES_WITHOUT_A_MESSAGE: 0,
+        # START_TIME: 0}
 
 async def raw_messages(client,led_8x8_queue, single_led_queue):  # Process all incoming messages
     # global led
-    global current_watched_sensors
+    # global current_watched_sensors
     # global other_status
     # loop on message queue
     print("raw_messages starting")
     async for btopic, bmsg, retained in client.queue:
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
+        this_topic = email_topics.get(topic, None)
+        if this_topic:  # just checking
+            if "" in email_topics[this_topic]:
+                found_match = email_topics[this_topic][""]
+            else if msg in email_topics[this_topic]:
+                found_match = email_topics[this_topic][msg]
+            if found_match:
+                subject = found_match["subject"]
+                body = found_match["body"]
+                send_email(subject,body)
+                
+             
         print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))
         #if topic == our_status.topic():  # It is me!
             # print("raw_messages bypassing", topic)
@@ -269,30 +281,30 @@ async def led_8x8_display(led_8x8_queue):
         #else:
             #await list8x8.write(["?",])
 
-def make_email_body():
-    global current_watched_sensors
-    body = 'Cluster = "%s"\n' %  (cfg.cluster_id,)
-    for topic in current_watched_sensors:
-        name = topic.split("/")[2]
-        try:
-            parts = name.split(" ",1)
-            if len(parts) == 1:
-                parts.append("")
-        except:
-            parts = [name, ""]
-        body += '%s - %s - state = %s\n' % (parts[0], parts[1], "FALSE / OPEN / POWERED DOWN" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "True / Closed / Powered Up")
-    name = cfg.publish.split("/")[2]
-    try:
-        parts = name.split(" ",1)
-        if len(parts) == 1:
-            parts.append("")
-    except:
-        parts = [name, ""]
-   # body += '       # reporting sensor %s - %s]' % (parts[0], parts[1],)
-    print(body)
-    return body
+# def make_email_body():
+    # # global current_watched_sensors
+    # body = 'Cluster = "%s"\n' %  (cfg.cluster_id,)
+    # # for topic in current_watched_sensors:
+        # # name = topic.split("/")[2]
+        # # try:
+            # # parts = name.split(" ",1)
+            # # if len(parts) == 1:
+                # # parts.append("")
+        # # except:
+            # # parts = [name, ""]
+        # # body += '%s - %s - state = %s\n' % (parts[0], parts[1], "FALSE / OPEN / POWERED DOWN" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "True / Closed / Powered Up")
+    # # name = cfg.publish.split("/")[2]
+    # # try:
+        # # parts = name.split(" ",1)
+        # # if len(parts) == 1:
+            # # parts.append("")
+    # # except:
+        # # parts = [name, ""]
+   # # # body += '       # reporting sensor %s - %s]' % (parts[0], parts[1],)
+    # print(body)
+    # return body
 
-async def up_so_subscribe(client, led_8x8_queue, single_led_queue):
+async def up_so_subscribe(client, led_8x8_queue, single_led_queue, email_topics):
     wild_topic = wildcard_subscribe.topic()
     while True:
         await client.up.wait()
@@ -300,9 +312,8 @@ async def up_so_subscribe(client, led_8x8_queue, single_led_queue):
         print('doing subscribes', wild_topic)
         led_8x8_queue.put((("all_off",False), ))
         single_led_queue.put("all_off")
-        await client.subscribe(wildcard_subscribe.topic())
-        print("emailing startup")
-        await send_email("Starting", boilerplate)
+        for mqtt_topic in email_topics.keys():
+            await client.subscribe(mqtt_topic)
 
 async def down_report_outage(client, led_8x8_queue, single_led_queue):
     while True:
@@ -312,40 +323,40 @@ async def down_report_outage(client, led_8x8_queue, single_led_queue):
         led_8x8_queue.put((("wifi",False),))
         single_led_queue.put("5")
 
-async def check_for_down_sensors(led_8x8_queue, single_led_queue):
-    global current_watched_sensors
-    should_we_turn_on_led = False
-    need_email = 0
-    sensor_down = []
-    for sensor in  current_watched_sensors:
-        #print("main sensor[%s][%s]" % (sensor, current_watched_sensors[sensor]))
-        if current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] == False:  # no message this cycle
-            if (current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold):
-                if (current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > 99998):  # this was a dry contact action
-                   sensor_down.append((sensor, True))  
-                else:
-                    sensor_down.append((sensor, False)) 
-                if (current_watched_sensors[sensor][START_TIME] == 0):   # did it just start?
-                    if (not current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]):
-                        need_email += 1
-                        current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL] = True
-                        current_watched_sensors[sensor][START_TIME]= time.time()
-            else:
-                current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] += 1
-        else:  # messages for this topic have arrived
-            current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] = False # set false here, set true in raw_messages
-            current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
-        #i += 1
-        if current_watched_sensors[sensor][START_TIME] > 0 and sensor in cfg.hard_tracked_topics:
-            should_we_turn_on_led = True
-    if sensor_down:
-        led_8x8_queue.put(sensor_down) # list of problem topics
-        single_led_queue.put("sensor_down")
-    else:
-        led_8x8_queue.put([("all_off", False),("life", False)])
-        single_led_queue.put("all_off")
-    if need_email:
-        await send_email("One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
+# async def check_for_down_sensors(led_8x8_queue, single_led_queue):
+    # global current_watched_sensors
+    # should_we_turn_on_led = False
+    # need_email = 0
+    # sensor_down = []
+    # for sensor in  current_watched_sensors:
+        # #print("main sensor[%s][%s]" % (sensor, current_watched_sensors[sensor]))
+        # if current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] == False:  # no message this cycle
+            # if (current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold):
+                # if (current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > 99998):  # this was a dry contact action
+                   # sensor_down.append((sensor, True))  
+                # else:
+                    # sensor_down.append((sensor, False)) 
+                # if (current_watched_sensors[sensor][START_TIME] == 0):   # did it just start?
+                    # if (not current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]):
+                        # need_email += 1
+                        # current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL] = True
+                        # current_watched_sensors[sensor][START_TIME]= time.time()
+            # else:
+                # current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] += 1
+        # else:  # messages for this topic have arrived
+            # current_watched_sensors[sensor][MESSAGE_THIS_CYCLE] = False # set false here, set true in raw_messages
+            # current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] = 0
+        # #i += 1
+        # if current_watched_sensors[sensor][START_TIME] > 0 and sensor in cfg.hard_tracked_topics:
+            # should_we_turn_on_led = True
+    # if sensor_down:
+        # led_8x8_queue.put(sensor_down) # list of problem topics
+        # single_led_queue.put("sensor_down")
+    # else:
+        # led_8x8_queue.put([("all_off", False),("life", False)])
+        # single_led_queue.put("all_off")
+    # if need_email:
+        # await send_email("One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
 
 async def main():
     global led
@@ -434,7 +445,7 @@ async def main():
         # i=0
         
         print("\b[publish_check_loop]")
-        await check_for_down_sensors(led_8x8_queue, single_led_queue)
+        #await check_for_down_sensors(led_8x8_queue, single_led_queue)
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
 
 ############ startup ###############

@@ -8,6 +8,8 @@
 # this reads a toml configuration file see https://toml.io/
 # this file is used by install.py to generate device cfg.py files
 
+sensor_to_make = "simple_emailer"
+
 import os
 from pathlib import Path
 import datetime
@@ -85,12 +87,18 @@ def wifi_list_of_list(cluster):
             # sys.exit()
 
 def load_topics(cluster):
-    l = []
+    l = None
     for topic in cluster["topic"]:
-        print("ssid", ssid)
-        pw = cluster["network"][ssid]["password"]
-        print("password", cluster["network"][ssid]["password"])
-        l.append([ssid, pw])
+        mqtt = cluster["topic"][topic]["mqtt_topic"]
+        only_this_payload = cluster["topic"][topic].get("only_this_payload", "")
+        subject = cluster["topic"][topic]["subject"]
+        body = cluster["topic"][topic]["body"]
+        print(topic, mqtt, only_this_payload, subject, body)
+        this_email = {"subject": subject, "body": body}
+        if l == None:
+            l = {mqtt: {only_this_payload: this_email}}
+        else:
+            l[mqtt][only_this_payload] = this_email
     print(l)
     return l
 
@@ -98,54 +106,55 @@ class create_cfg:
     def __init__(self, cluster, sensor_to_make):
         self.cluster = cluster
         self.sensor_to_make = sensor_to_make
-        self.sensors = self.cluster["sensor"]
+        # self.sensors = self.cluster["sensor"]
         self.our_feature = feature_power.feature(self.make_topic(sensor_to_make), publish=True)   # publisher
         print(self.our_feature.topic())
         self.set_cfg_values()
         # self.create_hard_tracked_topics()
         self.c8x8 = char8x8(invert=self.cluster.get("invert_8x8", False))
-        self.pretty_name = "From: %s %s" % (self.sensor_to_make, self.sensors[self.sensor_to_make].get("desc", self.sensor_to_make))
+        self.pretty_name = "From: %s %s" % (self.sensor_to_make, "") #self.sensors[self.sensor_to_make].get("desc", self.sensor_to_make))
         self.topics = load_topics(self.cluster)
         self.write_cfg()
        
     def set_cfg_values(self,):
         self.wifi=wifi_list_of_list(self.cluster);
-        if self.sensor_to_make in self.sensors:
-            desc = self.sensors[self.sensor_to_make].get("desc")
+        # if self.sensor_to_make in self.sensors:
+            # desc = self.sensors[self.sensor_to_make].get("desc")
 
-            #self.publish_to = self.sensor_to_make+" "+desc if desc else self.sensor_to_make
+            # #self.publish_to = self.sensor_to_make+" "+desc if desc else self.sensor_to_make
 
-            #self.send_email = self.sensors[self.sensor_to_make].get("send_email",False)
+            # #self.send_email = self.sensors[self.sensor_to_make].get("send_email",False)
             
-            #self.ssid = self.sensors[self.sensor_to_make].get("ssid", self.cluster["network"]["ssid"])
-            #self.wifi_password = self.sensors[self.sensor_to_make].get("wifi_password", self.cluster["network"]["wifi_password"])
+            # #self.ssid = self.sensors[self.sensor_to_make].get("ssid", self.cluster["network"]["ssid"])
+            # #self.wifi_password = self.sensors[self.sensor_to_make].get("wifi_password", self.cluster["network"]["wifi_password"])
             
-            # self.monitor_only = self.sensors[self.sensor_to_make].get("monitor_only", False)
-            # self.switch = self.sensors[self.sensor_to_make].get("switch", False)
-            # self.switch_type = self.sensors[self.sensor_to_make].get("switch_type","NO")
+            # # self.monitor_only = self.sensors[self.sensor_to_make].get("monitor_only", False)
+            # # self.switch = self.sensors[self.sensor_to_make].get("switch", False)
+            # # self.switch_type = self.sensors[self.sensor_to_make].get("switch_type","NO")
 
-        else:  # these "letters" do not exist in the toml file but are treated as "soft_tracking"  that is not tracked until first publish
-            #self.publish_to = self.sensor_to_make   # single letter version
-            self.send_email = False
+        # else:  # these "letters" do not exist in the toml file but are treated as "soft_tracking"  that is not tracked until first publish
+            # #self.publish_to = self.sensor_to_make   # single letter version
+            # #self.send_email = False
             
-            #self.ssid = self.cluster["network"]["ssid"]
-            #self.wifi_password = self.cluster["network"]["wifi_password"]
+            # #self.ssid = self.cluster["network"]["ssid"]
+            # #self.wifi_password = self.cluster["network"]["wifi_password"]
             
-            #self.monitor_only = False
-            #self.switch = False
-            #self.switch_type = False
-        #print("send_email [%s] wifi[%s] monitor_only [%s] switch [%s] switch_type [%s]" %
-        #    (self.send_email, self.wifi, self.monitor_only, self.switch, self.switch_type))
+            # #self.monitor_only = False
+            # #self.switch = False
+            # #self.switch_type = False
+        # #print("send_email [%s] wifi[%s] monitor_only [%s] switch [%s] switch_type [%s]" %
+        # #    (self.send_email, self.wifi, self.monitor_only, self.switch, self.switch_type))
         self.email_addresses()
 
     def make_topic(self, key):
         print("make_topic", key)
         print("cluster_id",self.cluster["cluster_id"])
-        sensor = self.sensors.get(key)
-        if sensor:
-            desc = sensor.get("desc", "")
-        else:
-            desc = ""
+        desc = ""
+        # sensor = self.sensors.get(key)
+        # if sensor:
+            # desc = sensor.get("desc", "")
+        # else:
+            # desc = ""
         if desc == '':
             name =  self.cluster["cluster_id"]+"/"+key
         else:
@@ -158,7 +167,13 @@ class create_cfg:
             self.cc_string += "<%s>," % (addr,)
         self.cc_string = self.cc_string.rstrip(",")
         print(self.cc_string)
-        return self.cc_string
+        
+        self.alert_cc_string = ''
+        for addr in self.cluster["email"]["only_alerts"]:
+            self.alert_cc_string += "<%s>," % (addr,)
+        self.alert_cc_string = self.alert_cc_string.rstrip(",")
+        print(self.alert_cc_string)
+        # return self.cc_string
 
     # def create_hard_tracked_topics(self):
         # sensor_keys = list(self.sensors.keys())
@@ -212,6 +227,7 @@ send_messages_to = %s # a python list
 gmail_password = "%s" # gmail generates this and it can change it in the future
 gmail_user = "%s"
 cc_string = "%s"  # a smtp Cc: string
+alert_cc_string = "%s"  # just alerts,no staus or startup
 
 publish = "%s"
 pretty_name = "%s"
@@ -237,6 +253,7 @@ topics = %s
             self.cluster["email"]["gmail_password"],
             self.cluster["email"]["gmail_user"],
             self.cc_string,
+            self.alert_cc_string,
             self.our_feature.topic(),
             self.pretty_name,
             self.cluster["cluster_id"],
@@ -288,12 +305,13 @@ def push_application_code():
 # this runs from the command line
 def main():
     while True:
+        # try:
+            # cluster_name = sys.argv[1]
+        # except:
+            # print("Input cluster toml file name:")
+            # cluster_name = input()
         try:
-            cluster_name = sys.argv[1]
-        except:
-            print("Input cluster toml file name:")
-            cluster_name = input()
-        try:
+            cluster_name = "cluster_jimdod_simple_emailer.toml" # testing. remove in flight
             cluster = load_cluster(cluster_name)
             break
         except:
