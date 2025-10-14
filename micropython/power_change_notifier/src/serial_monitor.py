@@ -1,8 +1,29 @@
+# monitoring serial port
+# MIT licence copyright 2025 Jim Dodgen
+#
 import serial
-port = '/dev/ttyACM0'
-ser = serial.Serial(port, 115200)  # Open serial port
+import time
+port = '/dev/ttyACM1'
+baud = 115200
 while True:
-    line = ser.readline().decode('utf-8').strip()
-    if line:
-        print(line)
-ser.close() 
+    try:
+        device = serial.Serial(port, baud)  # Open serial port
+    except KeyboardInterrupt:
+        device.close()
+        exit()
+    except:
+        print(port+" not found")
+        time.sleep(2)
+    else:
+        while True:
+            try:
+                line = device.readline().decode('utf-8').strip()
+                if line:
+                    print(line)
+            except KeyboardInterrupt:
+                device.close()
+                exit()
+            except:
+                break
+
+

@@ -165,7 +165,7 @@ def get_8x8_matrix(string):
         except:
             print("get_8x8_matrix not found in cfg.tm1640_chars", string)
             item = cfg.tm1640_chars["?"]
-    print("get_8x8_matrix [%s] returning [%s]" % (string,item))
+    #print("get_8x8_matrix [%s] returning [%s]" % (string,item))
     return item
 
 class display8x8:
@@ -191,7 +191,7 @@ async def do_single_led(single_led_queue):
         while not single_led_queue.empty(): # flush the queue, use last item
             async for cmd, in single_led_queue:
                 break
-        print("do_single_led [%s]" % (cmd,))
+        #print("do_single_led [%s]" % (cmd,))
         if cmd == "all_off":
             led.turn_off()
         elif cmd == "boot":
@@ -221,7 +221,7 @@ class do_8x8_list:
         self.d.write(self.turn_off)
 
     async def write(self, topic_list):
-        print("do_8x8_list.write", topic_list)
+        #print("do_8x8_list.write", topic_list)
         # first convert to 8x8
         char_matrix = []
         for topic_and_dry_contact in topic_list:
@@ -232,7 +232,7 @@ class do_8x8_list:
                     ident = topic.split("/")[2]
                 except:
                     ident = topic
-                print("do_8x8_list ident", ident)
+                #print("do_8x8_list ident", ident)
                 matrix_list = get_8x8_matrix(ident)
                 if dry_contact:
                     matrix_list[0] = 0x80
@@ -260,7 +260,8 @@ async def led_8x8_display(led_8x8_queue):
         while not led_8x8_queue.empty(): # flush the queue, use last item
             async for msg_list, in led_8x8_queue:
                 break
-        print("led_8x8_display [%s] type [%s]" % (msg_list, type(msg_list)))
+        #print("led_8x8_display [%s] type [%s]" % (msg_list, type(msg_list)))
+        #print("led_8x8_display [%s] type [%s]" % (msg_list, type(msg_list)))
         #if isinstance(msg_list, list): # a list of strings to display on 8x8 led matrix
         await list8x8.write(msg_list)
         #else:
@@ -351,12 +352,11 @@ async def main():
         add_current_watched_sensors(topic)
     led_8x8_queue = MsgQueue(20)
     single_led_queue = MsgQueue(20)
-    # loop through possable wifi connections
-    while True:
+   
+    
 
     # Local configuration, "config" came from mqtt_as
-    print("wifi ssid[%s] pw[%s]" % (cfg.ssid, cfg.wifi_password,))
-    
+    # wifi set in connect loop
     config['server'] = cfg.broker
     config["user"] = cfg.user
     config["password"] = cfg.password
@@ -369,14 +369,12 @@ async def main():
 
     led_8x8_queue.put([("boot1",False),(cfg.device_letter,False),("boot2",False),(cfg.device_letter,False),])
     single_led_queue.put("boot")
-    sw = switch.switch(cfg.switch_pin, client)
+    
     print("creating asyncio tasks")
     asyncio.create_task(led_8x8_display(led_8x8_queue))
     asyncio.create_task(do_single_led(single_led_queue))
     await asyncio.sleep(2)
-    asyncio.create_task(raw_messages(client, led_8x8_queue, single_led_queue))
-    asyncio.create_task(up_so_subscribe(client, led_8x8_queue, single_led_queue))
-    asyncio.create_task(down_report_outage(client, led_8x8_queue, single_led_queue))
+    
     #
     # make first connection
     # mqtt_as requires a good connection to the broker/server at startup
@@ -385,13 +383,13 @@ async def main():
     client = None
     got_connection = False
     while True:
-        # Even know mqtt_as automaticly reconnects an initial connection is required
+        # Even know mqtt_as automaticly reconnects, an initial connection is required
+        # loop through possable wifi connections
         for w in cfg.wifi:  # a list of lists each "w" is (ssid,password)
             print("trying ...", w)
             config['ssid'] = w[0]
             config['wifi_pw'] = w[1]
             client = MQTTClient(config)
-            print("switch is",sw.test())
             try:
                 await client.connect()
             except Exception as e:
@@ -405,15 +403,22 @@ async def main():
                     print("wifi failed no ip address")
                     led_8x8_queue.put((("2",False),))  # report 2 flashes
                     single_led_queue.put("wifi")
-                await asyncio.sleep(10)
+                await asyncio.sleep(5)
             else:
                 print("ip address", client._addr)
                 got_connection = True
                 break
         if got_connection == True:
             break
-            
-    led_8x8_queue.put([("all_off", False),("life", False)])
+    asyncio.create_task(raw_messages(client, led_8x8_queue, single_led_queue))
+    asyncio.create_task(up_so_subscribe(client, led_8x8_queue, single_led_queue))
+    asyncio.create_task(down_report_outage(client, led_8x8_queue, single_led_queue))
+    sw = switch.switch(cfg.switch_pin, client)
+    print("switch is",sw.test())
+    if cfg.no_heartbeat == True:
+        led_8x8_queue.put([("all_off", False)])
+    else:
+        led_8x8_queue.put([("all_off", False),("life", False)])
     single_led_queue.put("all_off")
     switch_detected_power = 1 if cfg.switch_type == "NO" else 0  # NO Normaly Open
     while True:  # Main loop checking to see of other has published

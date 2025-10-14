@@ -3,6 +3,7 @@ import os
 import time
 
 micropython_bin = "/home/jim/Downloads/ESP32_GENERIC_S2-20250911-v1.26.1.bin"
+# micropython_bin = "/home/jim/Downloads/ESP32_GENERIC_S2-20250415-v1.25.0.bin"
 
 def flasher():
     os.system("esptool --after no-reset --chip esp32s2 --port /dev/ttyACM0 erase-flash")

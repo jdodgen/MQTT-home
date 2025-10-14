@@ -105,7 +105,7 @@ class create_cfg:
             #self.publish_to = self.sensor_to_make+" "+desc if desc else self.sensor_to_make
 
             self.send_email = self.sensors[self.sensor_to_make].get("send_email",False)
-            
+            self.no_heartbeat = self.sensors[self.sensor_to_make].get("no_heartbeat", False)
             #self.ssid = self.sensors[self.sensor_to_make].get("ssid", self.cluster["network"]["ssid"])
             #self.wifi_password = self.sensors[self.sensor_to_make].get("wifi_password", self.cluster["network"]["wifi_password"])
             
@@ -178,7 +178,7 @@ westminster_pin   = 16  # D4
 data8x8_pin       = 11  # D7
 clock8X8_pin      = 7   # D5
 
-brightness8x8 = 0  # half
+brightness8x8 = 1   # 0 - 7 
 #
 #wifi: IoT or guest network recommended
 wifi= %s
@@ -212,6 +212,7 @@ switch = %s # if true then "switch_gpio" is tested if off then no publish will b
 switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power" publishes are sent
 tm1640_chars = %s
 device_letter = "%s"
+no_heartbeat = %s
 
 """
         now = datetime.datetime.now()
@@ -235,6 +236,7 @@ device_letter = "%s"
             self.switch_type,
             self.c8x8.create_tm1640_dict(),
             self.sensor_to_make[0],
+            self.no_heartbeat,
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))

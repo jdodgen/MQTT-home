@@ -772,6 +772,7 @@ class MQTTClient(MQTT_base):
                     raise OSError("Connection Unstable")  # in 1st 5 secs
                 await asyncio.sleep(1)
             self.dprint("Got reliable connection")
+            print(s.ifconfig())
 
     async def connect(self, *, quick=False):  # Quick initial connect option for battery apps
         if not self._has_connected:
