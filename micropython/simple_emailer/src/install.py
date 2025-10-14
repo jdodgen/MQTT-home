@@ -87,19 +87,37 @@ def wifi_list_of_list(cluster):
             # sys.exit()
 
 def load_topics(cluster):
-    l = None
+    l = {}
     for topic in cluster["topic"]:
+        print("\ntopic",topic,"\n")
         mqtt = cluster["topic"][topic]["mqtt_topic"]
-        only_this_payload = cluster["topic"][topic].get("only_this_payload", "")
+        test_payload = cluster["topic"][topic]["test_payload"]
+        only_this_payload = cluster["topic"][topic].get("only_this_payload", None)
         subject = cluster["topic"][topic]["subject"]
         body = cluster["topic"][topic]["body"]
-        print(topic, mqtt, only_this_payload, subject, body)
-        this_email = {"subject": subject, "body": body}
-        if l == None:
-            l = {mqtt: {only_this_payload: this_email}}
-        else:
-            l[mqtt][only_this_payload] = this_email
-    print(l)
+        cc_string = ''
+        if "to_list" in cluster["topic"][topic]:
+            print("to_list", cluster["topic"][topic]["to_list"])
+            for addr in cluster["topic"][topic]["to_list"]:
+                cc_string += "<%s>," % (addr,)
+            cc_string = cc_string.rstrip(",")
+        
+        print(topic, mqtt, only_this_payload, subject, body, cc_string, test_payload)
+        this_email = {"subject": subject, "body": body, "cc_string": cc_string,}
+        if mqtt not in l:
+            l[mqtt] = {}
+        l[mqtt][only_this_payload] = this_email
+    #print(l)
+    # data structure example for run.py
+    for topic in l.keys():
+        print("topic", topic)
+        for need_payload in l[topic]:
+            print("match_on_payload", need_payload)
+            if need_payload == True:
+                payload = l[topic][need_payload]["only_this_payload"]
+                print("needed payload", payload)
+            subject = l[topic][need_payload]["subject"]
+            print("subject", subject)
     return l
 
 class create_cfg:
@@ -144,7 +162,7 @@ class create_cfg:
             # #self.switch_type = False
         # #print("send_email [%s] wifi[%s] monitor_only [%s] switch [%s] switch_type [%s]" %
         # #    (self.send_email, self.wifi, self.monitor_only, self.switch, self.switch_type))
-        self.email_addresses()
+        self.general_email_addresses()
 
     def make_topic(self, key):
         print("make_topic", key)
@@ -161,7 +179,7 @@ class create_cfg:
             name =  self.cluster["cluster_id"]+"/"+key+" "+desc
         return name
 
-    def email_addresses(self):
+    def general_email_addresses(self):
         self.cc_string = ''
         for addr in self.cluster["email"]["to_list"]:
             self.cc_string += "<%s>," % (addr,)
@@ -169,9 +187,10 @@ class create_cfg:
         print(self.cc_string)
         
         self.alert_cc_string = ''
-        for addr in self.cluster["email"]["only_alerts"]:
-            self.alert_cc_string += "<%s>," % (addr,)
-        self.alert_cc_string = self.alert_cc_string.rstrip(",")
+        if "only_alerts" in self.cluster["email"]:
+            for addr in self.cluster["email"]["only_alerts"]:
+                self.alert_cc_string += "<%s>," % (addr,)
+            self.alert_cc_string = self.alert_cc_string.rstrip(",")
         print(self.alert_cc_string)
         # return self.cc_string
 
