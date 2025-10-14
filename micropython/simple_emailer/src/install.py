@@ -8,7 +8,7 @@
 # this reads a toml configuration file see https://toml.io/
 # this file is used by install.py to generate device cfg.py files
 
-sensor_to_make = "simple_emailer"
+sensor_to_make = "E simple_emailer"
 
 import os
 from pathlib import Path
