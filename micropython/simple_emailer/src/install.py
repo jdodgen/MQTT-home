@@ -91,8 +91,7 @@ def load_topics(cluster):
     for topic in cluster["topic"]:
         print("\ntopic",topic,"\n")
         mqtt = cluster["topic"][topic]["mqtt_topic"]
-        test_payload = cluster["topic"][topic]["test_payload"]
-        only_this_payload = cluster["topic"][topic].get("only_this_payload", None)
+        only_this_payload = cluster["topic"][topic].get("only_this_payload", "AlL")
         subject = cluster["topic"][topic]["subject"]
         body = cluster["topic"][topic]["body"]
         cc_string = ''
@@ -102,7 +101,7 @@ def load_topics(cluster):
                 cc_string += "<%s>," % (addr,)
             cc_string = cc_string.rstrip(",")
         
-        print(topic, mqtt, only_this_payload, subject, body, cc_string, test_payload)
+        print(topic, mqtt, only_this_payload, subject, body, cc_string,)
         this_email = {"subject": subject, "body": body, "cc_string": cc_string,}
         if mqtt not in l:
             l[mqtt] = {}
@@ -130,7 +129,7 @@ class create_cfg:
         self.set_cfg_values()
         # self.create_hard_tracked_topics()
         self.c8x8 = char8x8(invert=self.cluster.get("invert_8x8", False))
-        self.pretty_name = "From: %s %s" % (self.sensor_to_make, "") #self.sensors[self.sensor_to_make].get("desc", self.sensor_to_make))
+        self.pretty_name = "(%s)" % (self.sensor_to_make) #self.sensors[self.sensor_to_make].get("desc", self.sensor_to_make))
         self.topics = load_topics(self.cluster)
         self.write_cfg()
        

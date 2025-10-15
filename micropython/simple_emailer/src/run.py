@@ -32,8 +32,8 @@ import os
 #import switch
 from msgqueue import  MsgQueue
 
-wildcard_subscribe = feature_power.feature(cfg.cluster_id+"/+", subscribe=True)
-print(wildcard_subscribe.topic())
+#wildcard_subscribe = feature_power.feature(cfg.cluster_id+"/+", subscribe=True)
+#print(wildcard_subscribe.topic())
 
 #our_status = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=True)   # publisher
 # print("Our topic = [%s]" % (our_status.topic(),))
@@ -63,8 +63,8 @@ def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
     xprint("[run]", *args, **kwargs) # the copied real print
 
-async def send_email(subject, body, cluster_id_only=False):
-    if cfg.send_email:
+async def send_email(subject, body, cc=cfg.cc_string, cluster_id_only=False):
+    # if cfg.send_email:
         try:
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
             await asyncio.sleep(0)
@@ -73,7 +73,7 @@ async def send_email(subject, body, cluster_id_only=False):
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
             id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
             print("our id [%s]" % (id,))
-            smtp.write("CC: %s\nSubject:PCN %s, %s\n\n%s\n" % (cfg.cc_string, subject, id,  body,))
+            smtp.write("CC: %s\nSubject:%s %s\n\n%s\n" % (cc, subject, id,  body,))
             await asyncio.sleep(0)
             smtp.send()
             await asyncio.sleep(0)
@@ -107,19 +107,27 @@ async def raw_messages(client,led_8x8_queue, single_led_queue):  # Process all i
     async for btopic, bmsg, retained in client.queue:
         topic = btopic.decode('utf-8')
         msg = bmsg.decode('utf-8')
-        this_topic = email_topics.get(topic, None)
+        print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))
+        this_topic = cfg.topics.get(topic, None)
         if this_topic:  # just checking
-            if "" in email_topics[this_topic]:
-                found_match = email_topics[this_topic][""]
-            else if msg in email_topics[this_topic]:
-                found_match = email_topics[this_topic][msg]
+            print("raw_messages this_topic:", this_topic)
+            print("keys:",this_topic.keys())
+            found_match = {}
+            
+            if msg in this_topic.keys():  
+                found_match = this_topic[msg]
+                print("raw_messages msg found", found_match)
+            elif "AlL"  in this_topic.keys():  # this is gets all for mqtt topic
+                found_match = this_topic["AlL"]
+                print("raw_messages AlA found", found_match)
             if found_match:
                 subject = found_match["subject"]
                 body = found_match["body"]
-                send_email(subject,body)
+                cc_string = found_match["cc_string"]
+                await send_email(subject,body,cc_string)
                 
              
-        print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))
+        
         #if topic == our_status.topic():  # It is me!
             # print("raw_messages bypassing", topic)
             #continue
@@ -180,7 +188,7 @@ def get_8x8_matrix(string):
         except:
             print("get_8x8_matrix not found in cfg.tm1640_chars", string)
             item = cfg.tm1640_chars["?"]
-    print("get_8x8_matrix [%s] returning [%s]" % (string,item))
+    #print("get_8x8_matrix [%s] returning [%s]" % (string,item))
     return item
 
 class display8x8:
@@ -236,7 +244,7 @@ class do_8x8_list:
         self.d.write(self.turn_off)
 
     async def write(self, topic_list):
-        print("do_8x8_list.write", topic_list)
+        #print("do_8x8_list.write", topic_list)
         # first convert to 8x8
         char_matrix = []
         for topic_and_dry_contact in topic_list:
@@ -247,7 +255,7 @@ class do_8x8_list:
                     ident = topic.split("/")[2]
                 except:
                     ident = topic
-                print("do_8x8_list ident", ident)
+                #print("do_8x8_list ident", ident)
                 matrix_list = get_8x8_matrix(ident)
                 if dry_contact:
                     matrix_list[0] = 0x80
@@ -275,7 +283,7 @@ async def led_8x8_display(led_8x8_queue):
         while not led_8x8_queue.empty(): # flush the queue, use last item
             async for msg_list, in led_8x8_queue:
                 break
-        print("led_8x8_display [%s] type [%s]" % (msg_list, type(msg_list)))
+        #print("led_8x8_display [%s] type [%s]" % (msg_list, type(msg_list)))
         #if isinstance(msg_list, list): # a list of strings to display on 8x8 led matrix
         await list8x8.write(msg_list)
         #else:
@@ -304,16 +312,17 @@ async def led_8x8_display(led_8x8_queue):
     # print(body)
     # return body
 
-async def up_so_subscribe(client, led_8x8_queue, single_led_queue, email_topics):
-    wild_topic = wildcard_subscribe.topic()
+async def up_so_subscribe(client, led_8x8_queue, single_led_queue):
+    # wild_topic = wildcard_subscribe.topic()
     while True:
         await client.up.wait()
         client.up.clear()
-        print('doing subscribes', wild_topic)
+        #print('doing subscribes', wild_topic)
         led_8x8_queue.put((("all_off",False), ))
         single_led_queue.put("all_off")
-        for mqtt_topic in email_topics.keys():
+        for mqtt_topic in cfg.topics.keys():
             await client.subscribe(mqtt_topic)
+            print("sibscribed: ", mqtt_topic)
 
 async def down_report_outage(client, led_8x8_queue, single_led_queue):
     while True:
@@ -361,15 +370,15 @@ async def down_report_outage(client, led_8x8_queue, single_led_queue):
 async def main():
     global led
     print_flash_usage()
-    for topic in cfg.hard_tracked_topics: # "hard" tracked topics are monitored from boot,  "soft" only after a publish
-        add_current_watched_sensors(topic)
+    #for topic in cfg.hard_tracked_topics: # "hard" tracked topics are monitored from boot,  "soft" only after a publish
+        #add_current_watched_sensors(topic)
     led_8x8_queue = MsgQueue(20)
     single_led_queue = MsgQueue(20)
     # loop through possable wifi connections
-    while True:
+    # while True:
 
     # Local configuration, "config" came from mqtt_as
-    print("wifi ssid[%s] pw[%s]" % (cfg.ssid, cfg.wifi_password,))
+    # print("wifi ssid[%s] pw[%s]" % (cfg.ssid, cfg.wifi_password,))
     
     config['server'] = cfg.broker
     config["user"] = cfg.user
@@ -383,14 +392,12 @@ async def main():
 
     led_8x8_queue.put([("boot1",False),(cfg.device_letter,False),("boot2",False),(cfg.device_letter,False),])
     single_led_queue.put("boot")
-    sw = switch.switch(cfg.switch_pin, client)
+    # sw = switch.switch(cfg.switch_pin, client)
     print("creating asyncio tasks")
     asyncio.create_task(led_8x8_display(led_8x8_queue))
     asyncio.create_task(do_single_led(single_led_queue))
     await asyncio.sleep(2)
-    asyncio.create_task(raw_messages(client, led_8x8_queue, single_led_queue))
-    asyncio.create_task(up_so_subscribe(client, led_8x8_queue, single_led_queue))
-    asyncio.create_task(down_report_outage(client, led_8x8_queue, single_led_queue))
+    
     #
     # make first connection
     # mqtt_as requires a good connection to the broker/server at startup
@@ -405,7 +412,7 @@ async def main():
             config['ssid'] = w[0]
             config['wifi_pw'] = w[1]
             client = MQTTClient(config)
-            print("switch is",sw.test())
+            # print("switch is",sw.test())
             try:
                 await client.connect()
             except Exception as e:
@@ -426,26 +433,29 @@ async def main():
                 break
         if got_connection == True:
             break
-            
+    asyncio.create_task(raw_messages(client, led_8x8_queue, single_led_queue))
+    asyncio.create_task(up_so_subscribe(client, led_8x8_queue, single_led_queue))
+    asyncio.create_task(down_report_outage(client, led_8x8_queue, single_led_queue))        
     led_8x8_queue.put([("all_off", False),("life", False)])
     single_led_queue.put("all_off")
-    switch_detected_power = 1 if cfg.switch_type == "NO" else 0  # NO Normaly Open
+    # switch_detected_power = 1 if cfg.switch_type == "NO" else 0  # NO Normaly Open
     while True:  # Main loop checking to see of other has published
         # first publish alive status
-        if cfg.monitor_only == True: # we don't publish or get tracked
-            pass  
-        else:
-            sw_value = sw.test()
-            print("switch = %s switch_detected_power %s" % (sw_value, switch_detected_power))
-            if (cfg.switch == True and sw.test() != switch_detected_power):
-                await client.publish(cfg.publish, "down")
-            else:
-                print("publishing powered up message")
-                await client.publish(cfg.publish, "up")
+        # if cfg.monitor_only == True: # we don't publish or get tracked
+            # pass  
+        # else:
+            # sw_value = sw.test()
+            # print("switch = %s switch_detected_power %s" % (sw_value, switch_detected_power))
+            # if (cfg.switch == True and sw.test() != switch_detected_power):
+                # await client.publish(cfg.publish, "down")
+            # else:
+                # print("publishing powered up message")
+                # await client.publish(cfg.publish, "up")
         # i=0
         
         print("\b[publish_check_loop]")
         #await check_for_down_sensors(led_8x8_queue, single_led_queue)
+        await client.publish(cfg.publish, "up")
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
 
 ############ startup ###############
