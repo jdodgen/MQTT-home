@@ -456,6 +456,7 @@ async def main():
         print("\b[publish_check_loop]")
         #await check_for_down_sensors(led_8x8_queue, single_led_queue)
         await client.publish(cfg.publish, "up")
+        led_8x8_queue.put([("all_off", False),("life", False)])
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
 
 ############ startup ###############
