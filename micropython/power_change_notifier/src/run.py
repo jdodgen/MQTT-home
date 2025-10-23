@@ -27,6 +27,7 @@ import asyncio
 import time
 import os
 import switch
+import machine   # for soft reset
 from msgqueue import  MsgQueue
 
 wildcard_subscribe = feature_power.feature(cfg.cluster_id+"/+", subscribe=True)
@@ -307,8 +308,9 @@ async def down_report_outage(client, led_8x8_queue, single_led_queue):
         await client.down.wait()
         client.down.clear()
         print('got outage')
-        led_8x8_queue.put((("wifi",False),))
-        single_led_queue.put("5")
+        machine.soft_reset()   # 
+        #led_8x8_queue.put((("wifi",False),))
+        #single_led_queue.put("5")
 
 async def check_for_down_sensors(led_8x8_queue, single_led_queue):
     global current_watched_sensors
