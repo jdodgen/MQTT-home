@@ -22,13 +22,6 @@ mp_lib_offset="../../library/"  # micropython specific
 all_lib_offset="../../../library/" # both linux and micropython
 cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
 
-
-if os.name == 'nt':
-    serial_port = "COM3"
-else: # linux
-    serial_port = "/dev/ttyACM0"
-print("Device on:", serial_port)
-
 # to have  imports from libraries we need to do this:
 # Get the absolute path of the current script's directory
 # Add the parent directory to sys.path
@@ -290,7 +283,7 @@ topics = %s
             f.write(cfg_text)
         print("created cfg.py")
 
-def push_library_code():
+def push_library_code(serial_port):
     code = [
     mp_lib_offset+"main.py",
     mp_lib_offset+"boot.py",
@@ -310,7 +303,7 @@ def push_library_code():
         print("installing", c)
         os.system("ampy --port %s put %s" % (serial_port,c))
 
-def push_application_code():
+def push_application_code(serial_port):
     code = [
     "run.py",
     "cfg.py",
@@ -342,6 +335,8 @@ def main():
     create_cfg(cluster, sensor_to_make) # drops cfg.py file
 
     # install micropython kernal
+    f=flasher()
+    serial_port = f.port()
     did_we_flash = False
     print("\ninstall micropython? (y,N)")
     ans = input()
@@ -349,7 +344,7 @@ def main():
         did_we_flash = True
         print ("\npress and hold O (flat side)\nthen press RST (indent) momentary\nrelease O\nthen press Enter to continue")
         input()
-        flasher()
+        f.flash()
     # install library code
     if did_we_flash == False:
         print("install library code? (y,N)")
@@ -357,7 +352,7 @@ def main():
     else:
         lans = "Y"
     if (lans.upper() == "Y"):
-        push_library_code()
+        push_library_code(serial_port)
     # install application code
     if did_we_flash == True or lans.upper() == "Y":
          ans = "Y"
@@ -365,7 +360,7 @@ def main():
         print("\ninstall application code? (Y,n)")
         ans = input()
     if (ans.upper() != "N"):
-        push_application_code()
+        push_application_code(serial_port)
     os.system("ampy --port %s ls" % (serial_port,))
     if os.name == 'nt':
         print("\n  putty -serial ", serial_port)
