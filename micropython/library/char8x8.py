@@ -2,7 +2,7 @@
 # a character lookup dictionary/hash
 # 8x8 matrix tested on TM1640 driver
 # thanks to xantorohara https://xantorohara.github.io/led-matrix-editor/#
-# this mamming is not correct for the tm1640.py driver but used for ease
+# this ordering is not correct for the tm1640.py driver but used for ease
 # of customization using xantorohara's tool
 # 
 
