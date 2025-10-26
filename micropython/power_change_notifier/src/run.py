@@ -71,7 +71,7 @@ async def send_email(subject, body, cluster_id_only=False):
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
             id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
             print("our id [%s]" % (id,))
-            smtp.write("CC: %s\nSubject:PCN %s, %s\n\n%s\n" % (cfg.cc_string, subject, id,  body,))
+            smtp.write("CC: %s\nSubject:%s, %s\n\n%s\n" % (cfg.cc_string, subject, id,  body,))
             await asyncio.sleep(0)
             smtp.send()
             await asyncio.sleep(0)
@@ -133,7 +133,7 @@ async def raw_messages(client,led_8x8_queue, single_led_queue):  # Process all i
                 current_watched_sensors[topic][START_TIME]=0
         if restored_sensors: 
             await check_for_down_sensors(led_8x8_queue, single_led_queue)
-            await send_email("Power restored or Event cleared: %s" % (topic.split("/")[2],),  restored_sensors+make_email_body())
+            await send_email("PCN Power restored or Event cleared: %s" % (topic.split("/")[2],),  restored_sensors+make_email_body())
             
     print("raw_messages exiting?")
 
@@ -301,7 +301,7 @@ async def up_so_subscribe(client, led_8x8_queue, single_led_queue):
         single_led_queue.put("all_off")
         await client.subscribe(wildcard_subscribe.topic())
         print("emailing startup")
-        await send_email("Starting", boilerplate)
+        await send_email("PCN Starting", boilerplate)
 
 async def down_report_outage(client, led_8x8_queue, single_led_queue):
     while True:
@@ -324,12 +324,12 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
                 if (current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > 99998):  # this was a dry contact action
                    sensor_down.append((sensor, True))  
                 else:
-                    sensor_down.append((sensor, False)) 
-                if (current_watched_sensors[sensor][START_TIME] == 0):   # did it just start?
-                    if (not current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]):
-                        need_email += 1
-                        current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL] = True
-                        current_watched_sensors[sensor][START_TIME]= time.time()
+                    sensor_down.append((sensor, False))
+                    if (current_watched_sensors[sensor][START_TIME] == 0):   # did it just start?
+                        if (not current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL]):
+                            need_email += 1
+                            current_watched_sensors[sensor][HAVE_WE_SENT_POWER_IS_DOWN_EMAIL] = True
+                            current_watched_sensors[sensor][START_TIME]= time.time()
             else:
                 current_watched_sensors[sensor][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] += 1
         else:  # messages for this topic have arrived
@@ -345,7 +345,7 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
         led_8x8_queue.put([("all_off", False),("life", False)])
         single_led_queue.put("all_off")
     if need_email:
-        await send_email("One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
+        await send_email("PCN One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
 
 async def main():
     global led
@@ -423,6 +423,7 @@ async def main():
         led_8x8_queue.put([("all_off", False),("life", False)])
     single_led_queue.put("all_off")
     switch_detected_power = 1 if cfg.switch_type == "NO" else 0  # NO Normaly Open
+    switch_pressed = False
     while True:  # Main loop checking to see of other has published
         # first publish alive status
         if cfg.monitor_only == True: # we don't publish or get tracked
@@ -432,9 +433,17 @@ async def main():
             print("switch = %s switch_detected_power %s" % (sw_value, switch_detected_power))
             if (cfg.switch == True and sw.test() != switch_detected_power):
                 await client.publish(cfg.publish, "down")
+                if switch_pressed != True:  # we havee not sent email
+                    switch_pressed = True
+                    # send email
             else:
                 print("publishing powered up message")
                 await client.publish(cfg.publish, "up")
+                if switch_pressed == True:
+                    # email sent so send a now send up email
+                    
+                switch_pressed = False
+                
         # i=0
         
         print("\b[publish_check_loop]")
