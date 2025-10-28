@@ -98,31 +98,25 @@ class create_cfg:
         self.write_cfg()
        
     def set_cfg_values(self,):
-        self.wifi=wifi_list_of_list(self.cluster);
-        if self.sensor_to_make in self.sensors:
-            desc = self.sensors[self.sensor_to_make].get("desc")
+        override_wifi = self.sensors[self.sensor_to_make].get("wifi", None)
+        if override_wifi:
+            override_password = self.sensors[self.sensor_to_make].get("password")
+            self.wifi = [[override_wifi,override_password],] 
+        else:
+            self.wifi=wifi_list_of_list(self.cluster)
+        self.desc = self.sensors[self.sensor_to_make].get("desc")
+        self.switch_subject_event_true = self.sensors[self.sensor_to_make].get("switch_subject_event_true", "Power down")
+        self.switch_subject_event_false = self.sensors[self.sensor_to_make].get("switch_subject_event_false", "Power up")
+        #self.publish_to = self.sensor_to_make+" "+desc if desc else self.sensor_to_make
 
-            #self.publish_to = self.sensor_to_make+" "+desc if desc else self.sensor_to_make
-
-            self.send_email = self.sensors[self.sensor_to_make].get("send_email",False)
-            self.no_heartbeat = self.sensors[self.sensor_to_make].get("no_heartbeat", False)
-            #self.ssid = self.sensors[self.sensor_to_make].get("ssid", self.cluster["network"]["ssid"])
-            #self.wifi_password = self.sensors[self.sensor_to_make].get("wifi_password", self.cluster["network"]["wifi_password"])
-            
-            self.monitor_only = self.sensors[self.sensor_to_make].get("monitor_only", False)
-            self.switch = self.sensors[self.sensor_to_make].get("switch", False)
-            self.switch_type = self.sensors[self.sensor_to_make].get("switch_type","NO")
-
-        else:  # these "letters" do not exist in the toml file but are treated as "soft_tracking"  that is not tracked until first publish
-            #self.publish_to = self.sensor_to_make   # single letter version
-            self.send_email = False
-            
-            #self.ssid = self.cluster["network"]["ssid"]
-            #self.wifi_password = self.cluster["network"]["wifi_password"]
-            
-            self.monitor_only = False
-            self.switch = False
-            self.switch_type = False
+        self.send_email = self.sensors[self.sensor_to_make].get("send_email",False)
+        self.no_heartbeat = self.sensors[self.sensor_to_make].get("no_heartbeat", False)
+        #self.ssid = self.sensors[self.sensor_to_make].get("ssid", self.cluster["network"]["ssid"])
+        #self.wifi_password = self.sensors[self.sensor_to_make].get("wifi_password", self.cluster["network"]["wifi_password"])
+        
+        self.monitor_only = self.sensors[self.sensor_to_make].get("monitor_only", False)
+        self.switch = self.sensors[self.sensor_to_make].get("switch", False)
+        self.switch_type = self.sensors[self.sensor_to_make].get("switch_type","NO")
         print("send_email [%s] wifi[%s] monitor_only [%s] switch [%s] switch_type [%s]" %
             (self.send_email, self.wifi, self.monitor_only, self.switch, self.switch_type))
         self.email_addresses()
@@ -204,12 +198,15 @@ cc_string = "%s"  # a smtp Cc: string
 
 publish = "%s"
 pretty_name = "%s"
+desc  = "%s"
 cluster_id = "%s"
 send_email =  %s
 hard_tracked_topics = %s # these get tracked from boot, others only after first publish
 monitor_only = %s  # if True this sensor does not publish status and therefore is not tracked
 switch = %s # if true then "switch_gpio" is tested if off then no publish will be sent
 switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power" publishes are sent
+switch_subject_event_true = "%s"
+switch_subject_event_false = "%s"
 tm1640_chars = %s
 device_letter = "%s"
 no_heartbeat = %s
@@ -228,12 +225,15 @@ no_heartbeat = %s
             self.cc_string,
             self.our_feature.topic(),
             self.pretty_name,
+            self.desc,
             self.cluster["cluster_id"],
             self.send_email,
             self.hard_tracked_topics,
             self.monitor_only,
             self.switch,
             self.switch_type,
+            self.switch_subject_event_true,
+            self.switch_subject_event_false,
             self.c8x8.create_tm1640_dict(),
             self.sensor_to_make[0],
             self.no_heartbeat,
@@ -278,7 +278,7 @@ def push_application_code():
 def main():
     while True:
         try:
-            cluster_name = sys.argv[1]
+            cluster_name = "cluster_test.toml" #sys.argv[1] 
         except:
             print("Input cluster toml file name:")
             cluster_name = input()
@@ -287,11 +287,19 @@ def main():
             break
         except:
             print("Try again")
-    print_sensors(cluster["sensor"])
-
-    print("select one (case insensitive): ", end="")
-    sensor_to_make = input().upper()
-    print("request = ", sensor_to_make)
+    
+    while True:
+        print_sensors(cluster["sensor"])
+        print("select one (case insensitive): ", end="")
+        sensor_to_make = input().upper()
+        if sensor_to_make.lower() in cluster["sensor"]:
+           sensor_to_make =  sensor_to_make.lower()
+        print("request = ", sensor_to_make)
+        if sensor_to_make in cluster["sensor"]:
+            break
+        else:
+            print(">>> not found <<<")
+            
     create_cfg(cluster, sensor_to_make) # drops cfg.py file
 
     # install micropython kernal

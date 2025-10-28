@@ -13,7 +13,7 @@
 # I am using this code as the starting point for other more complex IoT sensors
 # example is a "dry_contact" switch option monitoring a gpio line to detect a swich or button:
 #
-VERSION = (1, 0, 1)
+VERSION = (1, 2, 1)
 import umail
 import alert_handler
 from mqtt_as import MQTTClient, config
@@ -62,21 +62,20 @@ def print(*args, **kwargs): # replace print
     xprint("[run]", *args, **kwargs) # the copied real print
 
 async def send_email(subject, body, cluster_id_only=False):
-    if cfg.send_email:
-        try:
-            smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
-            await asyncio.sleep(0)
-            smtp.login(cfg.gmail_user, cfg.gmail_password)
-            await asyncio.sleep(0)
-            smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-            id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
-            print("our id [%s]" % (id,))
-            smtp.write("CC: %s\nSubject:%s, %s\n\n%s\n" % (cfg.cc_string, subject, id,  body,))
-            await asyncio.sleep(0)
-            smtp.send()
-            await asyncio.sleep(0)
-            smtp.quit()
-        except Exception as e:
+    try:
+        smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
+        await asyncio.sleep(0)
+        smtp.login(cfg.gmail_user, cfg.gmail_password)
+        await asyncio.sleep(0)
+        smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
+        id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
+        print("our id [%s]" % (id,))
+        smtp.write("CC: %s\nSubject:%s, %s\n\n%s\n" % (cfg.cc_string, subject, id,  body,))
+        await asyncio.sleep(0)
+        smtp.send()
+        await asyncio.sleep(0)
+        smtp.quit()
+    except Exception as e:
             print("email failed", e)
 
 #
@@ -133,7 +132,8 @@ async def raw_messages(client,led_8x8_queue, single_led_queue):  # Process all i
                 current_watched_sensors[topic][START_TIME]=0
         if restored_sensors: 
             await check_for_down_sensors(led_8x8_queue, single_led_queue)
-            await send_email("PCN Power restored or Event cleared: %s" % (topic.split("/")[2],),  restored_sensors+make_email_body())
+            if cfg.send_email:
+                await send_email("PCN Power restored or Event cleared: %s" % (topic.split("/")[2],),  restored_sensors+make_email_body())
             
     print("raw_messages exiting?")
 
@@ -344,7 +344,7 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
     else:
         led_8x8_queue.put([("all_off", False),("life", False)])
         single_led_queue.put("all_off")
-    if need_email:
+    if need_email and cfg.send_email:
         await send_email("PCN One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
 
 async def main():
@@ -354,9 +354,6 @@ async def main():
         add_current_watched_sensors(topic)
     led_8x8_queue = MsgQueue(20)
     single_led_queue = MsgQueue(20)
-   
-    
-
     # Local configuration, "config" came from mqtt_as
     # wifi set in connect loop
     config['server'] = cfg.broker
@@ -422,27 +419,34 @@ async def main():
     else:
         led_8x8_queue.put([("all_off", False),("life", False)])
     single_led_queue.put("all_off")
-    switch_detected_power = 1 if cfg.switch_type == "NO" else 0  # NO Normaly Open
-    switch_pressed = False
+    switch_detected_true_value = True if cfg.switch_type == "NO" else False  # NO Normaly Open
+    switch_on_email_sent = False
+    sw_value = 0;
     while True:  # Main loop checking to see of other has published
         # first publish alive status
         if cfg.monitor_only == True: # we don't publish or get tracked
             pass  
         else:
-            sw_value = sw.test()
-            print("switch = %s switch_detected_power %s" % (sw_value, switch_detected_power))
-            if (cfg.switch == True and sw.test() != switch_detected_power):
+            # test fixture
+            sw_value = not sw_value;
+            print("switch value", sw_value)
+            # sw_value = sw.test()
+            print("switch = %s switch_detected_true_value %s" % (sw_value, switch_detected_true_value))
+            if (cfg.switch == True and sw_value != switch_detected_true_value):
                 await client.publish(cfg.publish, "down")
-                if switch_pressed != True:  # we havee not sent email
-                    switch_pressed = True
-                    # send email
+                if not switch_on_email_sent:  # we have not sent email
+                    switch_on_email_sent = True
+                    # send switch check email
+                    await send_email("(%s) %s %s" % 
+                    (cfg.device_letter, cfg.desc, cfg.switch_subject_event_true), "", cluster_id_only=True)
             else:
-                print("publishing powered up message")
+                print("publishing switch up message")
                 await client.publish(cfg.publish, "up")
-                if switch_pressed == True:
+                if switch_on_email_sent:
                     # email sent so send a now send up email
-                    
-                switch_pressed = False
+                    await send_email("(%s) %s %s" % 
+                    (cfg.device_letter, cfg.desc, cfg.switch_subject_event_false), "", cluster_id_only=True)
+                switch_on_email_sent = False
                 
         # i=0
         
