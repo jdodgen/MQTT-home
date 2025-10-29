@@ -279,7 +279,9 @@ def make_email_body():
                 parts.append("")
         except:
             parts = [name, ""]
-        body += '%s - %s - state = %s\n' % (parts[0], parts[1], "FALSE / OPEN / POWERED DOWN" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "True / Closed / Powered Up")
+        body += '%s - %s - is %s\n' % (parts[0], parts[1], 
+            "POWERED DOWN" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold 
+            else "Powered Up")
     name = cfg.publish.split("/")[2]
     try:
         parts = name.split(" ",1)
@@ -421,16 +423,16 @@ async def main():
     single_led_queue.put("all_off")
     switch_detected_true_value = True if cfg.switch_type == "NO" else False  # NO Normaly Open
     switch_on_email_sent = False
-    sw_value = 0;
+    sw_value = 0; # test fixture
     while True:  # Main loop checking to see of other has published
         # first publish alive status
         if cfg.monitor_only == True: # we don't publish or get tracked
             pass  
         else:
             # test fixture
-            sw_value = not sw_value;
+            # sw_value = not sw_value;
+            sw_value = sw.test()
             print("switch value", sw_value)
-            # sw_value = sw.test()
             print("switch = %s switch_detected_true_value %s" % (sw_value, switch_detected_true_value))
             if (cfg.switch == True and sw_value != switch_detected_true_value):
                 await client.publish(cfg.publish, "down")
@@ -447,9 +449,6 @@ async def main():
                     await send_email("(%s) %s %s" % 
                     (cfg.device_letter, cfg.desc, cfg.switch_subject_event_false), "", cluster_id_only=True)
                 switch_on_email_sent = False
-                
-        # i=0
-        
         print("\b[publish_check_loop]")
         await check_for_down_sensors(led_8x8_queue, single_led_queue)
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
