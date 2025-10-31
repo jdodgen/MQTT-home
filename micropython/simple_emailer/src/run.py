@@ -30,6 +30,7 @@ import asyncio
 import time
 import os
 import machine
+import tm1640
 #import switch
 from msgqueue import  MsgQueue
 
@@ -199,9 +200,7 @@ class display8x8:
             return
         else:
             self.ignore = False
-        import tm1640
-        from machine import Pin
-        self.tm = tm1640.TM1640(clk=Pin(clk), dio=Pin(dio))
+        self.tm = tm1640.TM1640(clk=Pin(clk), dio=machine.Pin(dio))
         # all LEDs bright
         self.tm.brightness(bright)
 
