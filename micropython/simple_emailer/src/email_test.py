@@ -60,3 +60,37 @@ def send_email_with_jpg():
 
 # Call the function to send the email
 send_email_with_jpg()
+#the above version using umail does not seem to exist
+# AI gives me this
+
+    try:
+        smtp = umail.SMTP(smtp_server, smtp_port, username=sender_email, password=sender_password)
+        smtp.to(recipient_email)
+        smtp.write("Subject: MicroPython JPG Attachment\r\n")
+        smtp.write("MIME-Version: 1.0\r\n")
+        smtp.write("Content-Type: multipart/mixed; boundary=boundary_string\r\n\r\n")
+
+        # Add text part
+        smtp.write("--boundary_string\r\n")
+        smtp.write("Content-Type: text/plain; charset=\"utf-8\"\r\n\r\n")
+        smtp.write("Here's a JPG from MicroPython!\r\n\r\n")
+
+        # Add JPG attachment
+        smtp.write("--boundary_string\r\n")
+        smtp.write("Content-Type: image/jpeg\r\n")
+        smtp.write("Content-Disposition: attachment; filename=\"image.jpg\"\r\n")
+        smtp.write("Content-Transfer-Encoding: base64\r\n\r\n")
+        
+        # Base64 encode the image data and send in chunks
+        import ubinascii
+        encoded_data = ubinascii.b2a_base64(jpg_data).decode('utf-8')
+        smtp.write(encoded_data)
+        smtp.write("\r\n")
+
+        smtp.write("--boundary_string--\r\n")   # note the trailing --
+        smtp.send()
+        smtp.quit()
+        print("Email sent successfully!")
+
+    except Exception as e:
+        print("Error sending email:", e)
