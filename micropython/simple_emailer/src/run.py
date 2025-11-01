@@ -18,6 +18,7 @@
 #
 VERSION = (1, 0, 1)
 import umail
+import ubinascii
 import alert_handler
 from mqtt_as import MQTTClient, config
 import feature_power
@@ -33,6 +34,7 @@ import machine
 import tm1640
 #import switch
 from msgqueue import  MsgQueue
+import urequests
 
 #wildcard_subscribe = feature_power.feature(cfg.cluster_id+"/+", subscribe=True)
 #print(wildcard_subscribe.topic())
@@ -64,9 +66,30 @@ xprint = print # copy print
 def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
     xprint("[run]", *args, **kwargs) # the copied real print
+    
+def download_image_data(url):
+    try:
+        response = urequests.get(url)
+        if response.status_code == 200:
+            image_data = response.content # Read the content as bytes
+            response.close()
+            print("image_data len", len(image_data));
+            return image_data
+        else:
+            print("Failed to download image. Status code:", response.status_code)
+            response.close()
+            return None
+    except Exception as e:
+        print("Error during HTTP request:", e)
+        return None
+
+
 
 async def send_email(subject, body, cc=cfg.cc_string, cluster_id_only=False):
     # if cfg.send_email:
+
+        
+        
         try:
             smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
             await asyncio.sleep(0)
@@ -75,7 +98,32 @@ async def send_email(subject, body, cc=cfg.cc_string, cluster_id_only=False):
             smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
             id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
             print("our id [%s]" % (id,))
-            smtp.write("CC: %s\nSubject:%s %s\n\n%s\n" % (cc, subject, id,  body,))
+            smtp.write("CC: %s\nSubject:%s %s\n" % (cc, subject, id))
+            smtp.write("MIME-Version: 1.0\n")
+            smtp.write("Content-Type: multipart/mixed; boundary=boundary_string\n\n")
+            smtp.write("--boundary_string\n")
+            smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
+            smtp.write(body+"\n\n")
+            
+            smtp.write("--boundary_string\n")
+            image=download_image_data("http://winotrips.com/Narrowboat%202007/Daily%20Pictures/extra/Crofton450pxl.jpg")
+            try:
+                encoded_image = ubinascii.b2a_base64(image).decode('utf-8')
+            except Exception as e:
+                print("Exception ubinascii.b2a_base64", e)
+            else:
+                print("encoded_image len", len(encoded_image))
+            smtp.write("Content-Type: image/jpeg\n")
+            smtp.write("Content-Disposition: attachment; filename=\"image.jpg\"\n")
+            smtp.write("Content-Transfer-Encoding: base64\n\n")
+            chunk_size = 100
+            for i in range(0, len(encoded_image), chunk_size):
+                smtp.write(encoded_image[i:i+chunk_size])
+                await asyncio.sleep(0)
+            smtp.write("\n")
+            
+            smtp.write("--boundary_string--\n")   # note the trailing -- last boundry
+            
             await asyncio.sleep(0)
             smtp.send()
             await asyncio.sleep(0)
@@ -200,7 +248,7 @@ class display8x8:
             return
         else:
             self.ignore = False
-        self.tm = tm1640.TM1640(clk=Pin(clk), dio=machine.Pin(dio))
+        self.tm = tm1640.TM1640(clk=machine.Pin(clk), dio=machine.Pin(dio))
         # all LEDs bright
         self.tm.brightness(bright)
 

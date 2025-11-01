@@ -251,6 +251,7 @@ cluster_id = "%s"
 tm1640_chars = %s
 device_letter = "%s"
 topics = %s
+image_urls = %s
 
 """
         now = datetime.datetime.now()
@@ -276,6 +277,7 @@ topics = %s
             self.c8x8.create_tm1640_dict(),
             self.sensor_to_make[0],
             self.topics,
+            self.urls,
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))
@@ -305,8 +307,8 @@ def push_library_code(serial_port):
 
 def push_application_code(serial_port):
     code = [
-    "run.py",
     "cfg.py",
+    "run.py",
     ]
     print("now pushing python application code")
     for c in code:
