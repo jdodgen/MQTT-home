@@ -83,53 +83,60 @@ def download_image_data(url):
         print("Error during HTTP request:", e)
         return None
 
-
-
-async def send_email(subject, body, cc=cfg.cc_string, cluster_id_only=False):
+async def send_email(found_match, cluster_id_only=False):
     # if cfg.send_email:
-
-        
-        
-        try:
-            smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
-            await asyncio.sleep(0)
-            smtp.login(cfg.gmail_user, cfg.gmail_password)
-            await asyncio.sleep(0)
-            smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-            id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
-            print("our id [%s]" % (id,))
-            smtp.write("CC: %s\nSubject:%s %s\n" % (cc, subject, id))
-            smtp.write("MIME-Version: 1.0\n")
-            smtp.write("Content-Type: multipart/mixed; boundary=boundary_string\n\n")
-            smtp.write("--boundary_string\n")
-            smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
-            smtp.write(body+"\n\n")
+    try:
+        smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
+        await asyncio.sleep(0)
+        smtp.login(cfg.gmail_user, cfg.gmail_password)
+        await asyncio.sleep(0)
+        smtp.to(found_match["to_list"], mail_from=cfg.gmail_user)
+        id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
+        print("our id [%s]" % (id,))
+        smtp.write("CC: %s\nSubject:%s %s\n" % (found_match["cc_string"], found_match["subject"], id))
+        smtp.write("MIME-Version: 1.0\n")
+        smtp.write("Content-Type: multipart/mixed; boundary=boundary_string\n\n")
+        smtp.write("--boundary_string\n")
+        smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
+        smtp.write(found_match["body"]+"\n\n")
+        cnt=0
+        for url in found_match["image_urls"]:
+            cnt += 1
             
-            smtp.write("--boundary_string\n")
-            image=download_image_data("http://winotrips.com/Narrowboat%202007/Daily%20Pictures/extra/Crofton450pxl.jpg")
-            try:
-                encoded_image = ubinascii.b2a_base64(image).decode('utf-8')
-            except Exception as e:
-                print("Exception ubinascii.b2a_base64", e)
+            image=download_image_data(url)
+            if image:
+                try:
+                    encoded_image = ubinascii.b2a_base64(image).decode('utf-8')
+                except Exception as e:
+                    print("Exception ubinascii.b2a_base64", e)
+                    smtp.write("--boundary_string\n")
+                    smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
+                    smtp.write(">>> problem encoding [%s]\n" % (url,))
+                else:
+                    print("encoded_image len", len(encoded_image))
+                    smtp.write("--boundary_string\n")
+                    smtp.write("Content-Type: image/jpeg\n")
+                    smtp.write("Content-Disposition: attachment; filename=\"image%s.jpg\"\n" % (cnt,))
+                    smtp.write("Content-Transfer-Encoding: base64\n\n")
+                    chunk_size = 100
+                    for i in range(0, len(encoded_image), chunk_size):
+                        smtp.write(encoded_image[i:i+chunk_size])
+                        await asyncio.sleep(0)
+                    smtp.write("\n")
             else:
-                print("encoded_image len", len(encoded_image))
-            smtp.write("Content-Type: image/jpeg\n")
-            smtp.write("Content-Disposition: attachment; filename=\"image.jpg\"\n")
-            smtp.write("Content-Transfer-Encoding: base64\n\n")
-            chunk_size = 100
-            for i in range(0, len(encoded_image), chunk_size):
-                smtp.write(encoded_image[i:i+chunk_size])
-                await asyncio.sleep(0)
-            smtp.write("\n")
-            
-            smtp.write("--boundary_string--\n")   # note the trailing -- last boundry
-            
-            await asyncio.sleep(0)
-            smtp.send()
-            await asyncio.sleep(0)
-            smtp.quit()
-        except Exception as e:
-            print("email failed", e)
+                smtp.write("--boundary_string\n")
+                smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
+                smtp.write(">>> problem downloading [%s]\n" % (url,))
+                
+        
+        smtp.write("--boundary_string--\n")   # note the trailing -- last boundry
+        
+        await asyncio.sleep(0)
+        smtp.send()
+        await asyncio.sleep(0)
+        smtp.quit()
+    except Exception as e:
+        print("email failed", e)
 
 #
 # current_watched_sensors[topic][SUB_TOPICS]
@@ -167,14 +174,15 @@ async def raw_messages(client,led_8x8_queue, single_led_queue):  # Process all i
             if msg in this_topic.keys():  
                 found_match = this_topic[msg]
                 print("raw_messages msg found", found_match)
-            elif "AlL"  in this_topic.keys():  # this is gets all for mqtt topic
+            elif "AlL"  in this_topic.keys():  # this is gets all for mqtt topic ignoring payload
                 found_match = this_topic["AlL"]
                 print("raw_messages AlA found", found_match)
             if found_match:
                 subject = found_match["subject"]
                 body = found_match["body"]
                 cc_string = found_match["cc_string"]
-                await send_email(subject,body,cc_string)
+                image_urls = found_match["image_urls"]
+                await send_email(found_match)
                 
              
         
@@ -469,11 +477,11 @@ async def main():
                 try:
                     x=client._addr
                     print("we have ip address broker not connecting", client._addr)
-                    led_8x8_queue.put((("3", False),)) # report 3 flashes
+                    led_8x8_queue.put((("?", False),("3", False),)) # report 3 flashes
                     single_led_queue.put("broker")
                 except:
                     print("wifi failed no ip address")
-                    led_8x8_queue.put((("2",False),))  # report 2 flashes
+                    led_8x8_queue.put((("?",False),("2",False),))  # report 2 flashes
                     single_led_queue.put("wifi")
                 await asyncio.sleep(1)
             else:

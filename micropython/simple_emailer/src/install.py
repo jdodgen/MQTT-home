@@ -87,6 +87,7 @@ def load_topics(cluster):
         only_this_payload = cluster["topic"][topic].get("only_this_payload", "AlL")
         subject = cluster["topic"][topic]["subject"]
         body = cluster["topic"][topic]["body"]
+        image_urls = cluster["topic"][topic].get("image_urls", [])
         cc_string = ''
         if "to_list" in cluster["topic"][topic]:
             print("to_list", cluster["topic"][topic]["to_list"])
@@ -95,7 +96,7 @@ def load_topics(cluster):
             cc_string = cc_string.rstrip(",")
         
         print(topic, mqtt, only_this_payload, subject, body, cc_string,)
-        this_email = {"subject": subject, "body": body, "cc_string": cc_string,}
+        this_email = {"subject": subject, "body": body, "cc_string": cc_string, "image_urls": image_urls, "to_list": cluster["topic"][topic]["to_list"]}
         if mqtt not in l:
             l[mqtt] = {}
         l[mqtt][only_this_payload] = this_email
@@ -154,7 +155,7 @@ class create_cfg:
             # #self.switch_type = False
         # #print("send_email [%s] wifi[%s] monitor_only [%s] switch [%s] switch_type [%s]" %
         # #    (self.send_email, self.wifi, self.monitor_only, self.switch, self.switch_type))
-        self.general_email_addresses()
+        # self.general_email_addresses()
 
     def make_topic(self, key):
         print("make_topic", key)
@@ -171,19 +172,19 @@ class create_cfg:
             name =  self.cluster["cluster_id"]+"/"+key+" "+desc
         return name
 
-    def general_email_addresses(self):
-        self.cc_string = ''
-        for addr in self.cluster["email"]["to_list"]:
-            self.cc_string += "<%s>," % (addr,)
-        self.cc_string = self.cc_string.rstrip(",")
-        print(self.cc_string)
+    # def general_email_addresses(self):
+        # self.cc_string = ''
+        # for addr in self.cluster["email"]["to_list"]:
+            # self.cc_string += "<%s>," % (addr,)
+        # self.cc_string = self.cc_string.rstrip(",")
+        # print(self.cc_string)
         
-        self.alert_cc_string = ''
-        if "only_alerts" in self.cluster["email"]:
-            for addr in self.cluster["email"]["only_alerts"]:
-                self.alert_cc_string += "<%s>," % (addr,)
-            self.alert_cc_string = self.alert_cc_string.rstrip(",")
-        print(self.alert_cc_string)
+        # self.alert_cc_string = ''
+        # if "only_alerts" in self.cluster["email"]:
+            # for addr in self.cluster["email"]["only_alerts"]:
+                # self.alert_cc_string += "<%s>," % (addr,)
+            # self.alert_cc_string = self.alert_cc_string.rstrip(",")
+        # print(self.alert_cc_string)
         # return self.cc_string
 
     # def create_hard_tracked_topics(self):
@@ -230,15 +231,10 @@ ssl = %s # true or false
 user = '%s'
 password = '%s'
 #
-# a python list of one or more email addresses ["9095551212@tmomail.net", "you@gmail.com"]
-send_messages_to = %s # a python list
-#
 # gmail account to send emails through
 #
 gmail_password = "%s" # gmail generates this and it can change it in the future
 gmail_user = "%s"
-cc_string = "%s"  # a smtp Cc: string
-alert_cc_string = "%s"  # just alerts,no staus or startup
 
 publish = "%s"
 pretty_name = "%s"
@@ -251,8 +247,6 @@ cluster_id = "%s"
 tm1640_chars = %s
 device_letter = "%s"
 topics = %s
-image_urls = %s
-
 """
         now = datetime.datetime.now()
         cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
@@ -261,11 +255,8 @@ image_urls = %s
             self.cluster["mqtt_broker"]["ssl"],
             self.cluster["mqtt_broker"]["user"],
             self.cluster["mqtt_broker"]["password"],
-            self.cluster["email"]["to_list"],
             self.cluster["email"]["gmail_password"],
             self.cluster["email"]["gmail_user"],
-            self.cc_string,
-            self.alert_cc_string,
             self.our_feature.topic(),
             self.pretty_name,
             self.cluster["cluster_id"],
@@ -277,7 +268,6 @@ image_urls = %s
             self.c8x8.create_tm1640_dict(),
             self.sensor_to_make[0],
             self.topics,
-            self.urls,
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))
