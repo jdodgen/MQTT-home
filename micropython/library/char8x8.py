@@ -70,6 +70,7 @@ CHARS = {
   "8": "3c66663c66663c00",
   "9": "3c66607c66663c00",
   "0": "3c66666e76663c00",
+  "?": "1800183860663c00",
   "wifi": "01012955554501ff",   # problem with wifi connection
   "broker": "39494939493901ff", # problem with broker connection
   "?": "1800183860663c00",
