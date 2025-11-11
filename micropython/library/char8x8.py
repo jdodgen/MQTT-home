@@ -4,6 +4,7 @@
 # thanks to xantorohara https://xantorohara.github.io/led-matrix-editor/#
 # this ordering is not correct for the tm1640.py driver but used for ease
 # of customization using xantorohara's tool
+# the bit/byte converssion is done in install.py
 # 
 
 CHARS = {
@@ -71,8 +72,8 @@ CHARS = {
   "9": "3c66607c66663c00",
   "0": "3c66666e76663c00",
   "?": "1800183860663c00",
-  "wifi": "01012955554501ff",   # problem with wifi connection
-  "broker": "39494939493901ff", # problem with broker connection
+  "wifi": "2020e020ea151511",   
+  "broker": "0093957593750503", # problem with broker connection
   "?": "1800183860663c00",
   "boot1": "0000001818000000",
   "boot2": "00003c24243c0000",
