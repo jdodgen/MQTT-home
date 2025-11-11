@@ -253,6 +253,7 @@ def push_library_code():
     mp_lib_offset+"switch.py",
     mp_lib_offset+"umail.py",
     mp_lib_offset+"tm1640.py",
+    mp_lib_offset+"pcn.py",
     # mp_lib_offset+"char8x8.py",
     # all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_power.py",
@@ -278,7 +279,7 @@ def push_application_code():
 def main():
     while True:
         try:
-            cluster_name = "cluster_test.toml" #sys.argv[1] 
+            cluster_name =sys.argv[1] #"cluster_test.toml" #
         except:
             print("Input cluster toml file name:")
             cluster_name = input()
@@ -330,6 +331,7 @@ def main():
     os.system("ampy --port %s ls" % (serial_port,))
     if os.name == 'nt':
         print("\n  putty -serial ", serial_port)
+        os.system("putty -serial  %s " % (serial_port,))
     else:
         print("\n  picocom -b 115200 ", serial_port)
     if (ans.upper() != "N"):
