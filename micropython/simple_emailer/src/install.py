@@ -235,6 +235,7 @@ password = '%s'
 #
 gmail_password = "%s" # gmail generates this and it can change it in the future
 gmail_user = "%s"
+send_messages_to = %s # used for boot email only, see topics for other emails
 
 publish = "%s"
 pretty_name = "%s"
@@ -257,6 +258,7 @@ topics = %s
             self.cluster["mqtt_broker"]["password"],
             self.cluster["email"]["gmail_password"],
             self.cluster["email"]["gmail_user"],
+            self.cluster["email"]["to_list"],
             self.our_feature.topic(),
             self.pretty_name,
             self.cluster["cluster_id"],
@@ -284,10 +286,10 @@ def push_library_code(serial_port):
     mp_lib_offset+"switch.py",
     mp_lib_offset+"umail.py",
     mp_lib_offset+"tm1640.py",
-    # mp_lib_offset+"char8x8.py",
+    mp_lib_offset+"pcn.py",
     # all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_power.py",
-    all_lib_offset+"msgqueue.py",
+    # all_lib_offset+"msgqueue.py",
     mp_lib_offset+"mqtt_as.py",
     ]
     print("now pushing python library code")
@@ -308,13 +310,12 @@ def push_application_code(serial_port):
 # this runs from the command line
 def main():
     while True:
-        # try:
-            # cluster_name = sys.argv[1]
-        # except:
-            # print("Input cluster toml file name:")
-            # cluster_name = input()
         try:
-            cluster_name = "cluster_jimdod_simple_emailer.toml" # testing. remove in flight
+            cluster_name = "cluster_jimdod_simple_emailer.toml"  #sys.argv[1]
+        except:
+            print("Input cluster toml file name:")
+            cluster_name = input()
+        try:
             cluster = load_cluster(cluster_name)
             break
         except:
@@ -356,6 +357,7 @@ def main():
     os.system("ampy --port %s ls" % (serial_port,))
     if os.name == 'nt':
         print("\n  putty -serial ", serial_port)
+        os.system("putty -serial  %s " % (serial_port,))
     else:
         print("\n  picocom -b 115200 ", serial_port)
     if (ans.upper() != "N"):
