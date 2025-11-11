@@ -177,8 +177,7 @@ class display8x8:
             return
         else:
             self.ignore = False
-
-        self.tm = tm1640.TM1640(clk=Pin(clk), dio=machine.Pin(dio))
+        self.tm = tm1640.TM1640(clk=machine.Pin(clk), dio=machine.Pin(dio))
         # all LEDs bright
         self.tm.brightness(bright)
 
@@ -364,7 +363,7 @@ async def main():
     config["ssl"] = True
     config["ssl_params"] = {'server_hostname': cfg.broker}
     config["queue_len"] = 10  # Use event interface with default queue size
-    config["response_time"] = 30
+    # config["response_time"] = 30
 
     MQTTClient.DEBUG = True  # Optional: print diagnostic messages
 
