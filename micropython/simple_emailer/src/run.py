@@ -47,10 +47,13 @@ async def download_image_data(url, led_8x8_queue, single_led_queue):
             return image_data
         else:
             print("Failed to download image. Status code:", response.status_code)
+            image_data = None
             gc.collect()
             response.close()
+            
             return None
     except Exception as e:
+        image_data = None
         gc.collect()
         print("Error during HTTP request:", e)
         wlan = network.WLAN(network.STA_IF)
