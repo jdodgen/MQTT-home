@@ -6,13 +6,13 @@ micropython_bin = "ESP32_GENERIC_S2-20250911-v1.26.1.bin"
 # micropython_bin = "/home/jim/Downloads/ESP32_GENERIC_S2-20250415-v1.25.0.bin"
 
 class flasher:
-    def __init__(self): 
+    def __init__(self, nt, linux): 
         global micropython_bin
         if os.name == 'nt':
-            self.serial_port = "COM3"
+            self.serial_port = nt
             self.micropython_path = "/Users/jim/Downloads/"+micropython_bin
         else: # linux
-            serial_port = "/dev/ttyACM0"
+            serial_port = linux
             self.micropython_path = "/home/jim/Downloads/"+micropython_bin
         print("Device on:", self.serial_port)
          
