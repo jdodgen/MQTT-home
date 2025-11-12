@@ -9,6 +9,7 @@ import machine
 import tm1640
 import umail
 import cfg
+cfg_dict = cfg.__dict__
 import alert_handler
 from mqtt_as import MQTTClient
 
@@ -225,7 +226,7 @@ async def make_first_connection(config, led_8x8_queue, single_led_queue):
                     print("wifi failed no ip address")
                     led_8x8_queue.put((("?",False),("wifi",False),))  # report 2 flashes
                     single_led_queue.put("wifi")
-                await asyncio.sleep(1)
+                await asyncio.sleep(cfg_dict.get("wifi_sleep", 3))
             else:
                 print("ip address", client._addr)
                 got_connection = True
