@@ -328,7 +328,7 @@ def main():
     create_cfg(cluster, sensor_to_make) # drops cfg.py file
 
     # install micropython kernal
-    f=flasher()
+    f=flasher("COM7", "/dev/ttyACM0")
     serial_port = f.port()
     did_we_flash = False
     print("\ninstall micropython? (y,N)")
