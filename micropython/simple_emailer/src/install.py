@@ -205,7 +205,7 @@ class create_cfg:
 # MAKE YOUR CHANGES IN install.py
 #
 # current pin assignements
-big_led_pin        = 3  # D3" on D1-Mini proto card
+big_led_pin        = 3  # D3 on D1-Mini proto card
 onboard_led_pin   = 15  # built-in BLUE led
 switch_pin        = 12  # D8 # shared with button_pin
 button_pin        = 12  # D8
@@ -217,6 +217,7 @@ data8x8_pin       = 11  # D7
 clock8X8_pin      = 7   # D5
 
 brightness8x8 = 0  # half
+wifi_sleep = 3
 #
 #wifi: IoT or guest network recommended
 wifi= %s
