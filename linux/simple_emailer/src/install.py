@@ -18,7 +18,6 @@ import sys
 
 ###### modify these as needed ######
 ## i use shared source librararys
-mp_lib_offset="../../library/"  # micropython specific
 all_lib_offset="../../../library/" # both linux and micropython
 cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
 
@@ -53,15 +52,15 @@ def load_cluster(cluster_file_name):
         print("Error: Invalid TOML format in {file_path}: {e}")
         sys.exit()
         
-def wifi_list_of_list(cluster):
-    l = []
-    for ssid in cluster["network"]:
-        print("ssid", ssid)
-        pw = cluster["network"][ssid]["password"]
-        print("password", cluster["network"][ssid]["password"])
-        l.append([ssid, pw])
-    print(l)
-    return l
+# def wifi_list_of_list(cluster):
+    # l = []
+    # for ssid in cluster["network"]:
+        # print("ssid", ssid)
+        # pw = cluster["network"][ssid]["password"]
+        # print("password", cluster["network"][ssid]["password"])
+        # l.append([ssid, pw])
+    # print(l)
+    # return l
         
 # def print_sensors(sensors):
     # sensor_keys = list(sensors.keys())
@@ -128,7 +127,7 @@ class create_cfg:
         self.write_cfg()
        
     def set_cfg_values(self,):
-        self.wifi=wifi_list_of_list(self.cluster);
+        # self.wifi=wifi_list_of_list(self.cluster);
         # if self.sensor_to_make in self.sensors:
             # desc = self.sensors[self.sensor_to_make].get("desc")
 
@@ -204,25 +203,6 @@ class create_cfg:
 # Date: %s
 # MAKE YOUR CHANGES IN install.py
 #
-# current pin assignements
-big_led_pin        = 3  # D3 on D1-Mini proto card
-onboard_led_pin   = 15  # built-in BLUE led
-switch_pin        = 12  # D8 # shared with button_pin
-button_pin        = 12  # D8
-play_all_pin      = 35  # D1
-ding_dong_pin     = 33  # D2
-ding_ding_pin     = 18  # D3
-westminster_pin   = 16  # D4
-data8x8_pin       = 11  # D7
-clock8X8_pin      = 7   # D5
-
-brightness8x8 = 0  # half
-wifi_sleep = 3
-#
-#wifi: IoT or guest network recommended
-wifi= %s
-#
-#
 start_delay=0 # startup delay
 number_of_seconds_to_wait=30  # all sensors publish "power" messages every 30 seconds
 other_message_threshold=4  # how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off
@@ -241,12 +221,6 @@ send_messages_to = %s # used for boot email only, see topics for other emails
 publish = "%s"
 pretty_name = "%s"
 cluster_id = "%s"
-#send_email =  %s
-#hard_tracked_topics = %s # these get tracked from boot, others only after first publish
-#monitor_only = %s  # if True this sensor does not publish status and therefore is not tracked
-#switch = %s # if true then "switch_gpio" is tested if off then no publish will be sent
-#switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power" publishes are sent
-tm1640_chars = %s
 device_letter = "%s"
 topics = %s
 """
@@ -263,12 +237,6 @@ topics = %s
             self.our_feature.topic(),
             self.pretty_name,
             self.cluster["cluster_id"],
-            "deleted", # self.send_email,
-            "deleted", # self.hard_tracked_topics, 
-            "deleted", # self.monitor_only,
-            "deleted", # self.switch,
-            "deleted", # self.switch_type,
-            self.c8x8.create_tm1640_dict(),
             self.sensor_to_make[0],
             self.topics,
             )
@@ -278,37 +246,6 @@ topics = %s
             f.write(cfg_text)
         print("created cfg.py")
 
-def push_library_code(serial_port):
-    code = [
-    mp_lib_offset+"main.py",
-    mp_lib_offset+"boot.py",
-    mp_lib_offset+"uuid.py",
-    mp_lib_offset+"alert_handler.py",
-    mp_lib_offset+"switch.py",
-    mp_lib_offset+"umail.py",
-    mp_lib_offset+"tm1640.py",
-    mp_lib_offset+"pcn.py",
-    # all_lib_offset+"mqtt_hello.py",
-    all_lib_offset+"feature_power.py",
-    # all_lib_offset+"msgqueue.py",
-    mp_lib_offset+"mqtt_as.py",
-    ]
-    print("now pushing python library code")
-    for c in code:
-        print("installing", c)
-        os.system("ampy --port %s put %s" % (serial_port,c))
-
-def push_application_code(serial_port):
-    code = [
-    "cfg.py",
-    "run.py",
-    ]
-    print("now pushing python application code")
-    for c in code:
-        print("installing", c)
-        os.system("ampy --port %s put %s" % (serial_port,c))
-
-# this runs from the command line
 def main():
     while True:
         try:
@@ -321,48 +258,9 @@ def main():
             break
         except:
             print("Try again")
-    #print_sensors(cluster["topic"])
-
-    #print("select one (case insensitive): ", end="")
-    #sensor_to_make = input().upper()
     #print("request = ", sensor_to_make)
     create_cfg(cluster, sensor_to_make) # drops cfg.py file
-
-    # install micropython kernal
-    f=flasher("COM7", "/dev/ttyACM0")
-    serial_port = f.port()
-    did_we_flash = False
-    print("\ninstall micropython? (y,N)")
-    ans = input()
-    if (ans.upper() == "Y"):
-        did_we_flash = True
-        print ("\npress and hold O (flat side)\nthen press RST (indent) momentary\nrelease O\nthen press Enter to continue")
-        input()
-        f.flash()
-    # install library code
-    if did_we_flash == False:
-        print("install library code? (y,N)")
-        lans = input()
-    else:
-        lans = "Y"
-    if (lans.upper() == "Y"):
-        push_library_code(serial_port)
-    # install application code
-    if did_we_flash == True or lans.upper() == "Y":
-         ans = "Y"
-    else:
-        print("\ninstall application code? (Y,n)")
-        ans = input()
-    if (ans.upper() != "N"):
-        push_application_code(serial_port)
-    os.system("ampy --port %s ls" % (serial_port,))
-    if os.name == 'nt':
-        print("\n  putty -serial ", serial_port)
-        os.system("putty -serial  %s " % (serial_port,))
-    else:
-        print("\n  picocom -b 115200 ", serial_port)
-    if (ans.upper() != "N"):
-        print("\nCreated [%s:%s] device" % (cluster["cluster_id"],sensor_to_make)) 
+	os.system("python3 run" % (serial_port,))
 
 if __name__ == "__main__":
     main()
