@@ -127,6 +127,7 @@ class create_cfg:
         self.write_cfg()
        
     def set_cfg_values(self,):
+        pass
         # self.wifi=wifi_list_of_list(self.cluster);
         # if self.sensor_to_make in self.sensors:
             # desc = self.sensors[self.sensor_to_make].get("desc")
@@ -260,7 +261,7 @@ def main():
             print("Try again")
     #print("request = ", sensor_to_make)
     create_cfg(cluster, sensor_to_make) # drops cfg.py file
-	os.system("python3 run" % (serial_port,))
+    os.system("python3 run" % (serial_port,))
 
 if __name__ == "__main__":
     main()
