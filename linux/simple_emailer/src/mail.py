@@ -161,5 +161,5 @@ class SMTP:
         return (int(line[:3]), line[4:].strip().decode())
 
     def quit(self):
-        self.cmd(b"QUIT")
+        self.cmd("QUIT")
         self._sock.close()
