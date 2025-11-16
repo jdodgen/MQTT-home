@@ -61,11 +61,15 @@ async def old_send_email(found_match,  led_8x8_queue, single_led_queue, cluster_
         smtp.to(found_match["to_list"], mail_from=cfg.gmail_user)
         id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
         print("our id [%s]" % (id,))
+        
         smtp.write("CC: %s\nSubject:%s %s\n" % (found_match["cc_string"], found_match["subject"], id))
+        print("CC write")
         smtp.write("MIME-Version: 1.0\n")
         smtp.write("Content-Type: multipart/mixed; boundary=boundary_string\n\n")
+        print("Content-Type: multipart/mixed")
         smtp.write("--boundary_string\n")
         smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
+        print("Content-Type: text/plain")
         smtp.write(found_match["body"]+"\n\n")
         cnt=0
         for url in found_match["image_urls"]:
@@ -76,9 +80,9 @@ async def old_send_email(found_match,  led_8x8_queue, single_led_queue, cluster_
                  print("Exception download_image_data", e)
             if image:
                 try:
-                    encoded_image = ubinascii.b2a_base64(image).decode('utf-8')
+                    encoded_image = binascii.b2a_base64(image).decode('utf-8')
                 except Exception as e:
-                    print("Exception ubinascii.b2a_base64", e)
+                    print("Exception binascii.b2a_base64", e)
                     smtp.write("--boundary_string\n")
                     smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
                     smtp.write(">>> problem encoding [%s]\n" % (url,))
@@ -110,7 +114,7 @@ async def old_send_email(found_match,  led_8x8_queue, single_led_queue, cluster_
         print("email failed", e)
         
         
-def send_email_task(image_q):
+def send_email_task(image_q, cluster_id_only=False):
     print("send_email_task starting")
     chunk_size = 100
     while True:
@@ -143,7 +147,7 @@ def send_email_task(image_q):
                     smtp.write("Content-Type: image/jpeg\n")
                     smtp.write("Content-Disposition: attachment; filename=\"image%s.jpg\"\n" % (cnt,))
                     smtp.write("Content-Transfer-Encoding: base64\n\n")
-                    for i in range(0, len(encoded_image), chunk_size):
+                    for i in range(0, len(ejpg), chunk_size):
                         try:
                             smtp.write(ejpg[i:i+chunk_size])
                         except Exception as e:
@@ -155,6 +159,7 @@ def send_email_task(image_q):
             smtp.write("--boundary_string--\n")   # note the trailing -- last boundry
             smtp.send()
             smtp.quit()
+            print("send_email_task end of loop")
         except Exception as e:
             print("email failed --- ", e)
 
@@ -192,6 +197,7 @@ def main():
     emailer.start()
     client = mqtt_manager(mqtt_q)
     while True:
+        print("main loop")
         topic, payload = mqtt_q.get()
         this_topic = cfg.topics.get(topic, None)
         if this_topic:  # just checking
@@ -203,7 +209,7 @@ def main():
                 print("main msg found")
             elif "AlL"  in this_topic.keys():  # this is gets all for mqtt topic ignoring payload
                 found_match = this_topic["AlL"]
-                print("main AlA found")
+                print("main AlL found")
             if found_match:
                 images = []
                 image_urls = found_match["image_urls"]
@@ -214,10 +220,11 @@ def main():
                         print("Exception download_image_data", e)
                         image = None
                     else:
+                        print("got image", url)
                         try:        
                             encoded_image = binascii.b2a_base64(image).decode('utf-8')
                         except Exception as e:
-                            print("Exception ubinascii.b2a_base64", e)
+                            print("Exception binascii.b2a_base64", e)
                             images.append([url, None])
                         else:
                             images.append([url, encoded_image])
@@ -266,6 +273,7 @@ def main():
         # await asyncio.sleep(cfg.number_of_seconds_to_wait)
 
 ############ startup ###############
+print("run __name__ = %s" %__name__)
 if __name__ == "__main__":
     main()
 print("exiting, should not get here")
