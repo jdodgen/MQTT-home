@@ -154,14 +154,17 @@ async def up_so_subscribe(client, led_8x8_queue, single_led_queue, topics):
             await client.subscribe(topic)
         print("emailing startup")
         await send_email("PCN Starting", boilerplate)
-
+        
+ 
 async def down_report_outage(client, led_8x8_queue, single_led_queue):
+    global last_config
     while True:
         await client.down.wait()
         client.down.clear()
-        print('got outage')
+        print('down_report_outage got outage')
         led_8x8_queue.put((("wifi",False),))
         single_led_queue.put("5")
+        machine.soft_reset()
         
 boilerplate = '''Starting up:
 Flashing LED error codes
@@ -200,7 +203,8 @@ async def send_email(subject, body, cluster_id_only=False):
 # make first connection
 # mqtt_as requires a good connection to the broker/server at startup
 # it recovers and notifies automaticly
-#    
+# 
+ 
 async def make_first_connection(config, led_8x8_queue, single_led_queue):
     got_connection = False
     print("checking for good wifi", cfg.wifi)
