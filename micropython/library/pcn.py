@@ -167,6 +167,7 @@ async def down_report_outage(client, led_8x8_queue, single_led_queue):
         machine.soft_reset()
         
 boilerplate = '''Starting up:
+cluster: %s
 Flashing LED error codes
 It displays a flashing single LED and optionaly a LED character.
 If the LED square is expanding or just one LED flash --- Sarting up
@@ -182,7 +183,7 @@ This indicates an alert usualy an outage.
 If the LED is out or screen is blank, Indicates all is normal and no alerts. 
 The sensor does NOT do any flashes when just waiting or an outage, it is passive. 
 The Other sensors will tell you if it fails. 
-'''
+''' % cfg.cluster_id
         
 async def send_email(subject, body, cluster_id_only=False):
     try:
