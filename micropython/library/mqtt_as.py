@@ -72,7 +72,10 @@ class MsgQueue:
         if self._wi == self._ri:  # Would indicate empty
             self._ri = (self._ri + 1) % self._size  # Discard a message
             self.discards += 1
-
+            
+    def empty(self):
+        return True if self._ri == self._wi else False
+        
     def __aiter__(self):
         return self
 
@@ -109,6 +112,7 @@ config = {
     "gateway": False,
     "mqttv5": False,
     "mqttv5_con_props": None,
+    "wifi_reconnects": -1,
 }
 
 
@@ -167,6 +171,7 @@ class MQTT_base:
         # WiFi config
         self._ssid = config["ssid"]  # Required for ESP32 / Pyboard D. Optional ESP8266
         self._wifi_pw = config["wifi_pw"]
+        self.wifi_reconnects = config["wifi_reconnects"] # ESP32 defalt 
         self._ssl = config["ssl"]
         self._ssl_params = config["ssl_params"]
         # Callbacks and coros
@@ -738,6 +743,8 @@ class MQTTClient(MQTT_base):
                 # para 3.6.3
                 s.config(pm=0xA11140)
             s.connect(self._ssid, self._wifi_pw)
+            if ESP32:
+                s.config(reconnects=self.wifi_reconnects)
             for _ in range(60):  # Break out on fail or success. Check once per sec.
                 await asyncio.sleep(1)
                 # Loop while connecting or no IP
@@ -771,8 +778,7 @@ class MQTTClient(MQTT_base):
                 if not s.isconnected():
                     raise OSError("Connection Unstable")  # in 1st 5 secs
                 await asyncio.sleep(1)
-            self.dprint("Got reliable connection")
-            print(s.ifconfig())
+            self.dprint("Got reliable connection %s", s.ifconfig())
 
     async def connect(self, *, quick=False):  # Quick initial connect option for battery apps
         if not self._has_connected:

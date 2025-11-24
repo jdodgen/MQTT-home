@@ -1,4 +1,4 @@
-'''copyright 20123 James Dodgen  MIT licence
+'''copyright 2023 James Dodgen  MIT licence
 A few complexities:
 system runs multiple proceeses
 with communication through a queue as well as  a pipe

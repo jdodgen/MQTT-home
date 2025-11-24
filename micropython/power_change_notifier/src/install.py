@@ -20,13 +20,6 @@ mp_lib_offset="../../library/"  # micropython specific
 all_lib_offset="../../../library/" # both linux and micropython
 cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
 
-
-if os.name == 'nt':
-    serial_port = "COM3"
-else: # linux
-    serial_port = "/dev/ttyACM0"
-print("Device on:", serial_port)
-
 # to have  imports from libraries we need to do this:
 # Get the absolute path of the current script's directory
 # Add the parent directory to sys.path
@@ -98,31 +91,25 @@ class create_cfg:
         self.write_cfg()
        
     def set_cfg_values(self,):
-        self.wifi=wifi_list_of_list(self.cluster);
-        if self.sensor_to_make in self.sensors:
-            desc = self.sensors[self.sensor_to_make].get("desc")
+        override_wifi = self.sensors[self.sensor_to_make].get("wifi", None)
+        if override_wifi:
+            override_password = self.sensors[self.sensor_to_make].get("password")
+            self.wifi = [[override_wifi,override_password],] 
+        else:
+            self.wifi=wifi_list_of_list(self.cluster)
+        self.desc = self.sensors[self.sensor_to_make].get("desc")
+        self.switch_subject_event_true = self.sensors[self.sensor_to_make].get("switch_subject_event_true", "Power down")
+        self.switch_subject_event_false = self.sensors[self.sensor_to_make].get("switch_subject_event_false", "Power up")
+        #self.publish_to = self.sensor_to_make+" "+desc if desc else self.sensor_to_make
 
-            #self.publish_to = self.sensor_to_make+" "+desc if desc else self.sensor_to_make
-
-            self.send_email = self.sensors[self.sensor_to_make].get("send_email",False)
-            self.no_heartbeat = self.sensors[self.sensor_to_make].get("no_heartbeat", False)
-            #self.ssid = self.sensors[self.sensor_to_make].get("ssid", self.cluster["network"]["ssid"])
-            #self.wifi_password = self.sensors[self.sensor_to_make].get("wifi_password", self.cluster["network"]["wifi_password"])
-            
-            self.monitor_only = self.sensors[self.sensor_to_make].get("monitor_only", False)
-            self.switch = self.sensors[self.sensor_to_make].get("switch", False)
-            self.switch_type = self.sensors[self.sensor_to_make].get("switch_type","NO")
-
-        else:  # these "letters" do not exist in the toml file but are treated as "soft_tracking"  that is not tracked until first publish
-            #self.publish_to = self.sensor_to_make   # single letter version
-            self.send_email = False
-            
-            #self.ssid = self.cluster["network"]["ssid"]
-            #self.wifi_password = self.cluster["network"]["wifi_password"]
-            
-            self.monitor_only = False
-            self.switch = False
-            self.switch_type = False
+        self.send_email = self.sensors[self.sensor_to_make].get("send_email",False)
+        self.no_heartbeat = self.sensors[self.sensor_to_make].get("no_heartbeat", False)
+        #self.ssid = self.sensors[self.sensor_to_make].get("ssid", self.cluster["network"]["ssid"])
+        #self.wifi_password = self.sensors[self.sensor_to_make].get("wifi_password", self.cluster["network"]["wifi_password"])
+        
+        self.monitor_only = self.sensors[self.sensor_to_make].get("monitor_only", False)
+        self.switch = self.sensors[self.sensor_to_make].get("switch", False)
+        self.switch_type = self.sensors[self.sensor_to_make].get("switch_type","NO")
         print("send_email [%s] wifi[%s] monitor_only [%s] switch [%s] switch_type [%s]" %
             (self.send_email, self.wifi, self.monitor_only, self.switch, self.switch_type))
         self.email_addresses()
@@ -167,7 +154,7 @@ class create_cfg:
 # MAKE YOUR CHANGES IN install.py
 #
 # current pin assignements
-big_led_pin        = 3  # D3" on D1-Mini proto card
+big_led_pin        = 3  # D3 on D1-Mini proto card
 onboard_led_pin   = 15  # built-in BLUE led
 switch_pin        = 12  # D8 # shared with button_pin
 button_pin        = 12  # D8
@@ -179,6 +166,7 @@ data8x8_pin       = 11  # D7
 clock8X8_pin      = 7   # D5
 
 brightness8x8 = 1   # 0 - 7 
+wifi_sleep = 3
 #
 #wifi: IoT or guest network recommended
 wifi= %s
@@ -204,12 +192,15 @@ cc_string = "%s"  # a smtp Cc: string
 
 publish = "%s"
 pretty_name = "%s"
+desc  = "%s"
 cluster_id = "%s"
 send_email =  %s
 hard_tracked_topics = %s # these get tracked from boot, others only after first publish
 monitor_only = %s  # if True this sensor does not publish status and therefore is not tracked
 switch = %s # if true then "switch_gpio" is tested if off then no publish will be sent
 switch_type = "%s" # for "NO or NC defaults to "NO". So when "closed" no "power" publishes are sent
+switch_subject_event_true = "%s"
+switch_subject_event_false = "%s"
 tm1640_chars = %s
 device_letter = "%s"
 no_heartbeat = %s
@@ -228,12 +219,15 @@ no_heartbeat = %s
             self.cc_string,
             self.our_feature.topic(),
             self.pretty_name,
+            self.desc,
             self.cluster["cluster_id"],
             self.send_email,
             self.hard_tracked_topics,
             self.monitor_only,
             self.switch,
             self.switch_type,
+            self.switch_subject_event_true,
+            self.switch_subject_event_false,
             self.c8x8.create_tm1640_dict(),
             self.sensor_to_make[0],
             self.no_heartbeat,
@@ -244,7 +238,7 @@ no_heartbeat = %s
             f.write(cfg_text)
         print("created cfg.py")
 
-def push_library_code():
+def push_library_code(serial_port):
     code = [
     mp_lib_offset+"main.py",
     mp_lib_offset+"boot.py",
@@ -253,6 +247,7 @@ def push_library_code():
     mp_lib_offset+"switch.py",
     mp_lib_offset+"umail.py",
     mp_lib_offset+"tm1640.py",
+    mp_lib_offset+"pcn.py",
     # mp_lib_offset+"char8x8.py",
     # all_lib_offset+"mqtt_hello.py",
     all_lib_offset+"feature_power.py",
@@ -264,7 +259,7 @@ def push_library_code():
         print("installing", c)
         os.system("ampy --port %s put %s" % (serial_port,c))
 
-def push_application_code():
+def push_application_code(serial_port):
     code = [
     "run.py",
     "cfg.py",
@@ -278,7 +273,7 @@ def push_application_code():
 def main():
     while True:
         try:
-            cluster_name = sys.argv[1]
+            cluster_name =sys.argv[1] #"cluster_test.toml" #
         except:
             print("Input cluster toml file name:")
             cluster_name = input()
@@ -287,14 +282,24 @@ def main():
             break
         except:
             print("Try again")
-    print_sensors(cluster["sensor"])
-
-    print("select one (case insensitive): ", end="")
-    sensor_to_make = input().upper()
-    print("request = ", sensor_to_make)
+    
+    while True:
+        print_sensors(cluster["sensor"])
+        print("select one (case insensitive): ", end="")
+        sensor_to_make = input().upper()
+        if sensor_to_make.lower() in cluster["sensor"]:
+           sensor_to_make =  sensor_to_make.lower()
+        print("request = ", sensor_to_make)
+        if sensor_to_make in cluster["sensor"]:
+            break
+        else:
+            print(">>> not found <<<")
+            
     create_cfg(cluster, sensor_to_make) # drops cfg.py file
-
+    
     # install micropython kernal
+    f=flasher("COM7", "/dev/ttyACM0")
+    serial_port = f.port()
     did_we_flash = False
     print("\ninstall micropython? (y,N)")
     ans = input()
@@ -302,15 +307,16 @@ def main():
         did_we_flash = True
         print ("\npress and hold O (flat side)\nthen press RST (indent) momentary\nrelease O\nthen press Enter to continue")
         input()
-        flasher()
+        f.flash()
     # install library code
+    
     if did_we_flash == False:
         print("install library code? (y,N)")
         lans = input()
     else:
         lans = "Y"
     if (lans.upper() == "Y"):
-        push_library_code()
+        push_library_code(serial_port)
     # install application code
     if did_we_flash == True or lans.upper() == "Y":
          ans = "Y"
@@ -318,10 +324,11 @@ def main():
         print("\ninstall application code? (Y,n)")
         ans = input()
     if (ans.upper() != "N"):
-        push_application_code()
+        push_application_code(serial_port)
     os.system("ampy --port %s ls" % (serial_port,))
     if os.name == 'nt':
         print("\n  putty -serial ", serial_port)
+        os.system("putty -serial  %s " % (serial_port,))
     else:
         print("\n  picocom -b 115200 ", serial_port)
     if (ans.upper() != "N"):
