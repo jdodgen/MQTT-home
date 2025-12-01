@@ -41,8 +41,8 @@ module make_lids(letters, chars_per_row=5)
    
     
 }
-letter="D";
-make_somthing = 1;    // 1 base, 2=lid, 3 buttons
+letter="";
+make_somthing = 2;    // 1 base, 2=lid, 3 buttons
 if (make_somthing == 1) {
     make_s2_base();
 } else if (make_somthing == 2) {
