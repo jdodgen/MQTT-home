@@ -17,7 +17,13 @@
 # example is a "dry_contact" switch option monitoring a gpio line to detect a swich or button:
 #
 VERSION = (1, 0, 1)
-import mail
+#import mail
+import smtplib
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+import ssl
 import binascii
 #import network
 import multiprocessing
@@ -34,8 +40,13 @@ def print(*args, **kwargs): # replace print
     xprint("[run]", *args, **kwargs) # the copied real print
     
 def download_image_data(url):
+    print("download_image_data", url)
     try:
-        response = requests.get(url)
+        if len(url) == 3:
+            print("download_image_data doing auth[%s][%s]" % (url[1], url[2]))
+            response = requests.get(url[0], auth=requests.auth.HTTPDigestAuth(url[1], url[2]))
+        else:
+            response = requests.get(url[0])
         if response.status_code == 200:
             image_data = response.content # Read the content as bytes
             response.close()
@@ -51,144 +62,152 @@ def download_image_data(url):
         print("Error during HTTP request:", e)
         return None
 
-async def old_send_email(found_match,  led_8x8_queue, single_led_queue, cluster_id_only=False):
-    # if cfg.send_email:
-    try:
-        smtp = mail.SMTP('smtp.gmail.com', 465, ssl=True)
-        await asyncio.sleep(0)
-        smtp.login(cfg.gmail_user, cfg.gmail_password)
-        await asyncio.sleep(0)
-        smtp.to(found_match["to_list"], mail_from=cfg.gmail_user)
-        id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
-        print("our id [%s]" % (id,))
+# async def old_send_email(found_match,  led_8x8_queue, single_led_queue, cluster_id_only=False):
+    # # if cfg.send_email:
+    # try:
+        # smtp = mail.SMTP('smtp.gmail.com', 465, ssl=True)
+        # await asyncio.sleep(0)
+        # smtp.login(cfg.gmail_user, cfg.gmail_password)
+        # await asyncio.sleep(0)
+        # smtp.to(found_match["to_list"], mail_from=cfg.gmail_user)
+        # id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
+        # print("our id [%s]" % (id,))
         
-        smtp.write("CC: %s\nSubject:%s %s\n" % (found_match["cc_string"], found_match["subject"], id))
-        print("CC write")
-        smtp.write("MIME-Version: 1.0\n")
-        smtp.write("Content-Type: multipart/mixed; boundary=boundary_string\n\n")
-        print("Content-Type: multipart/mixed")
-        smtp.write("--boundary_string\n")
-        smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
-        print("Content-Type: text/plain")
-        smtp.write(found_match["body"]+"\n\n")
-        cnt=0
-        for url in found_match["image_urls"]:
-            cnt += 1
-            try:
-                image = await download_image_data(url, led_8x8_queue, single_led_queue)
-            except Exception as e:
-                 print("Exception download_image_data", e)
-            if image:
-                try:
-                    encoded_image = binascii.b2a_base64(image).decode('utf-8')
-                except Exception as e:
-                    print("Exception binascii.b2a_base64", e)
-                    smtp.write("--boundary_string\n")
-                    smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
-                    smtp.write(">>> problem encoding [%s]\n" % (url,))
-                else:
-                    print("encoded_image len", len(encoded_image))
-                    smtp.write("--boundary_string\n")
-                    smtp.write("Content-Type: image/jpeg\n")
-                    smtp.write("Content-Disposition: attachment; filename=\"image%s.jpg\"\n" % (cnt,))
-                    smtp.write("Content-Transfer-Encoding: base64\n\n")
-                    chunk_size = 1000
-                    for i in range(0, len(encoded_image), chunk_size):
-                        smtp.write(encoded_image[i:i+chunk_size])
-                        await asyncio.sleep(0)
-                    smtp.write("\n")
+        # smtp.write("CC: %s\nSubject:%s %s\n" % (found_match["cc_string"], found_match["subject"], id))
+        # print("CC write")
+        # smtp.write("MIME-Version: 1.0\n")
+        # smtp.write("Content-Type: multipart/mixed; boundary=boundary_string\n\n")
+        # print("Content-Type: multipart/mixed")
+        # smtp.write("--boundary_string\n")
+        # smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
+        # print("Content-Type: text/plain")
+        # smtp.write(found_match["body"]+"\n\n")
+        # cnt=0
+        # for url in found_match["image_urls"]:
+            # cnt += 1
+            # try:
+                # image = await download_image_data(url, led_8x8_queue, single_led_queue)
+            # except Exception as e:
+                 # print("Exception download_image_data", e)
+            # if image:
+                # try:
+                    # encoded_image = binascii.b2a_base64(image).decode('utf-8')
+                # except Exception as e:
+                    # print("Exception binascii.b2a_base64", e)
+                    # smtp.write("--boundary_string\n")
+                    # smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
+                    # smtp.write(">>> problem encoding [%s]\n" % (url,))
+                # else:
+                    # print("encoded_image len", len(encoded_image))
+                    # smtp.write("--boundary_string\n")
+                    # smtp.write("Content-Type: image/jpeg\n")
+                    # smtp.write("Content-Disposition: attachment; filename=\"image%s.jpg\"\n" % (cnt,))
+                    # smtp.write("Content-Transfer-Encoding: base64\n\n")
+                    # chunk_size = 1000
+                    # for i in range(0, len(encoded_image), chunk_size):
+                        # smtp.write(encoded_image[i:i+chunk_size])
+                        # await asyncio.sleep(0)
+                    # smtp.write("\n")
                 
-            else:
-                smtp.write("--boundary_string\n")
-                smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
-                smtp.write(">>> problem downloading [%s]\n" % (url,))
+            # else:
+                # smtp.write("--boundary_string\n")
+                # smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
+                # smtp.write(">>> problem downloading [%s]\n" % (url,))
                 
         
-        smtp.write("--boundary_string--\n")   # note the trailing -- last boundry
+        # smtp.write("--boundary_string--\n")   # note the trailing -- last boundry
         
-        await asyncio.sleep(0)
-        smtp.send()
-        await asyncio.sleep(0)
-        smtp.quit()
-    except Exception as e:
-        print("email failed", e)
+        # await asyncio.sleep(0)
+        # smtp.send()
+        # await asyncio.sleep(0)
+        # smtp.quit()
+    # except Exception as e:
+        # print("email failed", e)
         
+# def make_body(found_match, encoded_jpgs):
+    # body = "MIME-Version: 1.0\n"+
+    # "Content-Type: multipart/mixed; boundary=boundary_string\n\n"+
+    # "--boundary_string\n"+
+    # "Content-Type: text/plain; charset=\"utf-8\"\n\n")+
+    # found_match["body"]+"\n\n"
+    # cnt=0
+    # for url, ejpg in encoded_jpgs:
+        # cnt += 1
+        # if ejpg:
+            # body += "--boundary_string\n"+
+            # "Content-Type: image/jpeg\n")+
+            # "Content-Disposition: attachment; filename=\"image%s.jpg\"\n" % (cnt,)+
+            # "Content-Transfer-Encoding: base64\n\n"
+            # for i in range(0, len(ejpg), chunk_size):
+                # try:
+                    # smtp.write(ejpg[i:i+chunk_size])
+                # except Exception as e:
+                    # print("encoded write failed", e)
+        # else:
+            # smtp.write("--boundary_string\n")
+            # smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
+            # smtp.write(">>> problem downloading [%s]\n" % (url,))
+    # smtp.write("--boundary_string--\n")   # note the trailing -- last boundry
+       
         
 def send_email_task(image_q, cluster_id_only=False):
     print("send_email_task starting")
     chunk_size = 100
     while True:
-        found_match, encoded_jpgs = image_q.get()
+        found_match, jpgs = image_q.get()
+        #context = ssl.create_default_context()
+        #email_body = make_body(found_match, encoded_jpgs)
+        # msg.set_content(email_body)
+        idd = cfg.cluster_id if cluster_id_only else cfg.pretty_name
+        print("our id [%s]" % (id,))
+        msg = MIMEMultipart()
+        msg['Subject'] = found_match["subject"] # +" "+idd
+        msg['From'] = cfg.gmail_user
+        msg['To'] = found_match["cc_string"]
+        msg['Cc'] = found_match["cc_string"]
+        for url, jpg in jpgs:
+            print("MIMEImage", url)
+            msg_image = MIMEImage(jpg, "jpeg", name="")
+            msg.attach(msg_image)
+        smtp = smtplib.SMTP('smtp.gmail.com', 587)
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.login(cfg.gmail_user, cfg.gmail_password)
+        smtp.send_message(msg)
+        smtp.quit()
         
-        
-        try:
-            try:
-                smtp = mail.SMTP('smtp.gmail.com', 465, ssl=True)
-            except Exception as e:
-                print("mail.SMTP failed", e)
-            smtp.login(cfg.gmail_user, cfg.gmail_password)
-            smtp.to(found_match["to_list"], mail_from=cfg.gmail_user)
-            id = cfg.cluster_id if cluster_id_only else cfg.pretty_name
-            print("our id [%s]" % (id,))
-            try:
-                smtp.write("CC: %s\nSubject:%s %s\n" % (found_match["cc_string"], found_match["subject"], id))
-            except Exception as e:
-                print("first write failed", e)
-            smtp.write("MIME-Version: 1.0\n")
-            smtp.write("Content-Type: multipart/mixed; boundary=boundary_string\n\n")
-            smtp.write("--boundary_string\n")
-            smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
-            smtp.write(found_match["body"]+"\n\n")
-            cnt=0
-            for url, ejpg in encoded_jpgs:
-                cnt += 1
-                if ejpg:
-                    smtp.write("--boundary_string\n")
-                    smtp.write("Content-Type: image/jpeg\n")
-                    smtp.write("Content-Disposition: attachment; filename=\"image%s.jpg\"\n" % (cnt,))
-                    smtp.write("Content-Transfer-Encoding: base64\n\n")
-                    for i in range(0, len(ejpg), chunk_size):
-                        try:
-                            smtp.write(ejpg[i:i+chunk_size])
-                        except Exception as e:
-                            print("encoded write failed", e)
-                else:
-                    smtp.write("--boundary_string\n")
-                    smtp.write("Content-Type: text/plain; charset=\"utf-8\"\n\n")
-                    smtp.write(">>> problem downloading [%s]\n" % (url,))
-            smtp.write("--boundary_string--\n")   # note the trailing -- last boundry
-            smtp.send()
-            smtp.quit()
-            print("send_email_task end of loop")
-        except Exception as e:
-            print("email failed --- ", e)
-
-
-# async def raw_messages(client):  # Process all incoming messages
-    # print("raw_messages starting")
-    # async for btopic, bmsg, retained in client.queue:
-        # topic = btopic.decode('utf-8')
-        # msg = bmsg.decode('utf-8')
-        # print("callback [%s][%s] retained[%s]" % (topic, msg, retained,))
-        # this_topic = cfg.topics.get(topic, None)
-        # if this_topic:  # just checking
-            # print("raw_messages this_topic:", this_topic)
-            # print("keys:",this_topic.keys())
-            # found_match = {}
+def sample_send_email_with_image(subject, body, image_path):
+    msg = MIMEMultipart()
+    msg['Subject'] = subject
+    msg['From'] = 'example@example.com'
+    msg['To'] = 'recipient@example.com'
+    msg.attach(MIMEText(body, 'html'))
+    with open(image_path, 'rb') as img:
+        msg_image = MIMEImage(img.read(), name=os.path.basename(image_path))
+        msg.attach(msg_image)
+    smtp = smtplib.SMTP('smtp.gmail.com', 465)
+    smtp.ehlo()
+    smtp.starttls()
+    smtp.login(cfg.gmail_user, cfg.gmail_password)
+    smtp.send_message(msg)
+    smtp.quit()
+        # try:
+            # try:
+                # smtp = mail.SMTP('smtp.gmail.com', 465, is_ssl=True)
+            # except Exception as e:
+                # print("mail.SMTP failed", e)
+            # smtp.login(cfg.gmail_user, cfg.gmail_password)
+            # smtp.to(found_match["to_list"], mail_from=cfg.gmail_user)
             
-            # if msg in this_topic.keys():  
-                # found_match = this_topic[msg]
-                # print("raw_messages msg found")
-            # elif "AlL"  in this_topic.keys():  # this is gets all for mqtt topic ignoring payload
-                # found_match = this_topic["AlL"]
-                # print("raw_messages AlA found")
-            # if found_match:
-                # subject = found_match["subject"]
-                # body = found_match["body"]
-                # cc_string = found_match["cc_string"]
-                # image_urls = found_match["image_urls"]
-                # await send_email(found_match, led_8x8_queue, single_led_queue)
-    # print("raw_messages exiting?")
+            # try:
+                # smtp.write("CC: %s\nSubject:%s %s\n" % (found_match["cc_string"], found_match["subject"], id))
+            # except Exception as e:
+                # print("first write failed", e)
+                        # smtp.send()
+            # smtp.quit()
+            # print("send_email_task end of loop")
+        # except Exception as e:
+            # print("email failed --- ", e)
 
 def main():
     mqtt_q = multiprocessing.Queue(10)
@@ -220,14 +239,14 @@ def main():
                         print("Exception download_image_data", e)
                         image = None
                     else:
-                        print("got image", url)
-                        try:        
-                            encoded_image = binascii.b2a_base64(image).decode('utf-8')
-                        except Exception as e:
-                            print("Exception binascii.b2a_base64", e)
-                            images.append([url, None])
-                        else:
-                            images.append([url, encoded_image])
+                        print("got image", url, type(image), image[:300])
+                        # try:        
+                            # encoded_image = binascii.b2a_base64(image).decode('utf-8')
+                        # except Exception as e:
+                            # print("Exception binascii.b2a_base64", e)
+                            # images.append([url, None])
+                        # else:
+                        images.append([url, image])
                 image_q.put([found_match, images])
         
     # global led

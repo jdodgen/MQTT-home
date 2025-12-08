@@ -27,10 +27,9 @@ cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
 # In this example, if main.py is in 'project/', this adds 'project/'
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(current_dir, all_lib_offset))
-sys.path.append(os.path.join(current_dir, mp_lib_offset))
 import feature_power # located in all_lib_offset
-from char8x8 import char8x8 # located in mp_lib_offset
-from esp32s2_flasher import flasher
+# from char8x8 import char8x8 # located in mp_lib_offset
+# from esp32s2_flasher import flasher
 ###### end of stuff that needs modification ######
 
 def load_cluster(cluster_file_name):
@@ -39,45 +38,26 @@ def load_cluster(cluster_file_name):
     else:
         print("testing from current directory")
         cluster_toml = "cluster-example.toml"  # test cluster
+    print("using:", cluster_toml)
     try:
         with open(cluster_toml, 'rb') as toml_file:
-            cluster = tomllib.load(toml_file)
+            print("cluster_toml opened")
+            try:
+                cluster = tomllib.load(toml_file)
+            except tomllib.TOMLDecodeError as e:
+                print(e)
+                sys.exit()
             print(cluster)
             return cluster
-               
     except FileNotFoundError:
         print("Error: ",cluster_toml," File not found")
         sys.exit()
     except tomllib.TOMLDecodeError as e:
         print("Error: Invalid TOML format in {file_path}: {e}")
         sys.exit()
-        
-# def wifi_list_of_list(cluster):
-    # l = []
-    # for ssid in cluster["network"]:
-        # print("ssid", ssid)
-        # pw = cluster["network"][ssid]["password"]
-        # print("password", cluster["network"][ssid]["password"])
-        # l.append([ssid, pw])
-    # print(l)
-    # return l
-        
-# def print_sensors(sensors):
-    # sensor_keys = list(sensors.keys())
-    # sensor_keys.sort()
-    # for key in sensor_keys:
-        # #print("sensor key=", key)
-        # if len(key) != 1:
-            # print("id [%s] mist be a single letter or number" % (key, ))
-        # try:
-            # desc =sensors[key]["desc"]
-        # except:
-            # desc=""
-        # print("%s) %s" % (key, desc))
-        # if(('+' in desc) or ('/' in desc) or ('+' in key) or ('/' in key)):
-            # print("\nERROR: future topic  [%s][%s] contains a / or +,  MQTT reserved fix in toml file\n" % (key,desc,))
-            # sys.exit()
-
+    except Exception as e:
+        print("cluster_toml open failed", e)
+ 
 def load_topics(cluster):
     l = {}
     for topic in cluster["topic"]:
@@ -121,42 +101,13 @@ class create_cfg:
         print(self.our_feature.topic())
         self.set_cfg_values()
         # self.create_hard_tracked_topics()
-        self.c8x8 = char8x8(invert=self.cluster.get("invert_8x8", False))
         self.pretty_name = "(%s)" % (self.sensor_to_make) #self.sensors[self.sensor_to_make].get("desc", self.sensor_to_make))
         self.topics = load_topics(self.cluster)
         self.write_cfg()
        
     def set_cfg_values(self,):
         pass
-        # self.wifi=wifi_list_of_list(self.cluster);
-        # if self.sensor_to_make in self.sensors:
-            # desc = self.sensors[self.sensor_to_make].get("desc")
-
-            # #self.publish_to = self.sensor_to_make+" "+desc if desc else self.sensor_to_make
-
-            # #self.send_email = self.sensors[self.sensor_to_make].get("send_email",False)
-            
-            # #self.ssid = self.sensors[self.sensor_to_make].get("ssid", self.cluster["network"]["ssid"])
-            # #self.wifi_password = self.sensors[self.sensor_to_make].get("wifi_password", self.cluster["network"]["wifi_password"])
-            
-            # # self.monitor_only = self.sensors[self.sensor_to_make].get("monitor_only", False)
-            # # self.switch = self.sensors[self.sensor_to_make].get("switch", False)
-            # # self.switch_type = self.sensors[self.sensor_to_make].get("switch_type","NO")
-
-        # else:  # these "letters" do not exist in the toml file but are treated as "soft_tracking"  that is not tracked until first publish
-            # #self.publish_to = self.sensor_to_make   # single letter version
-            # #self.send_email = False
-            
-            # #self.ssid = self.cluster["network"]["ssid"]
-            # #self.wifi_password = self.cluster["network"]["wifi_password"]
-            
-            # #self.monitor_only = False
-            # #self.switch = False
-            # #self.switch_type = False
-        # #print("send_email [%s] wifi[%s] monitor_only [%s] switch [%s] switch_type [%s]" %
-        # #    (self.send_email, self.wifi, self.monitor_only, self.switch, self.switch_type))
-        # self.general_email_addresses()
-
+        
     def make_topic(self, key):
         print("make_topic", key)
         print("cluster_id",self.cluster["cluster_id"])
@@ -227,7 +178,6 @@ topics = %s
 """
         now = datetime.datetime.now()
         cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
-            self.wifi,
             self.cluster["mqtt_broker"]["broker"],
             self.cluster["mqtt_broker"]["ssl"],
             self.cluster["mqtt_broker"]["user"],
@@ -259,9 +209,10 @@ def main():
             break
         except:
             print("Try again")
+            sys.exit()
     #print("request = ", sensor_to_make)
     create_cfg(cluster, sensor_to_make) # drops cfg.py file
-    os.system("python3 run" % (serial_port,))
+    os.system("python3 run.py")
 
 if __name__ == "__main__":
     main()
