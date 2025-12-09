@@ -11,3 +11,4 @@ cluster_*.toml
 cfg.pm
 *.zip
 *.gz
+*.service
