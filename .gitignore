@@ -12,4 +12,4 @@ cfg.pm
 *.zip
 *.gz
 *.service
-tunnel_cfg.py
+*_cfg.py
