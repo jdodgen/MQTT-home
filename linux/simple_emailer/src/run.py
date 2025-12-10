@@ -1,5 +1,5 @@
 # MIT license copyright 2025 Jim Dodgen
-# simple_emailer built off of Power Change Notifier
+# simple_emailer is built off of Power Change Notifier
 # accepts a payload with subject and body and emails to the cfg.py emails
 # this version to develop into a framework 
 #
