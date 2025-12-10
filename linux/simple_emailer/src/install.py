@@ -212,7 +212,7 @@ def main():
             sys.exit()
     #print("request = ", sensor_to_make)
     create_cfg(cluster, sensor_to_make) # drops cfg.py file
-    os.system("python3 run.py")
+    os.system("python3 send_emails.py")
 
 if __name__ == "__main__":
     main()
