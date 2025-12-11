@@ -96,8 +96,10 @@ def main():
     toggle_list = {"topic":  "payload",}
     while True:
         print("waiting for message")
-        topic, payload = mqtt_q.get()
+        topic, payload_raw = mqtt_q.get()
+        payload = payload_raw.decode('utf-8')
         this_topic = cfg.topics.get(topic, None)
+        print("from mqtt_q: topic[%s], payload[%s] " % (topic, payload))
         if this_topic:  # just checking
            
             print("main this_topic:", this_topic)
