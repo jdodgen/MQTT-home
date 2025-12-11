@@ -17,6 +17,8 @@ from mqtt_manager import mqtt_manager
 import cfg
 import time
 import requests
+from PIL import Image
+import io
 
 #client = None
 xprint = print # copy print
@@ -24,18 +26,29 @@ def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
     xprint("[run]", *args, **kwargs) # the copied real print
     
-def download_image_data(url):
-    print("download_image_data", url)
+def download_image_data(url_info):
+    print("download_image_data", url_info)
     try:
-        if len(url) == 3:
-            print("download_image_data doing auth[%s][%s]" % (url[1], url[2]))
-            response = requests.get(url[0], auth=requests.auth.HTTPDigestAuth(url[1], url[2]))
+        url = url_info["url"]
+        user = url_info.get("user", None)
+        pw = url_info.get("pw", None)
+        rotate = url_info.get("rotate", 0)
+        if user:
+            print("download_image_data doing auth[%s][%s]" % (user, pw))
+            response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw))
         else:
-            response = requests.get(url[0])
+            response = requests.get(url)
         if response.status_code == 200:
             image_data = response.content # Read the content as bytes
             response.close()
             print("image_data len", len(image_data));
+            if rotate:
+                image_stream = io.BytesIO(image_data)
+                img = Image.open(image_stream)
+                image_data_rotated = img.rotate(rotate, expand=True)
+                output_stream = io.BytesIO()
+                image_data_rotated.save(output_stream, format="jpeg")
+                return output_stream.getvalue()
             return image_data
         else:
             print("Failed to download image. Status code:", response.status_code)
@@ -62,6 +75,7 @@ def send_email_task(image_q, cluster_id_only=False):
         msg['From'] = cfg.gmail_user
         msg['To'] = found_match["cc_string"]
         msg['Cc'] = found_match["cc_string"]
+        msg.attach(MIMEText(found_match["body"]))
         for url, jpg in jpgs:
             print("MIMEImage", url)
             msg_image = MIMEImage(jpg, "jpeg", name="")
@@ -72,22 +86,6 @@ def send_email_task(image_q, cluster_id_only=False):
         smtp.login(cfg.gmail_user, cfg.gmail_password)
         smtp.send_message(msg)
         smtp.quit()
-        
-def sample_send_email_with_image(subject, body, image_path):
-    msg = MIMEMultipart()
-    msg['Subject'] = subject
-    msg['From'] = 'example@example.com'
-    msg['To'] = 'recipient@example.com'
-    msg.attach(MIMEText(body, 'html'))
-    with open(image_path, 'rb') as img:
-        msg_image = MIMEImage(img.read(), name=os.path.basename(image_path))
-        msg.attach(msg_image)
-    smtp = smtplib.SMTP('smtp.gmail.com', 465)
-    smtp.ehlo()
-    smtp.starttls()
-    smtp.login(cfg.gmail_user, cfg.gmail_password)
-    smtp.send_message(msg)
-    smtp.quit()
 
 def main():
     mqtt_q = multiprocessing.Queue(10)
@@ -95,16 +93,24 @@ def main():
     emailer = multiprocessing.Process(target=send_email_task, args=(image_q,))
     emailer.start()
     client = mqtt_manager(mqtt_q)
+    toggle_list = {"topic":  "payload",}
     while True:
-        print("main loop")
+        print("waiting for message")
         topic, payload = mqtt_q.get()
         this_topic = cfg.topics.get(topic, None)
         if this_topic:  # just checking
+           
             print("main this_topic:", this_topic)
             print("keys:",this_topic.keys())
+            
             found_match = {}
             if payload in this_topic.keys():  
                 found_match = this_topic[payload]
+                if found_match["only_on_change_of_payload"]:
+                    if topic in toggle_list and toggle_list[topic] == payload: # then bypass
+                        continue
+                    else: # different or new payload
+                        toggle_list[topic] = payload
                 print("main msg found")
             elif "AlL"  in this_topic.keys():  # this is gets all for mqtt topic ignoring payload
                 found_match = this_topic["AlL"]
@@ -119,7 +125,7 @@ def main():
                         print("Exception download_image_data", e)
                         image = None
                     else:
-                        print("got image", url, type(image), image[:300])
+                        print("got image", url, type(image), image[:50])
                         images.append([url, image])
                 image_q.put([found_match, images])
 

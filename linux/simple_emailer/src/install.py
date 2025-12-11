@@ -64,6 +64,7 @@ def load_topics(cluster):
         print("\ntopic",topic,"\n")
         mqtt = cluster["topic"][topic]["mqtt_topic"]
         only_this_payload = cluster["topic"][topic].get("only_this_payload", "AlL")
+        only_on_change_of_payload = cluster["topic"][topic].get("only_on_change_of_payload", False)
         subject = cluster["topic"][topic]["subject"]
         body = cluster["topic"][topic]["body"]
         image_urls = cluster["topic"][topic].get("image_urls", [])
@@ -74,8 +75,8 @@ def load_topics(cluster):
                 cc_string += "<%s>," % (addr,)
             cc_string = cc_string.rstrip(",")
         
-        print(topic, mqtt, only_this_payload, subject, body, cc_string,)
-        this_email = {"subject": subject, "body": body, "cc_string": cc_string, "image_urls": image_urls, "to_list": cluster["topic"][topic]["to_list"]}
+        print(topic, mqtt, only_this_payload, subject, body, cc_string, only_on_change_of_payload)
+        this_email = {"subject": subject, "body": body, "cc_string": cc_string, "image_urls": image_urls, "to_list": cluster["topic"][topic]["to_list"], "only_on_change_of_payload": only_on_change_of_payload}
         if mqtt not in l:
             l[mqtt] = {}
         l[mqtt][only_this_payload] = this_email
