@@ -62,7 +62,8 @@ def load_cluster(cluster_file_name):
     try:
         with open(cluster_toml, 'rb') as toml_file:
             cluster = tomllib.load(toml_file)
-            return cluster
+        print(cluster)
+        return cluster
                 # print(cluster)
     except FileNotFoundError:
         print("Error: ",cluster_toml," File not found")
@@ -87,7 +88,8 @@ class create_cfg:
 
     def get_location(self):
         ndx=0
-        locations = self.cluster["locations"]
+        locations = self.cluster["locations"] #"locations"]
+        print("\nlocations:", locations)
         for loc in locations:
             ndx += 1
             print("%s) %s" % (str(ndx), loc,))
