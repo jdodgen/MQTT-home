@@ -225,11 +225,12 @@ def main():
 
         [Service]
         User=root
+        WorkingDirectory=%s
         ExecStart=/usr/bin/python3 %ssend_emails.py"
 
         [Install]
         WantedBy=multi-user.target
-        ''' % (cfg.location_of_send_emails)
+        ''' % (os.getcwd(), os.getcwd())
 
         with open(systemd_path+service_name,"w") as text_file:
             text_file.write(service)
