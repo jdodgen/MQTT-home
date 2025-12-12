@@ -6,7 +6,7 @@ import cfg
 xprint = print # copy print
 my_name = "mqtt_manager"
 def print(*args, **kwargs): # replace print
-    # return  # comment/uncomment to turn print on off
+    return  # comment/uncomment to turn print on off
     # do whatever you want to do
     #xprint('statement before print')
     xprint(my_name, *args, **kwargs) # the copied real print
