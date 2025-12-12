@@ -28,8 +28,6 @@ cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(current_dir, all_lib_offset))
 import feature_power # located in all_lib_offset
-# from char8x8 import char8x8 # located in mp_lib_offset
-# from esp32s2_flasher import flasher
 ###### end of stuff that needs modification ######
 
 def load_cluster(cluster_file_name):
@@ -115,40 +113,11 @@ class create_cfg:
         print("make_topic", key)
         print("cluster_id",self.cluster["cluster_id"])
         desc = ""
-        # sensor = self.sensors.get(key)
-        # if sensor:
-            # desc = sensor.get("desc", "")
-        # else:
-            # desc = ""
         if desc == '':
             name =  self.cluster["cluster_id"]+"/"+key
         else:
             name =  self.cluster["cluster_id"]+"/"+key+" "+desc
         return name
-
-    # def general_email_addresses(self):
-        # self.cc_string = ''
-        # for addr in self.cluster["email"]["to_list"]:
-            # self.cc_string += "<%s>," % (addr,)
-        # self.cc_string = self.cc_string.rstrip(",")
-        # print(self.cc_string)
-        
-        # self.alert_cc_string = ''
-        # if "only_alerts" in self.cluster["email"]:
-            # for addr in self.cluster["email"]["only_alerts"]:
-                # self.alert_cc_string += "<%s>," % (addr,)
-            # self.alert_cc_string = self.alert_cc_string.rstrip(",")
-        # print(self.alert_cc_string)
-        # return self.cc_string
-
-    # def create_hard_tracked_topics(self):
-        # sensor_keys = list(self.sensors.keys())
-        # self.hard_tracked_topics = [] # these get tracked from boot. others (soft) only after first publish
-        # for key in sensor_keys:
-            # if self.sensors[key].get("soft_tracking") == True or self.sensors[key].get("monitor_only") == True:
-                    # continue
-            # self.hard_tracked_topics.append(feature_power.feature(self.make_topic(key), subscribe=True).topic())
-        # print("hard tracked topics", self.hard_tracked_topics)
 
 # this is the cfg.py template uses % to pass in stuff
     def write_cfg(self):
@@ -215,7 +184,7 @@ def main():
             sys.exit()
     #print("request = ", sensor_to_make)
     create_cfg(cluster, sensor_to_make) # drops cfg.py file
-    print("\ninstall service? (y,N)")
+    print("\ninstall as a service? (y,N)")
     ans = input()
     if (ans.upper() == "Y"):
         service_name = "simple_emailer.service"
