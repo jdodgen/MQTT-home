@@ -199,7 +199,7 @@ topics = %s
         with open('cfg.py', 'w') as f:
             f.write(cfg_text)
         print("created cfg.py")
-
+systemd_path = "/etc/systemd/system/"
 def main():
     while True:
         try:
@@ -215,7 +215,36 @@ def main():
             sys.exit()
     #print("request = ", sensor_to_make)
     create_cfg(cluster, sensor_to_make) # drops cfg.py file
-    os.system("python3 send_emails.py")
+    print("\ninstall service? (y,N)")
+    ans = input()
+    if (ans.upper() == "Y"):
+        service_name = "simple_emailer.service"
+        service = '''
+        [Unit]
+        Description=Sends emails when reciving certain MQTT messages
+
+        [Service]
+        User=root
+        ExecStart=/usr/bin/python3 %ssend_emails.py"
+
+        [Install]
+        WantedBy=multi-user.target
+        ''' % (cfg.location_of_send_emails)
+
+        with open(systemd_path+service_name,"w") as text_file:
+            text_file.write(service)
+
+
+        os.system("systemctl daemon-reload")
+
+        os.system("systemctl start service_name")
+        os.system("systemctl enable service_name")
+
+        os.system("systemctl status service_name")
+    else:
+        os.system("python3 send_emails.py")
+
+# os.system("python3 send_emails.py")
 
 if __name__ == "__main__":
     main()

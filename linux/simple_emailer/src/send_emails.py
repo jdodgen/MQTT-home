@@ -65,9 +65,6 @@ def send_email_task(image_q, cluster_id_only=False):
     chunk_size = 100
     while True:
         found_match, jpgs = image_q.get()
-        #context = ssl.create_default_context()
-        #email_body = make_body(found_match, encoded_jpgs)
-        # msg.set_content(email_body)
         idd = cfg.cluster_id if cluster_id_only else cfg.pretty_name
         print("our id [%s]" % (id,))
         msg = MIMEMultipart()
@@ -103,7 +100,7 @@ def main():
         if this_topic:  # just checking
            
             #print("main this_topic:", this_topic)
-            print("keys:",this_topic.keys())
+            #print("keys:",this_topic.keys())
             
             found_match = {}
             if payload in this_topic.keys():  
@@ -127,7 +124,7 @@ def main():
                         print("Exception download_image_data", e)
                         image = None
                     else:
-                        print("got image", url, type(image), image[:50])
+                        #print("got image", url, type(image), image[:50])
                         images.append([url, image])
                 image_q.put([found_match, images])
 
