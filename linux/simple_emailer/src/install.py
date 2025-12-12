@@ -63,7 +63,7 @@ def load_topics(cluster):
     for topic in cluster["topic"]:
         print("\ntopic",topic,"\n")
         mqtt = cluster["topic"][topic]["mqtt_topic"]
-        only_this_payload = cluster["topic"][topic].get("only_this_payload", "AlL")
+        matching_payload = cluster["topic"][topic].get("matching_payload", "AlL")
         only_on_change_of_payload = cluster["topic"][topic].get("only_on_change_of_payload", False)
         subject = cluster["topic"][topic]["subject"]
         body = cluster["topic"][topic]["body"]
@@ -75,11 +75,11 @@ def load_topics(cluster):
                 cc_string += "<%s>," % (addr,)
             cc_string = cc_string.rstrip(",")
         
-        print(topic, mqtt, only_this_payload, subject, body, cc_string, only_on_change_of_payload)
+        print(topic, mqtt, matching_payload, subject, body, cc_string, only_on_change_of_payload)
         this_email = {"subject": subject, "body": body, "cc_string": cc_string, "image_urls": image_urls, "to_list": cluster["topic"][topic]["to_list"], "only_on_change_of_payload": only_on_change_of_payload}
         if mqtt not in l:
             l[mqtt] = {}
-        l[mqtt][only_this_payload] = this_email
+        l[mqtt][matching_payload] = this_email
     #print(l)
     # data structure example for run.py
     for topic in l.keys():
@@ -87,7 +87,9 @@ def load_topics(cluster):
         for need_payload in l[topic]:
             print("match_on_payload", need_payload)
             if need_payload == True:
-                payload = l[topic][need_payload]["only_this_payload"]
+                payload = l[topic][need_payload]["
+                
+                matching_payload"]
                 print("needed payload", payload)
             subject = l[topic][need_payload]["subject"]
             print("subject", subject)

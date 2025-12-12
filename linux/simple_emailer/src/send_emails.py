@@ -102,7 +102,7 @@ def main():
         print("from mqtt_q: topic[%s], payload[%s] " % (topic, payload))
         if this_topic:  # just checking
            
-            print("main this_topic:", this_topic)
+            #print("main this_topic:", this_topic)
             print("keys:",this_topic.keys())
             
             found_match = {}

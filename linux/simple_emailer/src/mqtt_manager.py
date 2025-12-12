@@ -12,7 +12,6 @@ def print(*args, **kwargs): # replace print
     xprint(my_name, *args, **kwargs) # the copied real print
 
 class mqtt_manager:
-        
     def __init__(self, email_q):
         self.email_q = email_q
         self.client = mqtt.Client()
