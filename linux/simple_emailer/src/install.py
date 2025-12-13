@@ -181,7 +181,7 @@ topics = %s
         with open('cfg.py', 'w') as f:
             f.write(cfg_text)
         print("created cfg.py")
-systemd_path = "/etc/systemd/system/"
+
 def main():
     while True:
         try:
@@ -200,27 +200,8 @@ def main():
     print("\ninstall as a service? (y,N)")
     ans = input()
     if (ans.upper() == "Y"):
-        service_name = "simple_emailer.service"
-        service = '''[Unit]
-        Description=Sends emails when reciving certain MQTT messages
-
-        [Service]
-        User=root
-        WorkingDirectory=%s
-        ExecStart=/usr/bin/python3 %s/send_emails.py
-
-        [Install]
-        WantedBy=multi-user.target
-        ''' % (os.getcwd(), os.getcwd())
-        with open(systemd_path+service_name,"w") as text_file:
-            text_file.write(service)
-        os.system(f"systemctl stop {service_name}")
-        os.system("systemctl daemon-reload")
-
-        os.system(f"systemctl start {service_name}")
-        os.system(f"systemctl enable {service_name}")
-
-        os.system(f"systemctl status {service_name}")
+        import service_tool
+        service_tool.install()
     else:
         os.system("python3 send_emails.py")
 
