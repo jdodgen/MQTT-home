@@ -19,13 +19,28 @@ import sys
 ###### modify these as needed ######
 ## i use shared source librararys
 all_lib_offset="../../../library/" # both linux and micropython
-cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
+
+username = os.environ.get('SUDO_USER')
+
+if username:
+    # Use Path.home() might still point to /root when run under sudo.
+    # The reliable way is using os.path.expanduser with the username.
+    home_dir = Path(f'~{username}').expanduser()
+    print(f"Original user's home directory: {home_dir}")
+else:
+    # Path.home() gets the current effective user's home (which would be /root if run as root)
+    home_dir = Path.home()
+    print(f"Current effective user's home directory: {home_dir}")
+
+cluster_lib = f"{home_dir}/Dropbox/wip/pcn_clusters"
+
 
 # to have  imports from libraries we need to do this:
 # Get the absolute path of the current script's directory
 # Add the parent directory to sys.path
 # In this example, if main.py is in 'project/', this adds 'project/'
 current_dir = os.path.dirname(os.path.abspath(__file__))
+print ("current_dir", current_dir)
 sys.path.append(os.path.join(current_dir, all_lib_offset))
 import feature_power # located in all_lib_offset
 ###### end of stuff that needs modification ######
@@ -85,9 +100,7 @@ def load_topics(cluster):
         for need_payload in l[topic]:
             print("match_on_payload", need_payload)
             if need_payload == True:
-                payload = l[topic][need_payload]["
-                
-                matching_payload"]
+                payload = l[topic][need_payload]["matching_payload"]
                 print("needed payload", payload)
             subject = l[topic][need_payload]["subject"]
             print("subject", subject)
@@ -188,29 +201,26 @@ def main():
     ans = input()
     if (ans.upper() == "Y"):
         service_name = "simple_emailer.service"
-        service = '''
-        [Unit]
+        service = '''[Unit]
         Description=Sends emails when reciving certain MQTT messages
 
         [Service]
         User=root
         WorkingDirectory=%s
-        ExecStart=/usr/bin/python3 %ssend_emails.py"
+        ExecStart=/usr/bin/python3 %s/send_emails.py
 
         [Install]
         WantedBy=multi-user.target
         ''' % (os.getcwd(), os.getcwd())
-
         with open(systemd_path+service_name,"w") as text_file:
             text_file.write(service)
-
-
+        os.system(f"systemctl stop {service_name}")
         os.system("systemctl daemon-reload")
 
-        os.system("systemctl start service_name")
-        os.system("systemctl enable service_name")
+        os.system(f"systemctl start {service_name}")
+        os.system(f"systemctl enable {service_name}")
 
-        os.system("systemctl status service_name")
+        os.system(f"systemctl status {service_name}")
     else:
         os.system("python3 send_emails.py")
 
