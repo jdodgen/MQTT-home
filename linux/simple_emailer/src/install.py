@@ -2,11 +2,9 @@
 # this configures and installs software
 # it replaces the cfg.py file each time it runs
 # Y N defaults are designed for rapid deployment during development
-# usage is: "python3 install.py cluster_example.toml"
-# this does as much preprocessing as it can to freeup the microprocessor
-# see cluster_example.toml
+# usage is: "python3 install.py 
 # this reads a toml configuration file see https://toml.io/
-# this file is used by install.py to generate device cfg.py files
+# this file is used by install.py to generate device cfg.py files (to push to the server)
 
 sensor_to_make = "E1 simple_emailer"
 
@@ -134,7 +132,7 @@ class create_cfg:
 
 # this is the cfg.py template uses % to pass in stuff
     def write_cfg(self):
-        cfg_template = """
+        cfg_template = """simple_emailer
 # MIT license copyright 2024, 2025 Jim Dodgen
 # this cfg.py was created by: install.py
 # Date: %s
