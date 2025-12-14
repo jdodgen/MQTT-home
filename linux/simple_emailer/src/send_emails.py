@@ -19,6 +19,7 @@ import time
 import requests
 from PIL import Image
 import io
+from queue import Empty
 
 #client = None
 xprint = print # copy print
@@ -34,14 +35,14 @@ def download_image_data(url_info):
         pw = url_info.get("pw", None)
         rotate = url_info.get("rotate", 0)
         if user:
-            print("download_image_data doing auth[%s][%s]" % (user, pw))
+            # print("download_image_data doing auth[%s][%s]" % (user, pw))
             response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw))
         else:
             response = requests.get(url)
         if response.status_code == 200:
             image_data = response.content # Read the content as bytes
             response.close()
-            print("image_data len", len(image_data));
+            #print("image_data len", len(image_data));
             if rotate:
                 image_stream = io.BytesIO(image_data)
                 img = Image.open(image_stream)
@@ -66,7 +67,7 @@ def send_email_task(image_q, cluster_id_only=False):
     while True:
         found_match, jpgs = image_q.get()
         idd = cfg.cluster_id if cluster_id_only else cfg.pretty_name
-        print("our id [%s]" % (id,))
+        # print("our id [%s]" % (id,))
         msg = MIMEMultipart()
         msg['Subject'] = found_match["subject"] # +" "+idd
         msg['From'] = cfg.gmail_user
@@ -91,12 +92,13 @@ def main():
     emailer.start()
     client = mqtt_manager(mqtt_q)
     toggle_list = {"topic":  "payload",}
+    last_publish = 0
     while True:
         #print("waiting for message")
         # topic, payload_raw = mqtt_q.get()
         try:
             topic, payload_raw = mqtt_q.get(block=True, timeout=cfg.number_of_seconds_to_wait)
-        except queue.Empty:
+        except Empty:
             # send PCN alive now
             client.publish_command(cfg.publish,"up")
             last_publish = time.time()
@@ -122,11 +124,12 @@ def main():
                         continue
                     else: # different or new payload
                         toggle_list[topic] = payload
-                print("main msg found")
+                #print("main msg found")
             elif "AlL"  in this_topic.keys():  # this is gets all for mqtt topic ignoring payload
                 found_match = this_topic["AlL"]
-                print("main AlL found")
+                #print("main AlL found")
             if found_match:
+                print(f"processing: [{topic}],[{payload}]")
                 images = []
                 image_urls = found_match["image_urls"]
                 for url in image_urls:

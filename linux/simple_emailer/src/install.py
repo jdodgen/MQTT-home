@@ -132,7 +132,7 @@ class create_cfg:
 
 # this is the cfg.py template uses % to pass in stuff
     def write_cfg(self):
-        cfg_template = """simple_emailer
+        cfg_template = """# simple_emailer
 # MIT license copyright 2024, 2025 Jim Dodgen
 # this cfg.py was created by: install.py
 # Date: %s
@@ -183,7 +183,7 @@ topics = %s
 def main():
     while True:
         try:
-            cluster_name = "cluster_jimdod_simple_emailer.toml"  #sys.argv[1]
+            cluster_name = "cluster_jimdod_test_simple_emailer.toml"  #sys.argv[1]
         except:
             print("Input cluster toml file name:")
             cluster_name = input()
