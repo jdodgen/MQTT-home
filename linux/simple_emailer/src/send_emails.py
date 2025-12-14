@@ -93,7 +93,19 @@ def main():
     toggle_list = {"topic":  "payload",}
     while True:
         #print("waiting for message")
-        topic, payload_raw = mqtt_q.get()
+        # topic, payload_raw = mqtt_q.get()
+        try:
+            topic, payload_raw = mqtt_q.get(block=True, timeout=cfg.number_of_seconds_to_wait)
+        except queue.Empty:
+            # send PCN alive now
+            client.publish_command(cfg.publish,"up")
+            last_publish = time.time()
+            continue
+        now = time.time()
+        if last_publish+cfg.number_of_seconds_to_wait < now:
+            # send PCN alive now
+            client.publish_command(cfg.publish,"up")
+            last_publish = now
         payload = payload_raw.decode('utf-8')
         this_topic = cfg.topics.get(topic, None)
         #print("from mqtt_q: topic[%s], payload[%s] " % (topic, payload))

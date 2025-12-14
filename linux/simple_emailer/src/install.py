@@ -8,7 +8,7 @@
 # this reads a toml configuration file see https://toml.io/
 # this file is used by install.py to generate device cfg.py files
 
-sensor_to_make = "E simple_emailer"
+sensor_to_make = "E1 simple_emailer"
 
 import os
 from pathlib import Path
@@ -173,7 +173,7 @@ topics = %s
             self.our_feature.topic(),
             self.pretty_name,
             self.cluster["cluster_id"],
-            self.sensor_to_make[0],
+            self.sensor_to_make[0:2],
             self.topics,
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
