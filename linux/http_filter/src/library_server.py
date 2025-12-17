@@ -1,46 +1,42 @@
 
 import http.server
 import socketserver
+import requests
 from PIL import Image
+import time
+import io
 import cfg
 
 PORT = 9004
-
+saved_images = {}
 class MyRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-        """Handle GET requests by sending a custom HTML reply."""
-        # 1. Send the HTTP status code (200 OK)
-        self.send_response(200)
-
-        # 2. Set response headers
-        self.send_header("Content-type", "text/html")
-        # End the headers section of the response
-        self.end_headers()
-        # 3. Write the response body
-        # Content must be encoded to bytes before writing to the wfile
-        response_content = f"""
-        <html>
-        <head><title>Simple HTTP Server Reply</title></head>
-        <body>
-        <p>whee  This is a custom response from the server.</p>
-        <p>You accessed path: <strong>{self.path}</strong></p>
-        </body>
-        </html>
-        """
-        self.wfile.write(response_content.encode("utf-8"))
-        #
-        print("path [%s]" % (self.path[1:]))
-        if self.path[1:] in cfg.image_urls:
-            url_info = cfg.image_urls[self.path[1:]]
-            url = url_info["url"]
-            user = url_info.get("user", None)
-            pw = url_info.get("pw", None)
-            rotate = url_info.get("rotate", 0)
-            img_bytes = download_image_data(url_info)
+        wanted = self.path[1:]
+        print("request: [%s]" % (wanted))
+        if wanted == "favicon.ico":
+            self.send_error(404, message=None, explain=None)    
+        elif wanted in cfg.image_urls:
+            print("good one [%s]" % ( wanted))
+            self.send_response(200)
+            now = time.time()
+            
+            if wanted in saved_images and saved_images[wanted]["when_downloaded"]+15 >  now:  # TBD seconds or less old we reuse it
+                #print("a>b", saved_images[wanted]["when_downloaded"]+15, now)
+                pass
+            else:
+                # try:
+                    # print("a<b", saved_images[wanted]["when_downloaded"]+15, now)
+                # except:
+                    # print("new saved_images")
+                image_bytes = download_image_data(cfg.image_urls[wanted])
+                one_to_save = {"image":  image_bytes, "when_downloaded":  now, "length":  str(len(image_bytes))}
+                saved_images[wanted] = one_to_save
             self.send_header("Content-type", "image/jpeg")
-            self.send_header("Content-Length", str(len(img_bytes)))
+            self.send_header("Content-Length", saved_images[wanted]["length"])
             self.end_headers()
-            self.wfile.write(img_bytes)
+            self.wfile.write(saved_images[wanted]["image"])
+        else:   # not in the list
+            self.send_error(403, message=None, explain=None)
         
         
 def download_image_data(url_info):
@@ -66,6 +62,7 @@ def download_image_data(url_info):
                 output_stream = io.BytesIO()
                 image_data_rotated.save(output_stream, format="jpeg")
                 return output_stream.getvalue()
+            print("returning image size[%s]" % (str(len(image_data))))
             return image_data
         else:
             print("Failed to download image. Status code:", response.status_code)
