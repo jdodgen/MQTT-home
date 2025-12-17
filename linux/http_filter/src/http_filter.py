@@ -12,7 +12,7 @@ saved_images = {}
 class MyRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         wanted = self.path[1:]
-        print("request: [%s]" % (wanted))
+        #print("request: [%s]" % (wanted))
         if wanted == "favicon.ico":
             self.send_error(404, message=None, explain=None)    
         elif wanted in cfg.image_urls:
@@ -39,8 +39,8 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
             self.send_error(403, message=None, explain=None)
         
         
-def download_image_data(url_info):  # version 2 added resize
-    print("download_image_data", url_info)
+def download_image_data(url_info):  # version 2 added resize base_width
+    #print("download_image_data", url_info)
     try:
         url = url_info["url"]
         user = url_info.get("user", None)
@@ -56,10 +56,10 @@ def download_image_data(url_info):  # version 2 added resize
             image_data = response.content # Read the content as bytes
             response.close()
             #print("image_data len", len(image_data));
-            if rotate or resize:
+            if rotate or base_width:
                 image_stream = io.BytesIO(image_data)
                 img = Image.open(image_stream)
-                if resize:
+                if base_width:
                     width_percent = (base_width / float(img.size[0]))
                     new_height = int((float(img.size[1]) * float(width_percent)))
                     new_size = (base_width, new_height)
@@ -68,11 +68,11 @@ def download_image_data(url_info):  # version 2 added resize
                     img = img.resize(new_size, Image.LANCZOS)
                     # resized_img.save(output_path, "JPEG", quality=90)
                 if rotate:
-                    image_data_rotated = img.rotate(rotate, expand=True)
+                    img = img.rotate(rotate, expand=True)
                 output_stream = io.BytesIO()
-                image_data_rotated.save(output_stream, format="jpeg")
+                img.save(output_stream, format="jpeg")
                 return output_stream.getvalue()
-            print("returning image size[%s]" % (str(len(image_data))))
+            #print("returning image size[%s]" % (str(len(image_data))))
             return image_data
         else:
             print("Failed to download image. Status code:", response.status_code)
