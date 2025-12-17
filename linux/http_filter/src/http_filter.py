@@ -16,7 +16,7 @@ class MyRequestHandler(http.server.BaseHTTPRequestHandler):
         if wanted == "favicon.ico":
             self.send_error(404, message=None, explain=None)    
         elif wanted in cfg.image_urls:
-            print("good one [%s]" % ( wanted))
+            # print("good one [%s]" % ( wanted))
             self.send_response(200)
             now = time.time()
             
@@ -59,7 +59,9 @@ def download_image_data(url_info):  # version 2 added resize base_width
             if rotate or base_width:
                 image_stream = io.BytesIO(image_data)
                 img = Image.open(image_stream)
+                debug = "image: "
                 if base_width:
+                    debug += f"resized {base_width} "
                     width_percent = (base_width / float(img.size[0]))
                     new_height = int((float(img.size[1]) * float(width_percent)))
                     new_size = (base_width, new_height)
@@ -68,9 +70,11 @@ def download_image_data(url_info):  # version 2 added resize base_width
                     img = img.resize(new_size, Image.LANCZOS)
                     # resized_img.save(output_path, "JPEG", quality=90)
                 if rotate:
+                    debug += f"rotate {rotate}"
                     img = img.rotate(rotate, expand=True)
                 output_stream = io.BytesIO()
                 img.save(output_stream, format="jpeg")
+                print(debug)
                 return output_stream.getvalue()
             #print("returning image size[%s]" % (str(len(image_data))))
             return image_data
