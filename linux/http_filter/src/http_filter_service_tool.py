@@ -6,7 +6,7 @@ def install():
     systemd_path = "/etc/systemd/system/"
     print("installing service", service_name)
     service = '''[Unit]
-    Description=Sends emails when reciving certain MQTT messages
+    Description=http filter serves known snapshots 
 
     [Service]
     User=root

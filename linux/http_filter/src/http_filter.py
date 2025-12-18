@@ -11,35 +11,35 @@ PORT = 9004
 saved_images = {}
 class MyRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-		try:
-			wanted = self.path[1:]
-			#print("request: [%s]" % (wanted))
-			if wanted == "favicon.ico":
-				self.send_error(404, message=None, explain=None)    
-			elif wanted in cfg.image_urls:
-				# print("good one [%s]" % ( wanted))
-				self.send_response(200)
-				now = time.time()
-				
-				if wanted in saved_images and saved_images[wanted]["when_downloaded"]+15 >  now:  # TBD seconds or less old we reuse it
-					#print("a>b", saved_images[wanted]["when_downloaded"]+15, now)
-					pass
-				else:
-					# try:
-						# print("a<b", saved_images[wanted]["when_downloaded"]+15, now)
-					# except:
-						# print("new saved_images")
-					image_bytes = download_image_data(cfg.image_urls[wanted])
-					one_to_save = {"image":  image_bytes, "when_downloaded":  now, "length":  str(len(image_bytes))}
-					saved_images[wanted] = one_to_save
-				self.send_header("Content-type", "image/jpeg")
-				self.send_header("Content-Length", saved_images[wanted]["length"])
-				self.end_headers()
-				self.wfile.write(saved_images[wanted]["image"])
-			else:   # not in the list
-				self.send_error(403, message=None, explain=None)
-		except Exception as e:
-			print("Error during do_GET:", e)
+        try:
+            wanted = self.path[1:]
+            #print("request: [%s]" % (wanted))
+            if wanted == "favicon.ico":
+                self.send_error(404, message=None, explain=None)    
+            elif wanted in cfg.image_urls:
+                # print("good one [%s]" % ( wanted))
+                self.send_response(200)
+                now = time.time()
+                
+                if wanted in saved_images and saved_images[wanted]["when_downloaded"]+15 >  now:  # TBD seconds or less old we reuse it
+                    #print("a>b", saved_images[wanted]["when_downloaded"]+15, now)
+                    pass
+                else:
+                    # try:
+                        # print("a<b", saved_images[wanted]["when_downloaded"]+15, now)
+                    # except:
+                        # print("new saved_images")
+                    image_bytes = download_image_data(cfg.image_urls[wanted])
+                    one_to_save = {"image":  image_bytes, "when_downloaded":  now, "length":  str(len(image_bytes))}
+                    saved_images[wanted] = one_to_save
+                self.send_header("Content-type", "image/jpeg")
+                self.send_header("Content-Length", saved_images[wanted]["length"])
+                self.end_headers()
+                self.wfile.write(saved_images[wanted]["image"])
+            else:   # not in the list
+                self.send_error(403, message=None, explain=None)
+        except Exception as e:
+            print("Error during do_GET:", e)
 
 def download_image_data(url_info):  # version 2 added resize base_width
     #print("download_image_data", url_info)
