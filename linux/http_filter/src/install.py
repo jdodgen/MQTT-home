@@ -148,7 +148,7 @@ image_urls = %s
 def main():
     while True:
         try:
-            cluster_name = "cluster_jimdod_library_server.toml"  #sys.argv[1]
+            cluster_name = "cluster_jimdod_http_filter.toml"  #sys.argv[1]
         except:
             print("Input cluster toml file name:")
             cluster_name = input()
