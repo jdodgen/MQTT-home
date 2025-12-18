@@ -44,5 +44,3 @@ WantedBy=multi-user.target
 
 if __name__ == "__main__":
     install()
-#/usr/bin/sshpass -p Xyp92a! /usr/bin/autossh -M 0 -o "ExitOnForwardFailure=no"  -o "ServerAliveInterval=30" -o "ServerAliveCountMax=3" -NR 9004:localhost:9004  jim@212.227.238.151
-#sudo /usr/bin/sshpass -p Xyp92a! /usr/bin/autossh -o "ExitOnForwardFailure=yes"  -o "StrictHostKeyChecking=no" -o "ServerAliveInterval=30" -o "ServerAliveCountMax=3" -N -R 9004:localhost:9004  jim@212.227.238.151
