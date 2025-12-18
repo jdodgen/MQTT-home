@@ -20,10 +20,13 @@ def install():
 [Unit]
 Description=Persistent tunnel from local server to VPS
 After=network.target
+StartLimitIntervalSec=0
 
 [Service]
 User=%s
 ExecStart=%s
+Restart=on-failure
+RestartSec=30
 
 [Install]
 WantedBy=multi-user.target
