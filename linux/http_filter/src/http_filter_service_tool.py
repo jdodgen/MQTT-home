@@ -5,16 +5,20 @@ def install():
     service_name = "http_filter.service"
     systemd_path = "/etc/systemd/system/"
     print("installing service", service_name)
-    service = '''[Unit]
-    Description=http filter serves known snapshots 
+    service = '''\
+[Unit]
+Description=http filter serves known snapshots 
+After=network.target
+StartLimitIntervalSec=0
 
-    [Service]
-    User=root
-    WorkingDirectory=%s
-    ExecStart=/usr/bin/python3 %s/http_filter.py
-
-    [Install]
-    WantedBy=multi-user.target
+[Service]
+User=root
+WorkingDirectory=%s
+ExecStart=/usr/bin/python3 %s/http_filter.py
+RestartSec=30  
+ 
+[Install]
+WantedBy=multi-user.target
     ''' % (os.getcwd(), os.getcwd())
     print("=====\n%s\n=====\nInstall service? must be root (y,N)" % (service))
     ans = input()
