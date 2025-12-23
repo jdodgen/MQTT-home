@@ -1,6 +1,8 @@
 # MIT licence 2025 Jim Dodgen
 import time
 import suntime
+import datetime
+from dateutil import tz
 
 (lat, lon) = "34.206081324130004, -117.14301072256056".split(",")
 
@@ -9,11 +11,30 @@ import suntime
 #warsaw_lon = 21.01
 
 sun = suntime.Sun(float(lat), float(lon))
-today_sr = sun.get_sunrise_time()
-today_ss = sun.get_sunset_time()
-print("sun rise",  type(today_sr))
+today_date = datetime.date.today()
+local_tz = tz.gettz() 
 
 
+sunrise = sun.get_local_sunrise_time(today_date, local_tz)
+sunset =  sun.get_local_sunset_time(today_date, local_tz)
+print("sunrise",  sunrise)
+if sunset < sunrise: # fix a bug in suntime
+        sunset += datetime.timedelta(days=1)
+print("sunset",  sunset)
+
+
+# 1. Get today's date
+today_date = datetime.date.today()
+print("date.today", today_date)
+# 2. Combine the date with the minimum time (midnight)
+#    and specify the UTC timezone
+midnight_utc = datetime.datetime.combine(today_date, datetime.time.min, tzinfo=local_tz)
+print("midnight_utc", midnight_utc)
+unix_timestamp_at_midnight = midnight_utc.timestamp()
+sunrise_since_midnight =      sunrise.timestamp() - unix_timestamp_at_midnight
+print("sunrise at this hour", sunrise_since_midnight/60/60)
+sunset_since_midnight =       sunset.timestamp()  - unix_timestamp_at_midnight
+print("sunset at this hour",  sunset_since_midnight/60/60)
 
 def seconds_since_midnight_from_string(time_str):
     """
@@ -32,9 +53,8 @@ def seconds_since_midnight_from_string(time_str):
         h = int(hms[0])
         m = int(hms[1])
         s = int(hms[2])
-        
+    
     return (h * 3600) + (m * 60) + s
-
 
 def seconds_to_event(event_time):
     local_time = time.localtime()
@@ -49,7 +69,8 @@ result = seconds_since_midnight_from_string("16:00")
 print(f"Manual calculation seconds_since_midnight {event_time_string}: {result/60/60} hours.")
 
 seconds = seconds_to_event(result)
-print("minutes until event", seconds/60)
+print("hours until event", seconds/60/60)
+
     
 
 
