@@ -58,7 +58,7 @@ def seconds_to_event(event_time):
 
 event_time_string = "21:00"
 result = seconds_since_midnight_from_string(event_time_string)
-print(f"date hh:mm:ss to number {event_time_string}: {result/60/60} hours.")
+print(f"date hh:mm:ss to  {event_time_string}: {result/60/60} hours.")
 
 seconds = seconds_to_event(result)
 print("hours until event", seconds/60/60)
