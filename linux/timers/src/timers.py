@@ -4,6 +4,23 @@ import suntime
 import datetime
 from dateutil import tz
 
+def sleep_until_0001():
+    now = datetime.datetime.now()
+    # Define target as 0:01 today
+    target = now.replace(hour=0, minute=1, second=0, microsecond=0)
+    
+    # If it's already past 0:01 today, set target to 0:01 tomorrow
+    if now >= target:
+        target += datetime.timedelta(days=1)
+    
+    # Calculate the number of seconds to wait
+    wait_seconds = (target - now).total_seconds()
+    
+    print(f"Current time: {now.strftime('%H:%M:%S')}")
+    print(f"Sleeping until: {target.strftime('%Y-%m-%d %H:%M:%S')} ({wait_seconds:.2f} seconds)")
+    print("sleep_until_0001 hours", wait_seconds/60/60) 
+    time.sleep(wait_seconds)
+    print("Waking up! It is now 0:01.")
 
 def get_sunset_sunrise(gps):
     (lat, lon) = gps.split(",")
@@ -50,7 +67,7 @@ def seconds_since_midnight_from_string(time_str):
 
 def seconds_to_event(event_time):
     local_time = time.localtime()
-    #print(f"Local Time: {time.strftime('%Y-%m-%d %H:%M:%S %Z', local_time)}")
+    print(f"Local Time: {time.strftime('%Y-%m-%d %H:%M:%S %Z', local_time)}")
     local_time_seconds_since_midnight = local_time.tm_hour * 3600 + local_time.tm_min * 60 + local_time.tm_sec
     #print("hours since midnight", local_time_seconds_since_midnight/60/60)
     seconds = event_time - local_time_seconds_since_midnight
@@ -62,6 +79,8 @@ print(f"date hh:mm:ss to  {event_time_string}: {result/60/60} hours.")
 
 seconds = seconds_to_event(result)
 print("hours until event", seconds/60/60)
+
+sleep_until_0001()
 
     
 
