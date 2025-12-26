@@ -110,11 +110,10 @@ ssl = %s # true or false
 user = '%s'
 password = '%s'
 #
-# gmail account to send emails through
-
 publish = "%s"
 cluster_id = "%s"
 device_letter = "%s"
+#
 timer = %s
 """
         now = datetime.datetime.now()

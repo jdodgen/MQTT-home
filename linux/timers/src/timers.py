@@ -3,8 +3,19 @@ import time
 import suntime
 import datetime
 from dateutil import tz
+import asyncio
+import cfg
+import mqtt_manager
 
-def sleep_until_0001():
+xprint = print # copy print
+my_name = "[timers]"
+def print(*args, **kwargs): # replace print
+    #return  # comment/uncomment to turn print on off
+    # do whatever you want to do
+    #xprint('statement before print')
+    xprint(my_name, *args, **kwargs) # the copied real print
+
+async def sleep_until_0001():
     now = datetime.datetime.now()
     # Define target as 0:01 today
     target = now.replace(hour=0, minute=1, second=0, microsecond=0)
@@ -19,11 +30,11 @@ def sleep_until_0001():
     print(f"Current time: {now.strftime('%H:%M:%S')}")
     print(f"Sleeping until: {target.strftime('%Y-%m-%d %H:%M:%S')} ({wait_seconds:.2f} seconds)")
     print("sleep_until_0001 hours", wait_seconds/60/60) 
-    time.sleep(wait_seconds)
-    print("Waking up! It is now 0:01.")
+    await asyncio.sleep(wait_seconds)
+    print("Waking up! It is now 0:01")
 
-def get_sunset_sunrise(gps):
-    (lat, lon) = gps.split(",")
+def get_sunset_sunrise(lat_long):
+    (lat, lon) = lat_long.split(",")
     sun = suntime.Sun(float(lat), float(lon))
     today_date = datetime.date.today()
     local_tz = tz.gettz() 
@@ -44,9 +55,7 @@ def get_sunset_sunrise(gps):
     #print("sunset at this hour",  sunset_since_midnight/60/60)
     return(sunrise_since_midnight, sunset_since_midnight)
     
-(srise, sset) = get_sunset_sunrise("34.206081324130004, -117.14301072256056")
-print("sunrise at this hour", srise/60/60)
-print("sunset at this hour",  sset/60/60)
+
 
 def seconds_since_midnight_from_string(time_str):
     #Converts an H:M:S string to seconds since midnight.
@@ -73,12 +82,61 @@ def seconds_to_event(event_time):
     seconds = event_time - local_time_seconds_since_midnight
     return seconds
 
-event_time_string = "21:00"
-result = seconds_since_midnight_from_string(event_time_string)
-print(f"date hh:mm:ss to  {event_time_string}: {result/60/60} hours.")
+async def wait_and_send(t, what, s):
+    print("task [%s][%s] started" % (t, what,))
+    offset  = int(s.get("offset", "0"))
+    sunset  = s.get("sunset", False)
+    sunrise = s.get("sunrise", False)
+    time    = s.get("time", "0:0")
+    payload = s["payload"]
+    topic   = s["topic"]
+    if sunset:
+        (x, sset) = get_sunset_sunrise(cfg.lat_long)
+    elif sunrise:
+        (srise, x) = get_sunset_sunrise(cfg.lat_long) 
+    else: # must be just a time in 24 hour format
+        result = seconds_since_midnight_from_string(time)
+        seconds = seconds_to_event(result)
+        
+        
+        
+    delay = 10
+    await asyncio.sleep(delay)
+    #client.publish(topic, payload
+    print("task [%s][%s] ended" % (t, what,))
+    
+async def start_timers(client):
+    for t in cfg.timer:
+        print(t)
+        asyncio.create_task(wait_and_send(t, "start", cfg.timer[t]["start"]))
+        asyncio.create_task(wait_and_send(t, "stop",  cfg.timer[t]["stop"]))
+    
+async def main():
+    # debugging  stuff
+    event_time_string = "21:00"
+    result = seconds_since_midnight_from_string(event_time_string)
+    print(f"date hh:mm:ss to  {event_time_string}: {result/60/60} hours.")
+    seconds = seconds_to_event(result)
+    print("hours until event", seconds/60/60)
+    (srise, sset) = get_sunset_sunrise("34.206081324130004, -117.14301072256056")
+    print("sunrise at this hour", srise/60/60)
+    print("sunset at this hour",  sset/60/60)
+    # end
+    
+    client = mqtt_manager.mqtt_manager()
+    await start_timers(client)
+    while True:
+        await sleep_until_0001()
+        await start_timers(client)
+        await asyncio.sleep(1)
+        
+        
+    
 
-seconds = seconds_to_event(result)
-print("hours until event", seconds/60/60)
+if __name__ == "__main__":
+    # Run the main coroutine as the entry point of the asyncio program
+    asyncio.run(main())
+
 
 sleep_until_0001()
 
