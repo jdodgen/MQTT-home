@@ -114,6 +114,7 @@ publish = "%s"
 cluster_id = "%s"
 device_letter = "%s"
 #
+lat_long = "%s"
 timer = %s
 """
         now = datetime.datetime.now()
@@ -125,6 +126,7 @@ timer = %s
             self.our_feature.topic(),
             self.cluster["cluster_id"],
             self.sensor_to_make[0:2],
+            self.cluster["lat_long"],
             self.cluster["timer"],
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
