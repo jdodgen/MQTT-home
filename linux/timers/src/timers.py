@@ -29,7 +29,7 @@ async def sleep_until_one_second_after_midnight():
     
     print(f"[sleep_until_one_second_after_midnight]Current time: {now.strftime('%H:%M:%S')}")
     print(f"[sleep_until_one_second_after_midnight]Sleeping until: {target.strftime('%Y-%m-%d %H:%M:%S')} ({wait_seconds:.2f} seconds)")
-    print("[sleep_until_one_second_after_midnight]sleep_until_one_second_after_midnight hours", wait_seconds/60/60) 
+    #print("[sleep_until_one_second_after_midnight]sleep_until_one_second_after_midnight hours", wait_seconds/60/60) 
     await asyncio.sleep(wait_seconds)
     print("[sleep_until_one_second_after_midnight]Waking up! It is now 0:01")
 
@@ -75,7 +75,7 @@ def time_string_to_seconds(time_str):
 def seconds_to_event(event_time):
     local_time = time.localtime()
     local_time_seconds_since_midnight = local_time.tm_hour * 3600 + local_time.tm_min * 60 + local_time.tm_sec
-    print("hours since midnight", local_time_seconds_since_midnight/60/60)
+    #print("hours since midnight", local_time_seconds_since_midnight/60/60)
     seconds = event_time - local_time_seconds_since_midnight
     return seconds
 
