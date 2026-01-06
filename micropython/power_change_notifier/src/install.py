@@ -1,4 +1,4 @@
-# MIT license copyright 2024,25 Jim Dodgen
+# MIT license copyright 2024,25,26 Jim Dodgen
 # this configures and installs software
 # it replaces the cfg.py file each time it runs
 # Y N defaults are designed for rapid deployment during development
@@ -229,7 +229,7 @@ no_heartbeat = %s
             self.switch_subject_event_true,
             self.switch_subject_event_false,
             self.c8x8.create_tm1640_dict(),
-            self.sensor_to_make[0],
+            self.sensor_to_make,
             self.no_heartbeat,
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
@@ -285,8 +285,8 @@ def main():
     
     while True:
         print_sensors(cluster["sensor"])
-        print("select one (case insensitive): ", end="")
-        sensor_to_make = input().upper()
+        print("select one: ", end="")
+        sensor_to_make = input()
         if sensor_to_make.lower() in cluster["sensor"]:
            sensor_to_make =  sensor_to_make.lower()
         print("request = ", sensor_to_make)

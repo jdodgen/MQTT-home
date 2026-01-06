@@ -106,21 +106,29 @@ class do_8x8_list:
             if isinstance(topic, str):
                 # parse topic get letter
                 try:
-                    ident = topic.split("/")[2]
+                    piece = topic.split("/")[2]
                 except:
-                    ident = topic
+                    piece = topic
+                ident = piece.split(" ",1)
                 #print("do_8x8_list ident", ident)
-                matrix_list = get_8x8_matrix(ident)
-                if dry_contact:
-                    matrix_list[0] = 0x80
-                char_matrix.append(matrix_list)
+                # now loop through each ident char\
+                ident_list = []
+                for char in ident:
+                    char_set = get_8x8_matrix(char)
+                    if dry_contact:
+                        char_set[0] = 0x80  # Turn on high left bit
+                    ident_list.append(char_set)
+                char_matrix.append(ident_list)
             else:
                 char_matrix.append(self.question_mark)  # error
         await asyncio.sleep(0)
         while True: # displays letters until another message arrives
-            for char8x8 in char_matrix:
-                self.d.write(char8x8)
-                await asyncio.sleep(0.5)
+            for list_of_chars in char_matrix:
+                for char8x8 in list_of_chars:
+                    self.d.write(char8x8)
+                    await asyncio.sleep(0.1)
+                self.d.write(self.turn_off)
+                await asyncio.sleep(0.6)
                 self.d.write(self.turn_off)
                 await asyncio.sleep(0.2)
             if not self.led_8x8_queue.empty():  # this loops until another msg availble
