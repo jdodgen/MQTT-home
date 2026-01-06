@@ -9,7 +9,7 @@ def install():
 /usr/bin/sshpass -p %s \
 /usr/bin/autossh -M 0 \
 -N \
--vvv \
+-vv \
 -o "ExitOnForwardFailure=yes"  \
 -o "StrictHostKeyChecking=no" \
 -o "ServerAliveInterval=30" \
