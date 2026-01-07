@@ -70,8 +70,15 @@ async def do_single_led(single_led_queue):
             async for cmd, in single_led_queue:
                 break
         print("do_single_led [%s]" % (cmd,))
-        if cmd == " ":
+        if cmd == "all_off":
             led.turn_off()
+        elif cmd == "heart_beat":
+            # flash every 5 seconds 
+            while single_led_queue.empty():
+                led.turn_on()
+                await asyncio.sleep(0.5)
+                led.turn_off()
+                await asyncio.sleep(5)
         elif cmd == "boot":
             led.turn_on()
             await asyncio.sleep(1)
@@ -159,7 +166,7 @@ async def up_so_subscribe(client, led_8x8_queue, single_led_queue, topics):
         client.up.clear()
         print('doing subscribes', topics)
         led_8x8_queue.put((("_",False), ))
-        single_led_queue.put(" ")
+        single_led_queue.put("heart_beat")
         for topic in topics:
             await client.subscribe(topic)
         print("emailing startup")
@@ -173,7 +180,7 @@ async def down_report_outage(client, led_8x8_queue, single_led_queue):
         client.down.clear()
         print('down_report_outage got outage')
         led_8x8_queue.put((("^",False),))
-        single_led_queue.put("5")
+        single_led_queue.put("all_off")
         machine.soft_reset()
         
 boilerplate = '''Starting up:

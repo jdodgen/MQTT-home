@@ -188,10 +188,10 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
             should_we_turn_on_led = True
     if sensor_down:
         led_8x8_queue.put(sensor_down) # list of problem topics
-        single_led_queue.put("sensor_down")
+        single_led_queue.put("sensor_down")   # LED on solid
     else:
         led_8x8_queue.put([("_", False),(".", False)])
-        single_led_queue.put("all_off")
+        single_led_queue.put("heart_beat")
     if need_email and cfg.send_email:
         await send_email("PCN One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
 
@@ -238,7 +238,7 @@ async def main():
         led_8x8_queue.put([("_", False)])
     else:
         led_8x8_queue.put([("_", False),(".", False)])
-    single_led_queue.put("all_off")
+    single_led_queue.put("heart_beat")
     switch_detected_true_value = True if cfg.switch_type == "NO" else False  # NO Normaly Open
     switch_on_email_sent = False
     sw_value = 0; # test fixture
