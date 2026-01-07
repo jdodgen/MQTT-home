@@ -26,7 +26,7 @@ StartLimitIntervalSec=0
 User=%s
 ExecStart=%s
 Restart=on-failure
-RestartSec=30
+RestartSec=60
 
 [Install]
 WantedBy=multi-user.target
