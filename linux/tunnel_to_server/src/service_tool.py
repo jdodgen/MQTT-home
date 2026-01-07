@@ -6,7 +6,7 @@ def install():
     systemd_path = "/etc/systemd/system/"
     print("installing [%s]\nservice:\n=====" % (service_name))
     ExecStart='''\
-/usr/bin/sshpass -p %s \
+/usr/bin/sshpass -p "%s" \
 /usr/bin/autossh -M 0 \
 -N \
 -vv \
