@@ -190,7 +190,7 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
         led_8x8_queue.put(sensor_down) # list of problem topics
         single_led_queue.put("sensor_down")
     else:
-        led_8x8_queue.put([("all_off", False),("life", False)])
+        led_8x8_queue.put([("_", False),(".", False)])
         single_led_queue.put("all_off")
     if need_email and cfg.send_email:
         await send_email("PCN One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
@@ -214,7 +214,7 @@ async def main():
 
     MQTTClient.DEBUG = True  # Optional: print diagnostic messages
 
-    led_8x8_queue.put([("boot1",False),(cfg.device_letter,False),("boot2",False),(cfg.device_letter,False),])
+    led_8x8_queue.put([("_",False),(cfg.device_letter,False),("_",False),(cfg.device_letter,False),])
     single_led_queue.put("boot")
     
     print("creating asyncio tasks")
@@ -235,9 +235,9 @@ async def main():
     sw = switch.switch(cfg.switch_pin, client)
     print("switch is",sw.test())
     if cfg.no_heartbeat == True:
-        led_8x8_queue.put([("all_off", False)])
+        led_8x8_queue.put([("_", False)])
     else:
-        led_8x8_queue.put([("all_off", False),("life", False)])
+        led_8x8_queue.put([("_", False),(".", False)])
     single_led_queue.put("all_off")
     switch_detected_true_value = True if cfg.switch_type == "NO" else False  # NO Normaly Open
     switch_on_email_sent = False
@@ -254,7 +254,7 @@ async def main():
             print("switch = %s switch_detected_true_value %s" % (sw_value, switch_detected_true_value))
             if (cfg.switch == True and sw_value != switch_detected_true_value):
                 await client.publish(cfg.publish, "down")
-                if not switch_on_email_sent:  # we have not sent email
+                if not switch_on_email_sent and cfg.send_start_email:  # we have not sent email
                     switch_on_email_sent = True
                     # send switch check email
                     await send_email("(%s) %s %s" % 
