@@ -66,8 +66,6 @@ def print_sensors(sensors):
     sensor_keys.sort()
     for key in sensor_keys:
         #print("sensor key=", key)
-        if len(key) != 1:
-            print("id [%s] mist be a single letter or number" % (key, ))
         try:
             desc =sensors[key]["desc"]
         except:

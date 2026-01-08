@@ -6,7 +6,7 @@
 # this reads a toml configuration file see https://toml.io/
 # this file is used by install.py to generate device cfg.py files (to push to the server)
 
-sensor_to_make = "E1 simple_emailer"
+sensor_to_make = "EMAILER simple_emailer"
 
 import os
 from pathlib import Path
@@ -171,7 +171,7 @@ topics = %s
             self.our_feature.topic(),
             self.pretty_name,
             self.cluster["cluster_id"],
-            self.sensor_to_make[0:2],
+            self.sensor_to_make.split(" ")[0],
             self.topics,
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
@@ -183,7 +183,7 @@ topics = %s
 def main():
     while True:
         try:
-            cluster_name = "cluster_jimdod_test_simple_emailer.toml"  #sys.argv[1]
+            cluster_name = "cluster_jimdod_simple_emailer.toml"  #sys.argv[1]
         except:
             print("Input cluster toml file name:")
             cluster_name = input()
