@@ -262,7 +262,7 @@ async def main():
             else:
                 print("publishing switch up message")
                 await client.publish(cfg.publish, "up")
-                if switch_on_email_sent:
+                if switch_on_email_sent and cfg.send_start_email:
                     # email sent so send a now send up email
                     await send_email("(%s) %s %s" % 
                     (cfg.device_letter, cfg.desc, cfg.switch_subject_event_false), "", cluster_id_only=True)
