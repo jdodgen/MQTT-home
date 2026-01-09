@@ -264,7 +264,7 @@ def push_application_code(serial_port):
     code = [
     "cfg.py",
     "run.py",
-    mp_lib_offset+"pcn.py",
+    #mp_lib_offset+"pcn.py",
     ]
     print("now pushing python application code")
     for c in code:
