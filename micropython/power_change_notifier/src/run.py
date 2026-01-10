@@ -139,27 +139,6 @@ def make_email_body():
     print(body)
     return body
 
-# async def up_so_subscribe(client, led_8x8_queue, single_led_queue):
-    # wild_topic = wildcard_subscribe.topic()
-    # while True:
-        # await client.up.wait()
-        # client.up.clear()
-        # print('doing subscribes', wild_topic)
-        # led_8x8_queue.put((("all_off",False), ))
-        # single_led_queue.put("all_off")
-        # await client.subscribe(wildcard_subscribe.topic())
-        # print("emailing startup")
-        # await send_email("PCN Starting", boilerplate)
-
-# async def down_report_outage(client, led_8x8_queue, single_led_queue):
-    # while True:
-        # await client.down.wait()
-        # client.down.clear()
-        # print('got outage')
-        # machine.soft_reset()   # 
-        # #led_8x8_queue.put((("wifi",False),))
-        # #single_led_queue.put("5")
-
 async def check_for_down_sensors(led_8x8_queue, single_led_queue):
     global current_watched_sensors
     should_we_turn_on_led = False
