@@ -7,7 +7,7 @@ import time
 import io
 import cfg
 
-PORT = 9004
+PORT = cfg.port ## for testing 9004
 saved_images = {}
 class MyRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
