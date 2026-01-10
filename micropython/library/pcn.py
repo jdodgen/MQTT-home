@@ -169,8 +169,9 @@ async def up_so_subscribe(client, led_8x8_queue, single_led_queue, topics):
         single_led_queue.put("heart_beat")
         for topic in topics:
             await client.subscribe(topic)
-        print("emailing startup")
-        await send_email("PCN Starting", boilerplate)
+        if cfg.send_start_email:
+            print("emailing startup")
+            await send_email("PCN Starting", boilerplate)
         
  
 async def down_report_outage(client, led_8x8_queue, single_led_queue):

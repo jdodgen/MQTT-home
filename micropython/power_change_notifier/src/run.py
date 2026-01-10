@@ -254,7 +254,7 @@ async def main():
             print("switch = %s switch_detected_true_value %s" % (sw_value, switch_detected_true_value))
             if (cfg.switch == True and sw_value != switch_detected_true_value):
                 await client.publish(cfg.publish, "down")
-                if not switch_on_email_sent and cfg.send_start_email:  # we have not sent email
+                if not switch_on_email_sent:  # we have not sent email
                     switch_on_email_sent = True
                     # send switch check email
                     await send_email("(%s) %s %s" % 
@@ -262,7 +262,7 @@ async def main():
             else:
                 print("publishing switch up message")
                 await client.publish(cfg.publish, "up")
-                if switch_on_email_sent and cfg.send_start_email:
+                if switch_on_email_sent:
                     # email sent so send a now send up email
                     await send_email("(%s) %s %s" % 
                     (cfg.device_letter, cfg.desc, cfg.switch_subject_event_false), "", cluster_id_only=True)

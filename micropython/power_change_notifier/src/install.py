@@ -60,8 +60,10 @@ def wifi_list_of_list(cluster):
         l.append([ssid, pw])
     print(l)
     return l
-        
+       
 def print_sensors(sensors):
+    index = 1
+    ix = {}
     sensor_keys = list(sensors.keys())
     sensor_keys.sort()
     for key in sensor_keys:
@@ -70,10 +72,13 @@ def print_sensors(sensors):
             desc =sensors[key]["desc"]
         except:
             desc=""
-        print("%s) %s" % (key, desc))
+        print("%s) %s %s" % (index,key, desc))
+        ix[index] = key
+        index += 1
         if(('+' in desc) or ('/' in desc) or ('+' in key) or ('/' in key)):
             print("\nERROR: future topic  [%s][%s] contains a / or +,  MQTT reserved fix in toml file\n" % (key,desc,))
             sys.exit()
+    return ix
 
 class create_cfg:
     def __init__(self, cluster, sensor_to_make):
@@ -264,7 +269,7 @@ def push_application_code(serial_port):
     code = [
     "cfg.py",
     "run.py",
-    #mp_lib_offset+"pcn.py",
+    mp_lib_offset+"pcn.py",
     ]
     print("now pushing python application code")
     for c in code:
@@ -286,9 +291,10 @@ def main():
             print("Try again")
     while True:
         while True:
-            print_sensors(cluster["sensor"])
+            ix = print_sensors(cluster["sensor"])
             print("select one: ", end="")
-            sensor_to_make = input()
+            index = input()
+            sensor_to_make = ix[int(index)]
             if sensor_to_make.lower() in cluster["sensor"]:
                sensor_to_make =  sensor_to_make.lower()
             print("request = ", sensor_to_make)
