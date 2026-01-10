@@ -123,7 +123,7 @@ class do_8x8_list:
                 ident_list = []
                 for char in ident:
                     char_set = get_8x8_matrix(char)
-                    if dry_contact and char not == "_":
+                    if dry_contact and char != "_":
                         char_set[0] = 0x80  # first row Turn on high left bit
                     ident_list.append(char_set)
                 char_matrix.append(ident_list)
