@@ -1,32 +1,65 @@
-# this is a toml configuration file see https://toml.io/
-# this file is used by install.py to generate device cfg.py files
+# this is a toml configuration file https://toml.io/
+cluster_id = "test"
+invert_8x8 = true  # flips the little screen
 
-cluster_id = "your place"  # as in: "/home/your place/Big Generator/power"
+[network]  # default list of wifi networks, more than one increases boot, time can be overriden  
+[network."xxxxx"]
+password = 'foobar'
+[network."yyyy"]
+password = 'foobar'
+[network."zzzzz"]
+password = 'foobar'
 
-[network]
-ssid =  "mywifi"
-wifi_password = '12345678'
 
 [mqtt_broker]
-broker="??.s1.eu.hivemq.cloud"
+broker="hivemq.cloud"  #'home-broker.local'
 ssl = true
 user = "user"
-password = "password"
+password = "password
 
 [email]
-to_list = ["foo@bar.com", "bar@foo.com"]
-gmail_password = "xxx xxx xxx xxx"
-gmail_user = "??@gmail.com"
+to_list = ["you@gmail.com", "they@gmail.com"]
+gmail_password = "xxx xxx xxx xxs"
+gmail_user = "you@gmail.com"
 
 [sensor]
 #  do not use the following in the names (/,+,*,)  It messes with the MQTT wild cards
 #  email = true means that the sensor sends emails when sensors lost and found
-[sensor.G]
+
+[sensor.MAIN]
 desc = "Always on"
 send_email = true # set this to false to supress emailing on this sensor
-[sensor.U]
+
+[sensor.EDISON]
+desc = "only on with edison power"
 send_email = true
-[sensor.B]
-desc = "solar"
-soft_tracking = true  # not monitored at boot only after a publish
+no_heartbeat = true
+
+[sensor.SOLAR]
+desc = "solar and batteries"
+#soft_tracking = true  # not monitored at boot only after a publish
 send_email = false
+ssid =  "some other AP"
+wifi_password = 'some other AP passphrase'
+
+[sensor.EXT]
+desc = "passive watcher"
+monitor_only = true  # this only subscribes and does NOT publish a power status. it is soft_tracking by default
+send_email = true
+ssid = "some other AP"  # wifi override
+wifi_password = "some other AP passphrase" # wifi override
+
+[sensor.G-DOOR]
+desc = "Garage door"
+send_email = false
+# switches send a email when state changes also publishes a state message with  switch_subject_event_true or false value
+switch = true #  monitor the "dry contact" terminals (requires dry_contact_sensor or relay)
+switch_type = "NC" #  "NC" "normaly closed" so when "open" simulates "power" outage or other event
+        # "NO" "normaily open" so when "closed" simulates "power" outage or other event
+        # default is "NO"
+switch_subject_event_true = "is open"
+switch_subject_event_false = "is now closed"
+
+
+
+
