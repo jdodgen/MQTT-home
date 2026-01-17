@@ -1,6 +1,8 @@
 import os
 import cfg
 
+# /usr/bin/sshpass -p "xxxxx" /usr/bin/ssh -N -vv -o "ExitOnForwardFailure=yes" -o "StrictHostKeyChecking=no" -o "ServerAliveInterval=30" -o "ServerAliveCountMax=3" -R *:9006:localhost:9006 jim@1.1.1.1
+
 def install():
     service_name = cfg.service_file_name
     systemd_path = "/etc/systemd/system/"
