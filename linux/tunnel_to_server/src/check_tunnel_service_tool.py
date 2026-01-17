@@ -20,13 +20,17 @@ wd_name = "watchdog_tunnel.service"
 watch_dog = '''
 [Unit]
 Description=check and restart tunnel service
+StartLimitIntervalSec=0
 
 [Service]
 User=root
 ExecStart=/usr/bin/python3 %scheck_tunnel_and_restart.py"
+Restart=on-failure
+RestartSec=60
 
 [Install]
 WantedBy=multi-user.target
+
 ''' % (tunnel_cfg.location_of_check_tunnel_and_restart)
 
 with open(systemd_path+wd_name,"w") as text_file:
