@@ -7,7 +7,7 @@ def install():
     print("installing [%s]\nservice:\n=====" % (service_name))
     ExecStart='''\
 /usr/bin/sshpass -p "%s" \
-/usr/bin/ssh -N -vv \
+/usr/bin/ssh -N -v \
 -o "ExitOnForwardFailure=yes"  \
 -o "StrictHostKeyChecking=no" \
 -o "ServerAliveInterval=30" \
@@ -17,14 +17,16 @@ def install():
     service = '''\
 [Unit]
 Description=Persistent tunnel from local server to VPS
-After=network.target
+After=network-online.target
+Wants=network-online.target
 StartLimitIntervalSec=0
+StartLimitBurst=0
 
 [Service]
 User=%s
 ExecStart=%s
-Restart=on-failure
-RestartSec=60
+Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
