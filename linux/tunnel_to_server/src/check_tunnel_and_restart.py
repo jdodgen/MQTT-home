@@ -3,13 +3,15 @@
 import urllib.request
 import time
 import os
-import tunnel_cfg
+import cfg
 
-url = "http://%s:%s" % (tunnel_cfg.ipaddr,tunnel_cfg.port)
+url = "http://%s:%s" % (cfg.ip_addr,cfg.port)
+print(url)
 check_sleep_time = 60*60
 wait_sleep_time = 60*4
 broke_wait_time = 60*60*4
-restart = "systemctl restart "+tunnel_cfg.service_file_name
+restart = "systemctl restart "+cfg.service_file_name
+print(restart)
 while True:
     try:
         while True:

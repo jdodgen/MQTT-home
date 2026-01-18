@@ -7,9 +7,7 @@ def install():
     print("installing [%s]\nservice:\n=====" % (service_name))
     ExecStart='''\
 /usr/bin/sshpass -p "%s" \
-/usr/bin/autossh -M 0 \
--N \
--vv \
+/usr/bin/ssh -N -vv \
 -o "ExitOnForwardFailure=yes"  \
 -o "StrictHostKeyChecking=no" \
 -o "ServerAliveInterval=30" \

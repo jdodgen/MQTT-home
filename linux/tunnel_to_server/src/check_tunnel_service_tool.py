@@ -2,7 +2,8 @@
 # creates service files using tunnel_cfg.py to hide stuff from github checked in files
 # so you need to create tunnel_cfg.py see below:
 #
-
+import cfg
+import os
 example = '''
 # example tunnel_cfg.py
 password = "password"
@@ -24,23 +25,24 @@ StartLimitIntervalSec=0
 
 [Service]
 User=root
-ExecStart=/usr/bin/python3 %scheck_tunnel_and_restart.py"
+ExecStart=/usr/bin/python3 %scheck_tunnel_and_restart.py
 Restart=on-failure
 RestartSec=60
 
 [Install]
 WantedBy=multi-user.target
+''' % (cfg.location_of_check_tunnel_and_restart)
 
-''' % (tunnel_cfg.location_of_check_tunnel_and_restart)
+print("=====\n%s\n=====\nInstall service? must be root (y,N)" % (watch_dog))
+ans = input()
+if (ans.upper() == "Y"):
+    with open(systemd_path+wd_name,"w") as text_file:
+        text_file.write(watch_dog)
+    os.system(f"systemctl stop {wd_name}")
+    os.system("systemctl daemon-reload")
 
-with open(systemd_path+wd_name,"w") as text_file:
-    text_file.write(watch_dog)
+    os.system(f"systemctl start {wd_name}")
+    os.system(f"systemctl enable {wd_name}")
 
-
-os.system("systemctl daemon-reload")
-
-os.system("systemctl start wd_name")
-os.system("systemctl enable wd_name")
-
-os.system("systemctl status wd_name")
-os.system("systemctl status "+tunnel_cfg.service_file_name)
+    os.system(f"systemctl status {wd_name}")
+    os.system(f"journalctl -f -u {wd_name}")
