@@ -12,7 +12,7 @@ def install():
 -o "StrictHostKeyChecking=no" \
 -o "ServerAliveInterval=30" \
 -o "ServerAliveCountMax=3" \
--R *:%s:localhost:%s  %s@%s''' % (cfg.password, cfg.port, cfg.port, cfg.remote_user, cfg.ip_addr) 
+-R *:%s:127.0.0.1:%s  %s@%s''' % (cfg.password, cfg.port, cfg.port, cfg.remote_user, cfg.ip_addr) 
     print(ExecStart)
     service = '''\
 [Unit]
