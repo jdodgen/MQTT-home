@@ -1,3 +1,6 @@
+# MIT Licence copyright 2025, 2026 Jim Dodgen
+# this creates and installs a ssh tunnel to a server on the Internet
+# 
 import os
 import cfg
 
