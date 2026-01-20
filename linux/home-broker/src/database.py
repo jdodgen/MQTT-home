@@ -581,11 +581,13 @@ class database:
         drop table if exists timers;
         create table timers
         (
-            friendly_name NOT NULL,
+            friendly_name,
+            topic,  -- topic usualy a "set" for zigbee
+            payload,  -- some form of on or off
             sunset,  -- true or false
             sunrise, -- true or false
-            time, -- start time or offset time for sunrise/set
-            on_or_off -- 1 turn on 0 turn off
+            offset,  -- +/- offset time for sunrise/set
+            time -- start time 
         );
         """
         self.con.executescript(create)  # drop and create the tables
