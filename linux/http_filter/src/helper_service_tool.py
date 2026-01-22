@@ -22,7 +22,7 @@ WantedBy=multi-user.target
     if (ans.upper() == "Y"):
         with open(systemd_path+service_name,"w") as text_file:
             text_file.write(service)
-        '''os.system(f"systemctl stop {service_name}")
+        os.system(f"systemctl stop {service_name}")
         os.system("systemctl daemon-reload")
 
         os.system(f"systemctl start {service_name}")
@@ -30,7 +30,6 @@ WantedBy=multi-user.target
 
         os.system(f"systemctl status {service_name}")
         os.system(f"journalctl -f -u {service_name}")
-    '''
 
 if __name__ == "__main__":
     install()
