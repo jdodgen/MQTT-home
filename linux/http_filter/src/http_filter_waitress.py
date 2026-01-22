@@ -69,4 +69,4 @@ def application(environ, start_response):
 
 if __name__ == '__main__':
     print(f"Starting Waitress server on port {PORT}")
-    serve(application, host='0.0.0.0', port=
+    serve(application, host='0.0.0.0', port=PORT)
