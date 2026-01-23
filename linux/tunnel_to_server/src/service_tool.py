@@ -24,6 +24,7 @@ After=network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=0
 StartLimitBurst=0
+OnFailure=http_filter_restart.service
 
 [Service]
 User=%s
