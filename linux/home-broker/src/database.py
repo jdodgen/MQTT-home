@@ -584,6 +584,7 @@ class database:
             friendly_name,
             topic,  -- topic usualy a "set" for zigbee
             payload,  -- some form of on or off
+            days, --  0,1,2,3,4,5,6 
             sunset,  -- true or false
             sunrise, -- true or false
             offset,  -- +/- offset time for sunrise/set
