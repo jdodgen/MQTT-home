@@ -1,5 +1,4 @@
-import aiohttp
-# MIT licenece copyright 2026 Jim dodgen
+# MIT licence copyright 2026 Jim dodgen
 # converted from http.server with the help of Gemini 
 #
 from aiohttp import web
@@ -72,7 +71,7 @@ async def handle_image_request(request):
     Aiohttp handler for incoming requests.
     """
     wanted = request.match_info['whole_path']
-    print("request [%s]\n%s" % (wanted,request))
+    #print("request [%s]\n%s" % (wanted,request))
     if wanted == "favicon.ico":
         return web.Response(status=404)
     
