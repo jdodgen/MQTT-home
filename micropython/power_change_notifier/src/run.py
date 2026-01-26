@@ -169,8 +169,12 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
         led_8x8_queue.put(sensor_down) # list of problem topics
         single_led_queue.put("sensor_down")   # LED on solid
     else:
-        led_8x8_queue.put([("_", False),(".", False)])
-        single_led_queue.put("heart_beat")
+        if cfg.led8x8_heartbeat == True:
+            led_8x8_queue.put([("_", False),(".", False)])
+            single_led_queue.put("all_off")
+        else:
+            led_8x8_queue.put([("_", False)])
+            single_led_queue.put("heart_beat")
     if need_email and cfg.send_email:
         await send_email("PCN One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
 
@@ -213,11 +217,12 @@ async def main():
 
     sw = switch.switch(cfg.switch_pin, client)
     print("switch is",sw.test())
-    if cfg.no_heartbeat == True:
-        led_8x8_queue.put([("_", False)])
-    else:
+    if cfg.led8x8_heartbeat == True:
         led_8x8_queue.put([("_", False),(".", False)])
-    single_led_queue.put("heart_beat")
+        single_led_queue.put("all_off")
+    else:
+        led_8x8_queue.put([("_", False)])
+        single_led_queue.put("heart_beat") # default
     switch_detected_true_value = True if cfg.switch_type == "NO" else False  # NO Normaly Open
     switch_on_email_sent = False
     sw_value = 0; # test fixture

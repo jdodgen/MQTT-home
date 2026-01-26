@@ -107,7 +107,7 @@ class create_cfg:
         #self.publish_to = self.sensor_to_make+" "+desc if desc else self.sensor_to_make
 
         self.send_email = self.sensors[self.sensor_to_make].get("send_email",False)
-        self.no_heartbeat = self.sensors[self.sensor_to_make].get("no_heartbeat", False)
+        self.led8x8_heartbeat = self.sensors[self.sensor_to_make].get("led8x8_heartbeat", False)
         #self.ssid = self.sensors[self.sensor_to_make].get("ssid", self.cluster["network"]["ssid"])
         #self.wifi_password = self.sensors[self.sensor_to_make].get("wifi_password", self.cluster["network"]["wifi_password"])
         
@@ -207,7 +207,7 @@ switch_subject_event_true = "%s"
 switch_subject_event_false = "%s"
 tm1640_chars = %s
 device_letter = "%s"
-no_heartbeat = %s
+led8x8_heartbeat = %s
 send_start_email = %s
 
 """
@@ -235,7 +235,7 @@ send_start_email = %s
             self.switch_subject_event_false,
             self.c8x8.create_tm1640_dict(),
             self.sensor_to_make,
-            self.no_heartbeat,
+            self.led8x8_heartbeat,
             self.send_start_email,
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,

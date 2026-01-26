@@ -29,11 +29,12 @@ gmail_user = "you@gmail.com"
 [sensor.MAIN]
 desc = "Always on"
 send_email = true # set this to false to supress emailing on this sensor
+led8x8_heartbeat = true
 
 [sensor.EDISON]
 desc = "only on with edison power"
 send_email = true
-no_heartbeat = true
+ue
 
 [sensor.SOLAR]
 desc = "solar and batteries"
