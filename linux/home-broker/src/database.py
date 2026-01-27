@@ -579,16 +579,25 @@ class database:
             -- PRIMARY KEY (friendly_name, property, type, access, topic, true_value, false_value)
         );
         drop table if exists timers;
-        create table timers
+       CREATE TABLE timers
         (
-            friendly_name,
-            topic,  -- topic usualy a "set" for zigbee
-            payload,  -- some form of on or off
-            days, --  0,1,2,3,4,5,6 
-            sunset,  -- true or false
-            sunrise, -- true or false
-            offset,  -- +/- offset time for sunrise/set
-            time -- start time 
+        topic,
+        on,
+        off,
+        days, /* a comma seperated string of days 0 thru 6 */
+        start_type,  /* dawn, dusk, or fixed */
+        start_hour,  /* used for fixed times */
+        start_minute, /* used for fixed times */
+        start_offset, /* use for dawn dusk */
+        stop_type,  /* dawn, dusk, or fixed */
+        stop_hour,  /* used for fixed times */
+        stop_minute, /* used for fixed times */
+        stop_offset, /* use for dawn dusk */
+        /* duration, not sure if still needed */
+        time_to_stop,  /* calculated every day at midnight + 1 second */
+        time_to_start, /* calculated every day at midnight + 1 second */
+        seconds_from_midnight INTEGER, /* calculated every day at midnight+ a second  not sure if needed */
+        state INTEGER
         );
         """
         self.con.executescript(create)  # drop and create the tables
@@ -693,3 +702,4 @@ if __name__ == "__main__":
 
 
     
+
