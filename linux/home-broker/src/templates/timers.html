@@ -1,0 +1,321 @@
+<html>
+<style>
+hr {
+    display: block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: auto;
+    margin-right: auto;
+    border-style: inset;
+    border-width: 3px;
+}
+input[type=checkbox] {width:20px; height:20px;}
+table.tbody, tr, td, th{
+    border-collapse: collapse;
+    }
+table.tbody, tr td, th {
+    border: 1px solid black;
+    }
+
+tr.dark {
+    background-color:#B0B0B0 ;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+tr.top {
+    vertical-align: top;
+    text-align: center;
+}
+tr.alert {background-color:red;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+body {
+    background-color: tan;
+}
+
+a:hover {
+    background-color: yellow;
+}
+
+div.header {
+    background-color:#888888;
+    color:white;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    text-align:left;
+    padding-left:5px;
+}
+div.nav {
+    line-height:130%;
+    background-color:#888888;
+    width:115px;
+    padding-left:5px;
+    padding-right:5px;
+    position:fixed;
+    font-family: "Verdana", sans-serif;
+    xfont-size: 130%;
+    border: 2px solid brown;
+    border-radius: 10px;
+    text-align: center;
+}
+div.body {
+    padding-left:135px;
+    xwidth:600px;
+}
+div.border {
+    xfloat:left;
+    padding:5px;
+    font-family: "Verdana", sans-serif;
+    xborder: 4px solid #a1a1a1;
+    xborder-radius: 10px;
+}
+
+
+}
+div.footer {
+    background-color:black;
+    color:white;
+    clear:both;
+    text-align:left;
+    padding:7px;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+}
+</style>
+
+
+
+
+<div id="{{ timers_here }}" class="border">
+    <table class="tbody">
+        <tr>
+            <th colspan="100%" align="left">
+                <font color="red">{{ timer_msg }}</font>
+            </th>
+        </tr>
+        <tr class="dark">
+            <th colspan="100%" align="left">
+                <input type="submit" name="state" value="Set timer">
+                &nbsp;&nbsp;&nbsp;&nbsp;{{ debug }}
+                <font size="+1" color="green">Timed Alerts {{ time_now }}</font>
+            </th>
+        </tr>
+        <tr class="dark">
+            <th>Select Alert</th>
+            <th>Set Time</th>
+        </tr>
+        <tr>
+            <td>
+                <table class="tbody">
+                    <tr class="dark">
+                        <th colspan="100%">Current Timers</th>
+                    </tr>
+                    <tr class="dark">
+                        <th>&nbsp;</th>
+                        <th>topic</th>
+                        <th>type</th>
+                        <th>property</th>
+                        <th>true</th>
+                        <th>false</th>
+                    </tr>
+                    {% for alert in alerts %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="state" value="{{alert.rowid}}">
+                        </td>
+                        <td>{{alert.topic}}</td>
+                        <td>{{alert.type}}</td>
+                        <td>{{alert.property}}</td>
+                        <td>{{alert.true}}</td>
+                        <td>{{alert.false}}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </td>
+            <td>
+                {% for day_val, day_name in [('0', 'Sun'), ('1', 'Mon'), ('2', 'Tue'), ('3', 'Wed'), ('4', 'Thu'), ('5', 'Fri'), ('6', 'Sat')] %}
+                    <input type="checkbox" name="TIMED:days" value="{{ day_val }}" checked>{{ day_name }}
+                    {% if loop.index % 3 == 0 %}<br>{% endif %}
+                {% endfor %}
+
+                <table class="tbody">
+                    <tr class="dark">
+                        <th>Start Time</th>
+                        <th>Stop Time</th>
+                    </tr>
+                    <tr class="dark">
+                        <td>
+                            Fixed <input type="radio" onClick="start_fixed_date();" name="TIMED:start" value="Fixed" checked>
+                            Sunrise <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunrise">
+                            Sunset <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunset">
+                        </td>
+                        <td>
+                            Fixed <input type="radio" onClick="stop_fixed_date();" name="TIMED:stop" value="Fixed" checked>
+                            Sunrise <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunrise">
+                            Sunset <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunset">
+                        </td>
+                    </tr>
+                    </table>
+            </td>
+        </tr>
+    </table>
+</html>
+<!--
+    <table class="tbody">
+        <tr class="dark"><th colspan="100%">Current Timers</th></tr>
+        <tr class="dark">
+            <th>&nbsp;</th><th>Alert</th><th>Days</th><th>Start</th><th>Stop</th><th>On/Off</th>
+        </tr>
+        {% for t_alert in timed_alerts %}
+        <tr>
+            <td>
+                <input type="submit" name="state" value="Remove Timer:{{ t_alert.rowid }}">
+            </td>
+            <td>{{ t_alert.desc }}</td>
+            <td align="center">{{ t_alert.days }}</td>
+            <td align="center">
+                <abbr title="start info here">{{ t_alert.start }}</abbr>
+            </td>
+            <td align="center">{{ t_alert.stop }}</td>
+            <td align="center">{{ t_alert.state }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="{{ timers_here }}" class="border">
+    <table class="tbody">
+        <tr>
+            <th colspan="100%" align="left">
+                <font color="red">{{ timer_msg }}</font>
+            </th>
+        </tr>
+        <tr class="dark">
+            <th colspan="100%" align="left">
+                <input type="submit" name="state" value="Set timer">
+                &nbsp;&nbsp;&nbsp;&nbsp;{{ debug }}
+                <font size="+1" color="green">Timed Alerts {{ time_now }}</font>
+            </th>
+        </tr>
+        <tr class="dark">
+            <th>Select Alert</th>
+            <th>Set Time</th>
+        </tr>
+        <tr>
+            <td>
+                <table class="tbody">
+                    <tr class="dark">
+                        <th colspan="100%">Current Timers</th>
+                    </tr>
+                    <tr class="dark">
+                        <th>&nbsp;</th>
+                        <th>topic</th>
+                        <th>type</th>
+                        <th>property</th>
+                        <th>true</th>
+                        <th>false</th>
+                    </tr>
+                    {% for alert in alerts %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" name="state" value="{{alert.rowid}}">
+                        </td>
+                        <td>{{alert.topic}}</td>
+                        <td>{{alert.type}}</td>
+                        <td>{{alert.property}}</td>
+                        <td>{{alert.true}}</td>
+                        <td>{{alert.false}}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+<!--
+                <select name="TIMED:alert" size="15" multiple>
+                    {% for alert in alerts %}
+                    <option value="{{ alert.ah }}:{{ alert.al }}:{{ alert.port }}:{{ alert.logic }}:{{ alert.devices_rowid }}"
+                            title="{{ alert.devices_device_types_desc }}:{{ alert.port_types_desc }} {{ alert.al }}">
+                        {{ alert.desc }}
+                    </option>
+                    {% endfor %}
+                </select>
+-->
+            </td>
+            <td>
+                <input type="checkbox" name="TIMED:days" value="0" checked>Sun
+                <input type="checkbox" name="TIMED:days" value="1" checked>Mon
+                <input type="checkbox" name="TIMED:days" value="2" checked>Tue<br>
+                <table class="tbody">
+                    <tr class="dark">
+                        <th>Start Time</th>
+                        <th>Stop Time</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="number" name="TIMED:starthour" min="1" max="24" value="{{ default_starthour|default(6) }}">
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <table class="tbody">
+        <tr class="dark">
+            <th colspan="100%">Current Timers</th>
+        </tr>
+        <tr class="dark">
+            <th>&nbsp;</th>
+            <th>topic</th>
+            <th>type</th>
+            <th>property</th>
+            <th>true</th>
+            <th>false</th>
+        </tr>
+        {% for timer in timed_alerts %}
+        <tr>
+            <td>
+                <input type="submit" name="state" value="Remove Timer:{{ timer.rowid }}">
+            </td>
+            <td>{{ timer.desc }}</td>
+            <td align="center">{{ timer.days }}</td>
+            <td align="center">
+                <abbr title="start info here">{{ timer.start }}</abbr>
+            </td>
+            <td align="center">{{ timer.stop }}</td>
+            <td align="center">{{ timer.state }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+-->

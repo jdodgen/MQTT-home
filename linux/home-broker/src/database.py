@@ -524,7 +524,55 @@ class database:
         #for e in all:
         #   print(e)
         return all
-    
+        
+    def get_timers(self):
+        cur = self.con.cursor()
+        cur.execute("""
+        select distinct 
+            topic,
+            type,
+            access,
+            property,
+            true_value,
+            false_value
+
+            from mqtt_device
+            join mqtt_feature on mqtt_feature.friendly_name = mqtt_device.friendly_name
+            
+            where 
+            ((property like "state%"
+            and topic not like "%get")
+            or source = "IP")
+            and access = "pub"
+            and true_value not null
+
+            order by mqtt_feature.friendly_name
+        """)
+        all = cur.fetchall()
+        cur.close()
+        return all
+        
+    def get_timers_for_today(self):
+        cur = self.con.cursor()
+        cur.execute("""
+        select 
+            topic, 
+            payload,
+            sunset,
+            sunrise,
+            offset,
+            time
+            
+            from timers
+            
+            WHERE days LIKE strftime('%%%w%%','now' ,'localtime')
+            
+            order by topic,payload
+        """)
+        all = cur.fetchall()
+        cur.close()
+        return all
+        
     def initialize(self, create_test_data=False):
         create="""
         drop table if exists wemo;
