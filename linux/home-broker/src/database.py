@@ -18,9 +18,11 @@ def print(*args, **kwargs): # replace print
 #
 #
 class database:
-    def __init__(self):
+    def __init__(self, row_factory=False):
         self.con = sqlite3.connect(const.db_name, timeout=const.db_timeout)
         # print("working directory[%s]" % os.getcwd())
+        if row_factory:
+            self.con.row_factory=sqlite3.Row
         cur = self.con.cursor()
         try:  # see if  db exists
             cur.execute("select rowid from mqtt_device")
@@ -525,32 +527,73 @@ class database:
         #   print(e)
         return all
         
-    def get_timers(self):
+    def get_timers_devices(self):
         cur = self.con.cursor()
         cur.execute("""
         select distinct 
+            mqtt_feature.rowid,
             topic,
             type,
-            access,
             property,
             true_value,
             false_value
 
-            from mqtt_device
-            join mqtt_feature on mqtt_feature.friendly_name = mqtt_device.friendly_name
-            
-            where 
+        from mqtt_device
+        join mqtt_feature on mqtt_feature.friendly_name = mqtt_device.friendly_name
+        where 
             ((property like "state%"
             and topic not like "%get")
             or source = "IP")
             and access = "pub"
             and true_value not null
 
-            order by mqtt_feature.friendly_name
+        order by topic desc
         """)
         all = cur.fetchall()
         cur.close()
         return all
+        
+    def get_all_timers(self):
+        cur = self.con.cursor()
+        cur.execute("""
+        select
+            rowid,
+            topic,
+            days,
+            start_type,
+            start_hour,
+            start_minute,
+            start_offset,
+            stop_type,
+            stop_hour,
+            stop_minute,
+            stop_offset 
+            
+            from timers
+
+            order by topic
+        """)
+        all = cur.fetchall()
+        cur.close()
+        return all
+        
+    def get_device_info(self, rowid):
+        cur = self.con.cursor()
+        cur.execute("""
+        select
+            topic,
+            true_value,
+            false_value
+
+        from mqtt_device
+        join mqtt_feature on mqtt_feature.friendly_name = mqtt_device.friendly_name
+        where 
+            mqtt_feature.rowid = ?
+        """, (rowid,))
+        rec = cur.fetchone()
+        cur.close()
+        print("get_feature_mqtt returned [%s]" % (rec,))
+        return rec
         
     def get_timers_for_today(self):
         cur = self.con.cursor()
@@ -627,25 +670,25 @@ class database:
             -- PRIMARY KEY (friendly_name, property, type, access, topic, true_value, false_value)
         );
         drop table if exists timers;
-       CREATE TABLE timers
+        CREATE TABLE timers
         (
-        topic,
-        on,
-        off,
-        days, /* a comma seperated string of days 0 thru 6 */
-        start_type,  /* dawn, dusk, or fixed */
-        start_hour,  /* used for fixed times */
-        start_minute, /* used for fixed times */
-        start_offset, /* use for dawn dusk */
-        stop_type,  /* dawn, dusk, or fixed */
-        stop_hour,  /* used for fixed times */
-        stop_minute, /* used for fixed times */
-        stop_offset, /* use for dawn dusk */
-        /* duration, not sure if still needed */
-        time_to_stop,  /* calculated every day at midnight + 1 second */
-        time_to_start, /* calculated every day at midnight + 1 second */
-        seconds_from_midnight INTEGER, /* calculated every day at midnight+ a second  not sure if needed */
-        state INTEGER
+            topic,
+            true_value,  -- payload
+            false_value, -- payload
+            days, /* a comma seperated string of days 0 thru 6 */
+            start_type,  /* dawn, dusk, or fixed */
+            start_hour,  /* used for fixed times */
+            start_minute, /* used for fixed times */
+            start_offset, /* use for dawn dusk */
+            stop_type,  /* dawn, dusk, or fixed */
+            stop_hour,  /* used for fixed times */
+            stop_minute, /* used for fixed times */
+            stop_offset, /* use for dawn dusk */
+            /* duration, not sure if still needed */
+            time_to_stop,  /* calculated every day at midnight + 1 second */
+            time_to_start, /* calculated every day at midnight + 1 second */
+            seconds_from_midnight INTEGER, /* calculated every day at midnight+ a second  not sure if needed */
+            state INTEGER
         );
         """
         self.con.executescript(create)  # drop and create the tables

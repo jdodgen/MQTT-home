@@ -1,4 +1,23 @@
 <html>
+<head>
+<script>
+function start_fixed_date() {
+   document.getElementById("starthidefixed").style.display = '';
+   document.getElementById("starthidedawn").style.display = 'none';
+}
+function start_dawn() {
+   document.getElementById("starthidedawn").style.display = '';
+   document.getElementById("starthidefixed").style.display = 'none';
+}
+function stop_fixed_date() {
+   document.getElementById("stophidefixed").style.display = '';
+   document.getElementById("stophidedawn").style.display = 'none';
+}
+function stop_dawn() {
+   document.getElementById("stophidedawn").style.display = '';
+   document.getElementById("stophidefixed").style.display = 'none';
+}
+</script>
 <style>
 hr {
     display: block;
@@ -83,8 +102,8 @@ div.footer {
 }
 </style>
 
-
-
+</head>
+<form action="/set_timer" method="post">
 
 <div id="{{ timers_here }}" class="border">
     <table class="tbody">
@@ -94,21 +113,16 @@ div.footer {
             </th>
         </tr>
         <tr class="dark">
-            <th colspan="100%" align="left">
-                <input type="submit" name="state" value="Set timer">
+            <th colspan="100%" align="center">
                 &nbsp;&nbsp;&nbsp;&nbsp;{{ debug }}
-                <font size="+1" color="green">Timed Alerts {{ time_now }}</font>
+                <font size="+1" color="green">Timers {{ time_now }}</font>
             </th>
-        </tr>
-        <tr class="dark">
-            <th>Select Alert</th>
-            <th>Set Time</th>
         </tr>
         <tr>
             <td>
                 <table class="tbody">
                     <tr class="dark">
-                        <th colspan="100%">Current Timers</th>
+                        <th colspan="100%">Select Device</th>
                     </tr>
                     <tr class="dark">
                         <th>&nbsp;</th>
@@ -121,7 +135,7 @@ div.footer {
                     {% for alert in alerts %}
                     <tr>
                         <td>
-                            <input type="checkbox" name="state" value="{{alert.rowid}}">
+                            <input type="radio" name="selected_rowid" value="{{alert.rowid}}">
                         </td>
                         <td>{{alert.topic}}</td>
                         <td>{{alert.type}}</td>
@@ -132,6 +146,11 @@ div.footer {
                     {% endfor %}
                 </table>
             </td>
+        </tr>
+        <tr class="dark">
+            <th>Set Time</th>
+        </tr>
+        <tr>
             <td>
                 {% for day_val, day_name in [('0', 'Sun'), ('1', 'Mon'), ('2', 'Tue'), ('3', 'Wed'), ('4', 'Thu'), ('5', 'Fri'), ('6', 'Sat')] %}
                     <input type="checkbox" name="TIMED:days" value="{{ day_val }}" checked>{{ day_name }}
@@ -141,24 +160,139 @@ div.footer {
                 <table class="tbody">
                     <tr class="dark">
                         <th>Start Time</th>
-                        <th>Stop Time</th>
                     </tr>
-                    <tr class="dark">
+                    <tr>
                         <td>
                             Fixed <input type="radio" onClick="start_fixed_date();" name="TIMED:start" value="Fixed" checked>
                             Sunrise <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunrise">
                             Sunset <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunset">
                         </td>
+                    </tr>
+                    <tr class="dark">
+                        <th>Start Time or Offset</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table id="starthidefixed">
+                                <tr>
+                                    <th>
+                                        Hour(24):Minute
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <td><input type=number name=TIMED:starthour min=1 max=24 value=6>
+                                    :
+                                    <input type=number name=TIMED:startminute min=0 max=59 value=30>
+                                </td>
+                                </tr>
+                            </table>
+                            <table id="starthidedawn"  style="display: none;">
+                                <tr>
+                                    <th>
+                                        Offset Minutes (+-)
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input type=number name=TIMED:startoffset min=-2000 max=2000 value=0>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr class="dark">
+                        <th>Stop Time</th>
+                    </tr>
+                    <tr>
                         <td>
                             Fixed <input type="radio" onClick="stop_fixed_date();" name="TIMED:stop" value="Fixed" checked>
                             Sunrise <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunrise">
                             Sunset <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunset">
                         </td>
                     </tr>
-                    </table>
+                    <tr class="dark">
+                        <th>Stop Time or Offset</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <table id="stophidefixed">
+                                <tr>
+                                <th>
+                                    Hour(24):Minute
+                                </th>
+                                </tr>
+                                <tr>
+                                <td><input type=number name=TIMED:stophour min=1 max=24 value=6>
+                                :
+                                <input type=number name=TIMED:stopminute min=0 max=59 value=30>
+                                </td>
+                                </tr>
+                            </table>
+                            <table id="stophidedawn"  style="display: none;">
+                                <tr>
+                                <th>
+                                    Offset Minutes (+-)
+                                </th>
+                                </tr>
+                                <tr>
+                                <td>
+                                    <input type=number name=TIMED:stopoffset min=-2000 max=2000 value=0>
+                                </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="submit" name="state" value="Set timer">
+                        </td>
+                    </tr>
+                </table>
             </td>
         </tr>
+        <tr>
+            <table class="tbody">
+                <tr class="dark">
+                    <th colspan="100%">Current Timers</th>
+                </tr>
+                <tr class="dark">
+                    <th  rowspan=2>&nbsp;</th>
+                    <th  rowspan=2>topic</th>
+                    <th  rowspan=2>days sun=0</th>
+                    <th colspan=4 >start</th>
+                    <th colspan=4 >stop</th>
+                </tr>
+                <tr class="dark">
+                    <th>type</th>
+                    <th>hour</th>
+                    <th>minute</th>
+                    <th>offset</th>
+                    <th>type</th>
+                    <th>hour</th>
+                    <th>minute</th>
+                    <th>offset</th>
+                </tr>
+                {% for timer in timed_alerts %}
+                <tr>
+                    <td>
+                        <input type="submit" name="state" value="Remove Timer:{{ timer.rowid }}">
+                    </td>
+                    <td>{{ timer.topic }}</td>
+                    <td>{{ timer.days }}</td>
+                    <td>{{ timer.start_type }}</td>
+                    <td>{{ timer.start_hour }}</td>
+                    <td>{{ timer.start_minute }}</td>
+                    <td>{{ timer.start_offset }}</td>
+                    <td>{{ timer.stop_type }}</td>
+                    <td>{{ timer.stop_hour }}</td>
+                    <td>{{ timer.stop_minute }}</td>
+                    <td>{{ timer.stop_offset }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </tr>
     </table>
+</form>
 </html>
 <!--
     <table class="tbody">
@@ -270,6 +404,7 @@ div.footer {
                     {% endfor %}
                 </select>
 -->
+<!--
             </td>
             <td>
                 <input type="checkbox" name="TIMED:days" value="0" checked>Sun
