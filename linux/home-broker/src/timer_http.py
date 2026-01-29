@@ -70,7 +70,7 @@ async def timer_manager(request):
                 ))
                 db.con.commit()
             else:
-                context["timer_msg"] = "timer failed, missing device or days?"
+                context["timer_msg"] = "ERROR:  no device checked or no days checked"
 
         # Logic for "Remove Timer"
         elif "Remove Timer:" in state:

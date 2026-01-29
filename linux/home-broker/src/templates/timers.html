@@ -154,7 +154,6 @@ div.footer {
             <td>
                 {% for day_val, day_name in [('0', 'Sun'), ('1', 'Mon'), ('2', 'Tue'), ('3', 'Wed'), ('4', 'Thu'), ('5', 'Fri'), ('6', 'Sat')] %}
                     <input type="checkbox" name="TIMED:days" value="{{ day_val }}" checked>{{ day_name }}
-                    {% if loop.index % 3 == 0 %}<br>{% endif %}
                 {% endfor %}
 
                 <table class="tbody">
