@@ -3,7 +3,7 @@ version = 0.3
 
 import os
 if os.name =="nt": # testing under Windows
-   db_name = 'C:\\Users\jim\devices.db'
+   db_name = 'C:\\Users\\jim\\devices.db'
    log_path = 'C:\\Users\\jim\\log\\'
    error_log_path = 'C:\\Users\\jim\\log\\error\\'
    windows_broker = "home-broker.local"
