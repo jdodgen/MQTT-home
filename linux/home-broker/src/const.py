@@ -14,7 +14,7 @@ else: # running as a system under Linux
    db_name = 'devices.db'
    log_path = "/dev/shm/log/"
    error_log_path = "log/"
-   windows_broker = None
+   windows_broker = "192.168.0.193" #None
    mosquitto_file_path = "/etc/mosquitto/mosquitto.conf"
    fauxmo_default_dir = "/etc/fauxmo"  
 
