@@ -434,7 +434,7 @@ class database:
         """, (rowid,))
         rec = cur.fetchone()
         cur.close()
-        print("get_feature_mqtt returned [%s]" % (rec,))
+        #print("get_feature_mqtt returned [%s]" % (rec,))
         return rec
 
     def delete_wemo(self, row_id):
@@ -533,20 +533,19 @@ class database:
         cur.execute("""
         select distinct 
             mqtt_feature.rowid,
+            -- source,
             topic,
             type,
             property,
             true_value,
             false_value
 
-        from mqtt_device
-        join mqtt_feature on mqtt_feature.friendly_name = mqtt_device.friendly_name
-        where 
-            ((property like "state%"
-            and topic not like "%get")
-            or source = "IP")
-            and access = "pub"
-            and true_value not null
+        from mqtt_feature
+        
+        left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
+        
+        where (type = "binary" and source = "ZB" and property like "state%" and topic like "%set")
+            or source = "IP"
 
         order by topic desc
         """)
