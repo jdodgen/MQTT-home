@@ -599,19 +599,14 @@ class database:
     def get_timers_for_today(self):
         print("get_timers_for_today")
         cur = self.con.cursor()
-        try:
-            cur.execute("""
-            select 
-                *
-                from timers
-                
-                WHERE days LIKE strftime('%%%w%%','now' ,'localtime')
-            """)
-            all = cur.fetchall()
-        except:
-            print("query failed")
-        cur.close()
-        print("get_timers_for_today ", all)
+        cur.execute("""
+        select 
+            *
+            from timers
+            
+            WHERE days LIKE strftime('%%%w%%','now' ,'localtime')
+        """)
+        all = cur.fetchall()
         return all
         
     def initialize(self, create_test_data=False):
