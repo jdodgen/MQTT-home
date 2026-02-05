@@ -1,9 +1,7 @@
-This needs to be clean up:
-
-
+# MIT licence copyright 2026 JimDodgen
+alertaway.com
 home-broker - a small dedicated mqtt, fauxmo and zigbee server
 it consolodates zigbee and Internet/WiFi devices in a sqlite database.
-It only collects configuration and does not command devices
 
 a small http server exists: 
     1) maintain/map fauxmo devices
@@ -12,6 +10,10 @@ a small http server exists:
     4) collects nome-broker pub/sub devices 
     5) view consilodated devices and generated topics/payloads
     6) it can be used to test devices turn on and off
+	7) ssh tunnel and server for camera jpg access
+	8) MQTT email gateway
+	9) timers sending on and off topics
+	10) ...
 
 It serves device information via pub/sub to extract devices from database
 to be used by another automation system. This data is simplfied and 
@@ -127,3 +129,4 @@ sudo reboot
 # configuration.yaml should be fresh
 # coordinator_backup.json should be deleted
 # Unsure about database.db 
+
