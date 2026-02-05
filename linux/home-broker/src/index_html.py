@@ -62,6 +62,12 @@ html = '''
         </a>
         <h3 style="color: red" ;>{{error_message}}</h3>
       </th>
+      <th  style="text-align: left;">
+        <a href="http://home-broker.local:8081/">
+          <h2>Set Timers</h2>
+        </a>
+        <h3 style="color: red" ;>{{error_message}}</h3>
+      </th>
     </tr>
     {% if do_update_IP %}
     <tr>
