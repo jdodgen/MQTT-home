@@ -1,7 +1,7 @@
-# MIT licence copyright 2026 JimDodgen
+# MIT license copyright 2026 Jim Dodgen
 alertaway.com
-home-broker - a small dedicated mqtt, fauxmo and zigbee server
-it consolodates zigbee and Internet/WiFi devices in a sqlite database.
+home-broker - a small dedicated MQTT, fauxmo and zigbee server
+it consolidates ZigBee and Internet/WiFi devices in a SQLite database.
 
 a small http server exists: 
     1) maintain/map fauxmo devices
@@ -63,25 +63,28 @@ sudo raspi-config
 
 use home-broker.local for the address
 
-sudo apt update
+sudo apt update    #  if problems run apt --fix-broken install
 sudo apt upgrade
 sudo apt install pip
 sudo apt install mosquitto
+
 sshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
 # You do this IF we run it from main.py 
 # right now we let it run by itsself
 
 # sudo systemctl disable mosquitto.service
-
-# to start, monitor and restart as needed 
+# to start, monitor and restart mosquitto as needed 
 
 # bring in the python packages
 
-sudo pip install fauxmo
-sudo pip install paho.mqtt
-sudo pip install gevent
-sudo pip install flask
-sudo pip install pgrep
+sudo pip install fauxmo --break-system-packages
+sudo pip install paho.mqtt --break-system-packages
+sudo pip install gevent --break-system-packages
+sudo pip install flask --break-system-packages
+sudo pip install pgrep --break-system-packages
+sudo pip install suntime --break-system-packages
+sudo pip install aiohttp_jinja2 --break-system-packages
+--   not found sudo pip install dateutil --break-system-packages
 
 # fix the conf.d directory for a future ftp
 # not used # sudo chmod a+w /etc/mosquitto/conf.d
@@ -89,6 +92,27 @@ sudo pip install pgrep
 # now install zigbee2mqtt
 
 https://www.zigbee2mqtt.io/guide/installation/01_linux.html
+
+sudo apt-get install -y curl # should be builtin
+sudo curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+# keyring problem?
+wget https://deb.libre.computer/repo/pool/main/libr/libretech-keyring/libretech-keyring_2024.05.19_all.deb
+sudo dpkg -i libretech-keyring_2024.05.19_all.deb
+sudo apt update
+#
+sudo apt-get install -y nodejs git make g++ gcc libsystemd-dev
+sudo corepack enable
+sudo mkdir /opt/zigbee2mqtt
+sudo chown -R ${USER}: /opt/zigbee2mqtt
+git clone --depth 1 https://github.com/Koenkk/zigbee2mqtt.git /opt/zigbee2mqtt
+cd /opt/zigbee2mqtt
+pnpm install --frozen-lockfile  # this takes awhile
+sudo snap install node --classic
+cd /opt/zigbee2mqtt
+pnpm start 
+# its running
+On first start, Zigbee2MQTT will start the onboarding on port 8080. Navigate to this board and configure accordingly
+
 
 # change config to use home-broker.local for the broker
 # broker has not been configured yet sshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
@@ -98,7 +122,7 @@ https://www.zigbee2mqtt.io/guide/installation/01_linux.html
 # now install home-broker code
 sftp down the following (filezilla):
 
-copy mosquitto.conf to /etc/mosquitto/conf.d
+#  now done by mosquitto_manager.py # copy mosquitto.conf to /etc/mosquitto/conf.d
 
 # bulk load of our code see "install_files.bat"
 sshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
@@ -108,7 +132,7 @@ sshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
 # and set things  up to auto start the home-broker on boot
 # future may just run as a deamon but harder to debug.
 #
-code replace /dev/ttyUSB0 with your ZBC port
+code replace /dev/ttyUSB0 with your ZBC port 
 edit  .bashrc 
 add to the end
 
@@ -123,10 +147,10 @@ sudo reboot
 
 
 # Notes
-# If replicating/copying prebuilt immages make sure 
+# If replicating/copying prebuilt images make sure 
 # the /opt/zigbee2mqtt/data stuff is fresh and not 
 # a previous install
 # configuration.yaml should be fresh
 # coordinator_backup.json should be deleted
-# Unsure about database.db 
+# Unsure about database.db or devices.db 
 
