@@ -35,6 +35,10 @@ class database:
     def __del__(self):
         self.con.commit()
         self.con.close()
+        
+    def close(self):
+        self.con.commit()
+        self.con.close()
 
     def replace_password(self, pw):
         if pw == "":
