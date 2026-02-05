@@ -240,7 +240,7 @@ def task(fauxmo, watch_dog_queue_in):
     global watch_dog_queue
     watch_dog_queue = watch_dog_queue_in
     fauxmo_task = fauxmo
-    os.nice(-1)
+    # os.nice(-1)
     db=database.database()
     print("Starting http server...")
     http_server = WSGIServer(("0.0.0.0", const.http_port), app)
