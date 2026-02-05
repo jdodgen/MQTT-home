@@ -9,6 +9,7 @@ import asyncio
 import cfg
 # import mqtt_manager
 import message
+import paho.mqtt.publish as publish
 import database
 
 xprint = print # copy print
@@ -103,7 +104,8 @@ async  def wait_and_send(time_type, hour, minute, offset, topic, payload):
         print("[[ task sleeping [", topic,"][", payload, "] ]]\n")
         await asyncio.sleep(seconds) # we are sleeping until timer starts or stops
         # client.publish(topic, payload)
-        message.publish_single(topic, payload, my_parent="timers_daemon")
+        publish.single(topic, payload, hostname=message.our_ip_address())
+        #message.publish_single(topic, payload, my_parent="timers_daemon")
         print("task time now [%s] sleep done and plublished" % (datetime.datetime.now()))
         print("[[ task done sleeping and sending [", topic,"][", payload, "] ]]\n")
     else:
@@ -127,7 +129,7 @@ async def process_timer(atime):
    
 async def start_timers(times):
     for atime in times:
-        print("start_timers", atime["topic"])
+        print("start_timers starting:", atime["topic"])
         await process_timer(atime)
         #asyncio.create_task(process_timer(atime, "start", cfg.timer[t]["start"]))
         #asyncio.create_task(wait_and_send(atime, "stop",  cfg.timer[t]["stop"]))
@@ -146,7 +148,8 @@ async def main():
     
     # client = mqtt_manager.mqtt_manager()
     db = database.database(row_factory=True)
-    message.publish_single(cfg.id_topic, cfg.id_payload, my_parent="main")
+    publish.single(cfg.id_topic, cfg.id_payload, hostname=message.our_ip_address())
+    #message.publish_single(cfg.id_topic, cfg.id_payload, my_parent="main")
     await start_timers(db.get_timers_for_today())
     while True:
         await sleep_until_one_second_after_midnight()
