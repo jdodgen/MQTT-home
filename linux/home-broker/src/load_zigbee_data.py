@@ -4,6 +4,7 @@ import json
 import time
 import queue
 import const
+import multiprocessing
 #
 # conditional print
 import os 
@@ -14,6 +15,18 @@ def print(*args, **kwargs): # replace print
     xprint("["+my_name+"]", *args, **kwargs) # the copied real print
 #
 #
+def start_ZigbeeDeviceRefresher():
+    p = multiprocessing.Process(target=ZigbeeDeviceRefresher)
+    p.start()
+    return p
+
+def stop_ZigbeeDeviceRefresher(p):
+    p.terminate()
+    while p.is_alive():
+        print("MQTT wont die")
+        time.sleep(0.1)
+    p.join()
+    p.close()
 
 class ZigbeeDeviceRefresher():
     def __init__(self):
@@ -21,7 +34,6 @@ class ZigbeeDeviceRefresher():
         q = queue.Queue()  
         self.msg = message.message(q, my_parent=my_name)
         self.msg.client.subscribe(const.zigbee2mqtt_bridge_devices, 0)
-
         while True:
             try:
                 item = q.get(timeout=20)
@@ -36,7 +48,7 @@ class ZigbeeDeviceRefresher():
             if item[0] == "callback":
                 if item[1] == const.zigbee2mqtt_bridge_devices: # reply topic
                     load_database_from_zigbee(item[2])
-                    break
+                    ##  break
 
 def load_database_from_zigbee(zigbee2mqtt_devices):
     #print("\n\n",zigbee2mqtt_devices,"\n\n")

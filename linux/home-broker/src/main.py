@@ -55,6 +55,7 @@ if __name__ == "__main__":
     mqtt_task = None
     fauxmo_task = None 
     zigbee_task = None 
+    z2m_task = None
     http_thread = None 
 
     # process watchdog starting now
@@ -78,7 +79,10 @@ if __name__ == "__main__":
         if not zigbee_task:
             zigbee_task = zigbee2mqtt_manager.start_zigbee2mqtt_task(watch_dog_queue)
             print("watchdog zigbee_task needs to be started")
-            load_zigbee_data.ZigbeeDeviceRefresher()
+            
+        if not z2m_task:
+            z2m_task = load_zigbee_data.start_ZigbeeDeviceRefresher()
+            print("watchdog z2m_task needs to be started")
 
         if not http_thread or not http_thread.is_alive():
             http_thread = http_server.start_http_task(fauxmo_task, watch_dog_queue)
