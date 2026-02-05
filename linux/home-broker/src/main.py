@@ -24,6 +24,8 @@ import fauxmo_manager
 import mosquitto_manager
 import zigbee2mqtt_manager
 import mqtt_service_task
+import timers_http
+import timers_daemon
 import load_zigbee_data
 import const
 import database
@@ -57,6 +59,8 @@ if __name__ == "__main__":
     zigbee_task = None 
     z2m_task = None
     http_thread = None 
+    timers_http_task = None
+    timers_daemon_task = None
 
     # process watchdog starting now
     watch_dog_queue.put(["test_message",0])
@@ -87,6 +91,12 @@ if __name__ == "__main__":
         if not http_thread or not http_thread.is_alive():
             http_thread = http_server.start_http_task(fauxmo_task, watch_dog_queue)
             print("watchdog http_thread needs to be started")
+        
+        if not timers_http_task:
+            timers_http_task = timers_http.start_timers_http()
+            
+        if not timers_daemon_task:
+            timers_daemon_task = timers_daemon.start_timers_daemon()
 
         # now looping
             

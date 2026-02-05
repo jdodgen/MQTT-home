@@ -6,6 +6,7 @@ import suntime
 import datetime
 from dateutil import tz
 import asyncio
+import multiprocessing
 import cfg
 # import mqtt_manager
 import message
@@ -156,7 +157,14 @@ async def main():
         await start_timers(db.get_timers_for_today())
         await asyncio.sleep(1)
         
-        
+def task():
+    asyncio.run(main())
+     
+def start_timers_daemon():
+    p = multiprocessing.Process(target=task)
+    p.start()
+    return p
+    
     
 
 if __name__ == "__main__":

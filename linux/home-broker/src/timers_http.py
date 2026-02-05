@@ -1,5 +1,8 @@
+# MIT licence copyright 2026 Jim Dodgen
+
 import re
 # import aiosqlite
+import multiprocessing
 import aiohttp_jinja2
 import jinja2
 from aiohttp import web
@@ -103,5 +106,13 @@ app.add_routes([
     web.post('/set_timer', timer_manager)
 ])
 
+def task():
+    web.run_app(app, port=8081)
+     
+def start_timers_http():
+    p = multiprocessing.Process(target=task)
+    p.start()
+    return p
+
 if __name__ == "__main__":
-    web.run_app(app, port=8080)
+    web.run_app(app, port=8081)
