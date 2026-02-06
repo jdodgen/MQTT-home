@@ -6,6 +6,8 @@ import multiprocessing
 import os
 #
 # conditional print
+# update this with your trace
+# 
 import os 
 my_name = os.path.basename(__file__).split(".")[0]
 raw_print = print # copy print
@@ -35,7 +37,7 @@ def task(watch_dog_queue):
         # not sure why they need this but this will run it
         config_file_name = "configuration.yaml"
         base_dir = "/opt/zigbee2mqtt"
-        print_always("task starting")
+        print_always("zigbee2mqtt task starting")
         os.chdir(base_dir)
         print(os.getcwd())
         cfg_path=base_dir+"/data/"+config_file_name
@@ -56,8 +58,12 @@ def task(watch_dog_queue):
         # only a reboot fixes things, a very brut force solution
         # This will be changed when the z2m problem is figured out
         print("exited, attempting restart")
-        watch_dog_queue.put(["shutdown", "zigbee2mqtt problems"])
+        if watch_dog_queue:
+            watch_dog_queue.put(["shutdown", "zigbee2mqtt problems"])
+        else:
+            print_always("Shuting down zigbee2mqtt problems") 
+            
         time.sleep(10) # just to keep it out of a hard loop        
 
 if __name__ == "__main__":
-    task()
+    task(None)

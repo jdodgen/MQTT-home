@@ -31,7 +31,7 @@ print("Our ip address:", IPaddr)
 ifname = b"eth0"  #our network interface, see "ip a" 
 
 fauxmo_config_file_path = fauxmo_default_dir+"/config.json"
-fauxmo_sleep_seconds = 120 # wake up every two minutes, Zzzzzz
+fauxmo_sleep_seconds = 240 # wake up every 4 minutes, Zzzzzz
 #
 broker_mqtt_port = 1883
 #
