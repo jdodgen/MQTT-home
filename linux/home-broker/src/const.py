@@ -14,9 +14,19 @@ else: # running as a system under Linux
    db_name = 'devices.db'
    log_path = "/dev/shm/log/"
    error_log_path = "log/"
-   windows_broker = "192.168.0.193" #None
+   windows_broker = "localhost" #None
    mosquitto_file_path = "/etc/mosquitto/mosquitto.conf"
    fauxmo_default_dir = "/etc/fauxmo"  
+
+# import socket
+# def get_ip_address():
+    # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # s.connect(("192.168.253.253", 50000))
+    # ip =  s.getsockname()[0]
+    # s.close()
+    # return ip
+IPaddr = "192.168.0.138"  #get_ip_address() 
+print("Our ip address:", IPaddr)
 
 ifname = b"eth0"  #our network interface, see "ip a" 
 

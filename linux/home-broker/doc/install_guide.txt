@@ -72,7 +72,7 @@ sshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
 # You do this IF we run it from main.py 
 # right now we let it run by itsself
 
-# sudo systemctl disable mosquitto.service
+# not needed --- sudo systemctl disable mosquitto.service
 # to start, monitor and restart mosquitto as needed 
 
 # bring in the python packages
@@ -137,11 +137,12 @@ edit  .bashrc
 add to the end
 
 ```
+sudo python3 create_ipaddr_txt.py
 sudo chmod a+rw /dev/ttyUSB0
 echo booting in 10 seconds
 sleep 10
 sudo python3 main.py
-sudo echo `date` >> bootlog
+date >> reboot_log.txt
 sudo reboot
 ```
 

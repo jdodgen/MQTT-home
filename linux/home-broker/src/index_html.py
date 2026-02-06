@@ -57,16 +57,13 @@ html = '''
   <table>
     <tr>
       <th  style="text-align: left;">
-        <a href="http://home-broker.local:8080/">
+        <a href="http://{{IPaddr}}:8080/">
           <h2>Maintain zigbee2mqtt Devices</h2>
         </a>
         <h3 style="color: red" ;>{{error_message}}</h3>
-      </th>
-      <th  style="text-align: left;">
-        <a href="http://home-broker.local:8081/">
+        <a href="http://{{IPaddr}}:8081/">
           <h2>Set Timers</h2>
         </a>
-        <h3 style="color: red" ;>{{error_message}}</h3>
       </th>
     </tr>
     {% if do_update_IP %}

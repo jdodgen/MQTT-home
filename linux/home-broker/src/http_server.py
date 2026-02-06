@@ -1,4 +1,4 @@
-from gevent import monkey; monkey.patch_all()
+from gevent import monkey; # monkey.patch_all()
 from flask import Flask, render_template_string,  request
 from gevent.pywsgi import WSGIServer
 import os
@@ -198,7 +198,8 @@ def render(error, update_ip=False, manIP_rowid=None):
         zigbee_devices = db.cook_devices_features_for_html(source='ZB'),
         get_devices_for_wemo = db.get_devices_for_wemo(),
         all_wemo = db.get_all_wemo(),
-        manual_device_names = db.get_all_manual_device_names()
+        manual_device_names = db.get_all_manual_device_names(),
+        IPaddr = const.IPaddr
         ) 
 
 def send_mqtt_publish(feature_rowid, true_or_false):

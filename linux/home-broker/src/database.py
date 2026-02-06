@@ -166,7 +166,7 @@ class database:
                 cooked_address=""
             else:
                 try:
-                    new[3] = time.strftime("%d %b %H:%M", time.localtime(float(new[3])))
+                    new[3] = time.strftime("%d %b %H:%M %Y", time.localtime(float(new[3])))
                     #'Thu, 28 Jun 2001 14:17:15 +0000
                 except:
                     new[3] = ''
