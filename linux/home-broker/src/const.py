@@ -25,7 +25,13 @@ else: # running as a system under Linux
     # ip =  s.getsockname()[0]
     # s.close()
     # return ip
-IPaddr = "192.168.0.138"  #get_ip_address() 
+    
+try:
+    with open("ipaddr.txt", "r") as text_file:
+        IPaddr = text_file.read()
+except:
+    IPaddr = "192.168.0.134" # desktop
+
 print("Our ip address:", IPaddr)
 
 ifname = b"eth0"  #our network interface, see "ip a" 
