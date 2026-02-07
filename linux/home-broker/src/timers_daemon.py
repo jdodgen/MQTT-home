@@ -60,22 +60,6 @@ def get_sunset_sunrise(lat_long):
     #print("sunset at this hour",  sunset_since_midnight/60/60)
     return(sunrise_since_midnight, sunset_since_midnight)
     
-# def time_string_to_seconds(time_str):
-    # #Converts an H:M:S string to seconds since midnight.
-    # hms = time_str.split(':')
-    # if len(hms) == 1:
-        # h =int(hms[0])
-        # m = 0
-        # s = 0
-    # elif len(hms) == 2:
-        # h = int(hms[0])
-        # m = int(hms[1])
-        # s = 0
-    # elif len(hms) == 3:
-        # h = int(hms[0])
-        # m = int(hms[1])
-        # s = int(hms[2])
-    # return (h * 3600) + (m * 60) + s
 
 def seconds_to_event(event_time):
     local_time = time.localtime()
