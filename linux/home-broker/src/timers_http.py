@@ -8,6 +8,7 @@ import jinja2
 from aiohttp import web
 from datetime import datetime
 import database
+import const
 
 # --- DATABASE SETUP ---
 async def init_db(app):
@@ -91,6 +92,7 @@ async def timer_manager(request):
     # Fetch existing timers for the bottom table
     # cursor = db.execute("SELECT rowid, * FROM timed_events")
     context['timed_alerts'] = db.get_all_timers() #cursor.fetchall()
+    context["IPaddr"] = const.IPaddr
 
     return aiohttp_jinja2.render_template('timers.html', request, context)
 

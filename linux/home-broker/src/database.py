@@ -145,10 +145,10 @@ class database:
         %s
         order by mqtt_feature.friendly_name, mqtt_feature.access desc
         """ % (where,)
-        print(query)
+        #print(query)
         cur.execute(query)
         all = cur.fetchall()
-        print(all)
+        #print(all)
         cur.close()
         return all
     

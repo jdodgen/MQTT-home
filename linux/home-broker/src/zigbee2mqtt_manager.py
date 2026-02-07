@@ -57,7 +57,7 @@ def task(watch_dog_queue):
         # previous plan was to attempt restart of z2m but it seems 
         # only a reboot fixes things, a very brut force solution
         # This will be changed when the z2m problem is figured out
-        print("exited, attempting restart")
+        print("zigbee2mqtt exited, attempting restart")
         if watch_dog_queue:
             watch_dog_queue.put(["shutdown", "zigbee2mqtt problems"])
         else:
