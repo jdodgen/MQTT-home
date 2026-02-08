@@ -247,12 +247,12 @@
         <form action="/create_IP_feature" method="post">
           <table class="leftright">
             <tr>
-              <td><button type="submit" name=action value="create_IP_feature">Create IP Device feature</button>
+              <td><button type="submit" name=action value="create_IP_feature/0">Create IP Device feature</button>
               <th><label for="wifi_access">Device Name:</label>
               <td>
                 <select name="device_ieee_address" size="4">
                   {% for b in manual_device_names %}
-                  <option value="{{b[0]}}">{{b[1]}}&nbsp[{{b[2]}}] </option>
+                  <option value="{{b[0]}}">{{b[1]}}</option>
                   {% endfor %}
                 </select>
               </td>

@@ -1,5 +1,5 @@
 #inside const.py constants and configurable items
-version = 0.3
+version = 2.0
 
 import os
 if os.name =="nt": # testing under Windows

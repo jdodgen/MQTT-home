@@ -25,7 +25,7 @@ async def render_response(request, error, update_ip=False, manIP_rowid=None):
         "get_devices_for_wemo": db.get_devices_for_wemo(),
         "all_wemo": db.get_all_wemo(),
         "manual_device_names": db.get_all_manual_device_names(),
-        "IPaddr": "127.0.0.1" # Replace with your const.IPaddr
+        "IPaddr": const.IPaddr
     }
     # This renders the template named 'index.html'
     return aiohttp_jinja2.render_template('index.html', request, context)
@@ -103,8 +103,8 @@ async def all_devices(request):
         global db
         rowid=None
         update_IP = False
-        print("/all_devices action[%s]" % request.form["action"])
         data = await request.post()
+        print("/all_devices action[%s]" % data["action"])
         action = data.get("action", "")
         parts = action.split("/")
         ## parts = request.form["action"].split("/")
