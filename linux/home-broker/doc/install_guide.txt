@@ -112,6 +112,7 @@ cd /opt/zigbee2mqtt
 pnpm start 
 # its running
 On first start, Zigbee2MQTT will start the onboarding on port 8080. Navigate to this board and configure accordingly
+turn on front end
 if it gets honked up delete /opt/zigbee2mqtt/data/configuration.yaml 
 
 # change config to use home-broker.local for the broker
