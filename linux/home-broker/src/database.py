@@ -13,7 +13,7 @@ import os
 my_name = os.path.basename(__file__).split(".")[0]
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
-    #return
+    return
     xprint("["+my_name+"]", *args, **kwargs) # the copied real print
 #
 #
