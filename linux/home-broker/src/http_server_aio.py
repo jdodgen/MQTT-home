@@ -54,25 +54,43 @@ async def create_IP_device(request):
 async def create_IP_feature(request):
     print("update_manIP called")
     global db
-    error_msg = ''
     if request.method == "POST":
         data = await request.post()
-        action = data.get("action")
-        print("action", action)
-        (cmd,id) = action.split("/")
-        # (cmd,id) = request.form["action"].split("/")
-        if cmd == "create_wifi":
-            db.update_manIP_feature(  
-                data["type"],
-                data["access"],
-                data["topic"],
-                data["on"],  
-                data["off"],
-                id, 
-                )
-        elif cmd == "delete":
-            db.delete_device(id)
+       
+        print(
+        data["property"],
+        data["device_ieee_address"])
+        db.upsert_feature(
+            data["device_ieee_address"] ,
+            data["property"],
+            None, 
+            "binary",
+            "", 
+            None,  
+            'on',  
+            'off')        
     return await render_response(request, error_msg)  
+    
+    # global db
+    # error_msg = ''
+    # if request.method == "POST":
+        # data = await request.post()
+        # action = data.get("action")
+        # print("action", action)
+        # (cmd,id) = action.split("/")
+        # # (cmd,id) = request.form["action"].split("/")
+        # if cmd == "create_wifi":
+            # db.update_manIP_feature(  
+                # data["type"],
+                # data["access"],
+                # data["topic"],
+                # data["on"],  
+                # data["off"],
+                # id, 
+                # )
+        # elif cmd == "delete":
+            # db.delete_device(id)
+    # return await render_response(request, error_msg)  
 
 async def whoareyou(request):
     myhost = os.uname()[1]
