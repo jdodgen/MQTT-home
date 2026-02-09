@@ -59,9 +59,9 @@ async def create_IP_feature(request):
        
         print(
         data["property"],
-        data["device_ieee_address"])
+        data["name"])
         db.upsert_feature(
-            data["device_ieee_address"] ,
+            data["name"] ,
             data["property"],
             None, 
             "binary",
