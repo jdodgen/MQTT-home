@@ -50,25 +50,46 @@ async def create_IP_device(request):
         else:
             error_msg = "Both name and description needed"  
     return await render_response(request, error_msg) 
-         
+
+# data_list = [{
+    # "friendly_name": data["name"],
+    # "property": data["property"],
+    # "description": None,
+    # "type": "binary",
+    # "access": "",
+    # "topic": None,
+    # "true_value": "on",
+    # "false_value": "off"
+# }]
+
 async def create_IP_feature(request):
-    print("update_manIP called")
+    error_msg = ""
+    print("create_IP_feature called")
     global db
     if request.method == "POST":
         data = await request.post()
-       
-        print(
-        data["property"],
-        data["name"])
-        db.upsert_feature(
-            data["name"] ,
-            data["property"],
-            None, 
-            "binary",
-            "", 
-            None,  
-            'on',  
-            'off')        
+        data_list = {
+            "friendly_name": data["friendly_name"],
+            "property": data["property"],
+            "description": None,
+            "type": "binary",
+            "access": "",
+            "topic": None,
+            "true_value": "on",
+            "false_value": "off"
+        }
+        print("create_IP_feature",
+            data["friendly_name"],
+            data["property"])
+        db.upsert_feature(data_list)
+            # data["name"] ,
+            # data["property"],
+            # None, 
+            # "binary",
+            # "", 
+            # None,  
+            # 'on',  
+            # 'off')        
     return await render_response(request, error_msg)  
     
     # global db

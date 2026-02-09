@@ -340,8 +340,28 @@ class database:
         #   self.con = sqlite3.connect(const.db_name)
         #   cur = self.con.cursor()
         return cur
-    
-    def upsert_feature(self,
+        
+    def upsert_feature(self, data_list):
+    # data_list should be a list of tuples or dictionaries
+        cur = self.con.cursor()
+        query = """
+            INSERT or ignore INTO mqtt_feature (
+                friendly_name, property, description, type, 
+                access, topic, true_value, false_value
+            ) VALUES (
+                :friendly_name, :property, :description, :type, 
+                :access, :topic, :true_value, :false_value
+            )
+        """
+    # Use executemany for bulk performance
+        cur.execute(query, data_list)
+        if cur.rowcount > 0:
+            print(f"Success! Inserted row with ID: {cur.lastrowid}")
+        else:
+            print("Failure: No rows were inserted.")
+        self.con.commit()
+
+    def old_upsert_feature(self,
             friendly_name, 
             property,  
             description, 
@@ -662,8 +682,8 @@ class database:
             topic NOT NULL,
             true_value,    -- usually the "on" value or result from a pub only device
             false_value,   -- off value 
-            PRIMARY KEY (friendly_name, property, topic, access, type)
-            -- PRIMARY KEY (friendly_name, property, type, access, topic, true_value, false_value)
+            PRIMARY KEY (friendly_name, property, type, topic, access)
+            --PRIMARY KEY (friendly_name, property, type, topic, access,  true_value, false_value)
         );
         drop table if exists timers;
         CREATE TABLE timers

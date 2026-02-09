@@ -230,12 +230,32 @@
           <h2>Manual Creation of IP Devices</h2>
           <table class="leftright">
             <tr>
-              <td><button type="submit" name=action value="create_wifi/0">Create IP Device</button>
-              <th><label for="IP_name">Device Name:</label>
-                <input type="text" id="IP_name" name="IP_name"><br>
+              <td rowspan=2>
+                  <button type="submit" name=action value="create_wifi/0">Create IP Device</button>
+              </td>
+              <th><label for="IP_frendly_name">Friendly Name:</label>
+                <input type="text" id="IP_frendly_name" name="IP_frendly_name"><br>
               </th>
               <th><label for="IP_description">Description:</label>
                 <input type="text" id="IP_description" name="IP_description"><br>
+              </th>
+            
+              <th><label for="IP_property">Property:</label>
+                <input type="text" id="IP_property" name="IP_property"><br>
+              </th>
+              <th><label for="IP_feature">Feature:</label>
+                <input type="text" id="IP_feature" name="IP_feature"><br>
+              </th>
+              </tr>
+              <tr>
+              <th><label for="IP_topic">topic:</label>
+                <input type="text" id="IP_topic" name="IP_topic" size=30><br>
+              </th>
+              <th><label for="IP_true">True:</label>
+                <input type="text" id="IP_true" name="IP_true"><br>
+              </th>
+              <th><label for="IP_false">False:</label>
+                <input type="text" id="IP_false" name="IP_false"><br>
               </th>
             </tr>
           </table>
@@ -250,7 +270,7 @@
               <td><button type="submit" name=action value="create_IP_feature/0">Create IP Device feature</button>
               <th><label for="wifi_access">Device Name:</label>
               <td>
-                <select name="name" size="4">
+                <select name="friendly_name" size="4">
                   {% for b in manual_device_names %}
                   <option value="{{b[0]}}"> {{b[0]}}/{{b[1]}}</option>
                   {% endfor %}
