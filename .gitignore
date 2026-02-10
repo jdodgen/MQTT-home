@@ -13,3 +13,4 @@ cfg.pm
 *.gz
 *.service
 *_cfg.py
+ipaddr.txt
