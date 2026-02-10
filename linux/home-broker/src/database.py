@@ -282,25 +282,15 @@ class database:
         # first check to see if we have a major change
         # notifiers may need this to reduce MQTT traffic
         #   
-        cur = self.con.cursor()
-        cur.execute("""
-            select
-                description, 
-                friendly_name 
-            from mqtt_device 
-            where friendly_name = ?
-            and description = ?
-        """, (name, description))
-        r =  True if cur.fetchone() else False   ## one found nothing important minor
-        cur.close()
         #
         # we always update atleast for date
         #
+        print("upsert_device:", description, name, source)
         now = str(int(time.time())) # standard unix time in a string
         cur=self.get_cursor()
         cur.execute(
             """
-            insert or replace into mqtt_device 
+            insert or ignore into mqtt_device 
                 (description, 
                 friendly_name, 
                 source,
@@ -310,7 +300,7 @@ class database:
                 (description, name, source, now))
         cur.close()
         self.con.commit()
-        return r
+        return
 
     def get_all_devices(self):
         cur = self.con.cursor()
@@ -345,7 +335,7 @@ class database:
     # data_list should be a list of tuples or dictionaries
         cur = self.con.cursor()
         query = """
-            INSERT or ignore INTO mqtt_feature (
+            INSERT or REPLACE INTO mqtt_feature (
                 friendly_name, property, description, type, 
                 access, topic, true_value, false_value
             ) VALUES (
@@ -356,9 +346,9 @@ class database:
     # Use executemany for bulk performance
         cur.execute(query, data_list)
         if cur.rowcount > 0:
-            print(f"Success! Inserted row with ID: {cur.lastrowid}")
+            print(f"upsert_feature Success! Inserted row with ID: {cur.lastrowid}")
         else:
-            print("Failure: No rows were inserted.")
+            print("upsert_feature Failure: No rows were inserted.")
         self.con.commit()
 
     def old_upsert_feature(self,

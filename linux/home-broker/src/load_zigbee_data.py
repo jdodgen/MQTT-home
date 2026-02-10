@@ -80,7 +80,7 @@ def load_database_from_zigbee(zigbee2mqtt_devices):
         #print("definition", definition)
         description = definition["description"]   
         print("description[%s]  ieee[%s] friendly[%s]" % (description, address, name))
-        rc = db.upsert_device(description, name, "ZB")
+        db.upsert_device(description, name, "ZB")
         #print("load_database_from_zigbee rc", rc)
         exposes = definition["exposes"]
         

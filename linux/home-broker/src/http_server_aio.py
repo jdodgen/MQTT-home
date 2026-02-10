@@ -37,59 +37,32 @@ async def render_index(request):
     return await render_response(request, "")
     
 async def create_IP_device(request):
+    error_msg=''
     if request.method == "POST":
         global db
         data = await request.post()
         action = data.get("action")
-        error_msg=''
-        name = data["IP_name"]
+        name = data["IP_frendly_name"]
         desc = data["IP_description"]
+        access = data["IP_access"]  #sub or pub
         print("create_IP_device", name, desc)
-        if name and desc:
+        if name and desc and access:
+            print("upsert_device")
             db.upsert_device(desc, name, "manIP")
+            data_list = {
+                "friendly_name": name, 
+                "property": data["IP_property"],
+                "description": data["IP_feature"],
+                "type": "binary",
+                "access": data["IP_access"],
+                "topic": data["IP_topic"],
+                "true_value": data["IP_true"],
+                "false_value": data["IP_false"],
+            }
+            print("upsert_feature")
+            db.upsert_feature(data_list)
         else:
-            error_msg = "Both name and description needed"  
-    return await render_response(request, error_msg) 
-
-# data_list = [{
-    # "friendly_name": data["name"],
-    # "property": data["property"],
-    # "description": None,
-    # "type": "binary",
-    # "access": "",
-    # "topic": None,
-    # "true_value": "on",
-    # "false_value": "off"
-# }]
-
-async def create_IP_feature(request):
-    error_msg = ""
-    print("create_IP_feature called")
-    global db
-    if request.method == "POST":
-        data = await request.post()
-        data_list = {
-            "friendly_name": data["friendly_name"],
-            "property": data["property"],
-            "description": None,
-            "type": "binary",
-            "access": "",
-            "topic": None,
-            "true_value": "on",
-            "false_value": "off"
-        }
-        print("create_IP_feature",
-            data["friendly_name"],
-            data["property"])
-        db.upsert_feature(data_list)
-            # data["name"] ,
-            # data["property"],
-            # None, 
-            # "binary",
-            # "", 
-            # None,  
-            # 'on',  
-            # 'off')        
+            error_msg = "Both name description, and access needed"  
     return await render_response(request, error_msg)  
     
     # global db
@@ -112,6 +85,10 @@ async def create_IP_feature(request):
         # elif cmd == "delete":
             # db.delete_device(id)
     # return await render_response(request, error_msg)  
+
+async def z2m_page(request):
+    print("z2m_page")
+    return aiohttp_jinja2.render_template('zigbee2mqtt.html', request, {"IPaddr": const.IPaddr})
 
 async def whoareyou(request):
     myhost = os.uname()[1]
@@ -193,12 +170,12 @@ app.add_routes([
     web.get('/whoareyou', whoareyou),
     web.get('/create_IP_device', create_IP_device),
     web.post('/create_IP_device', create_IP_device),
-    web.get('/create_IP_feature', create_IP_feature),
-    web.post('/create_IP_feature', create_IP_feature),
     web.get('/create_wemo', create_wemo),
     web.post('/create_wemo', create_wemo),
     web.get('/all_devices', all_devices),
     web.post('/all_devices', all_devices),
+    web.get('/zigbee2mqtt', z2m_page),
+    web.post('/zigbee2mqtt', z2m_page),
 ])
 
 def task(fauxmo, watch_dog_queue_in):

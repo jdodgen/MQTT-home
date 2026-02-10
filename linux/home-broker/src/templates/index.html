@@ -43,23 +43,26 @@
 
 <body>
   <table style="border: none;">
-    <tr style="border: none;">
-        <td style="border: none;"><h1  style="font-size: 40px;">home-broker:&nbsp&nbsp</h1></td>
-
-        <td style="border: none;"><h2>Device and WeMo/fauxmo Management</h2></td>
-    </tr>
+    
   </table>
   <table>
     <tr>
       <th  style="text-align: left;">
-        <a href="http://{{IPaddr}}:8080/">
-          <h2>Maintain zigbee2mqtt Devices</h2>
+        <a href="http://{{IPaddr}}/zigbee2mqtt">
+          <h3>Maintain zigbee2mqtt Devices</h3>
+        </a>
+        <a href="http://{{IPaddr}}:8081/">
+          <h3>Set Timers</h3>
+        </a>
+        <a href="http://{{IPaddr}}:8082/">
+          <h3>Set Triggers</h3>
         </a>
         <h3 style="color: red" ;>{{error_message}}</h3>
-        <a href="http://{{IPaddr}}:8081/">
-          <h2>Set Timers</h2>
-        </a>
       </th>
+    <tr>
+        <td style="border: none;"><h2>Device and WeMo/fauxmo Management</h2></td>
+    </tr>
+    </tr>
     </tr>
     {% if do_update_IP %}
     <tr>
@@ -248,6 +251,12 @@
               </th>
               </tr>
               <tr>
+                <th>
+                    <select name="IP_access" size="2">
+                        <option value="sub"> Subscribe</option>
+                        <option value="pub" selected> Publish</option>
+                    </select>
+              </th>
               <th><label for="IP_topic">topic:</label>
                 <input type="text" id="IP_topic" name="IP_topic" size=30><br>
               </th>
@@ -262,6 +271,7 @@
         </form>
       </td>
     </tr>
+<!--
     <tr>
       <td>
         <form action="/create_IP_feature" method="post">
@@ -285,6 +295,7 @@
         </form>
       </td>
     </tr>
+-->
     
     </td>
     </tr>
@@ -341,9 +352,11 @@
               <td>{{d[2]}}</td>
               <td>{{d[3]}}</td>
               <th>{{d[4]}}
+<!--
                 <button type="submit" name=action value="manIP/{{d[0]}}">Modify
                   values
                 </button>
+-->
               </th>
               <td>{{d[5]}}</td>
               <td>{{d[6]}}</td>
