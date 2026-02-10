@@ -47,7 +47,7 @@ def print(*args, **kwargs): # replace print
 #
 if __name__ == "__main__":
     # not working os.nice(-1)   # HTTP thread needs this
-    print("home-broker starting: Version[%s]" % (const.version,))
+    print("AlertAway home-broker starting: Version[%s]" % (const.version,))
     time.sleep(20) # a pause to read above
     mqtt_queue = Queue()
     watch_dog_queue = Queue()
