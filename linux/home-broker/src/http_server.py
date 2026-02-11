@@ -5,6 +5,7 @@ from aiohttp import web
 import database
 import const
 import multiprocessing
+import re
 
 db=None
 
@@ -94,7 +95,7 @@ async def z2m_page(request):
 async def whoareyou(request):
     myhost = os.uname()[1]
     return web.Response(text=f"iam/{myhost}")
-
+    
 async def create_wemo(request):
     error_msg = ''
     # aiohttp requires awaiting the form data
@@ -111,7 +112,23 @@ async def create_wemo(request):
                 db.create_wemo(data["wemo_name"], data.get("wemo_port"), data["wemo_device"])
             else:
                 error_msg = 'Both wemo name and device required'
+    return await render_response(request, error_msg)
     
+async def remove_wemo(request):
+    global db
+    error_msg = ''
+    # aiohttp requires awaiting the form data
+    if request.method == "POST":
+        data = await request.post()
+        action = data.get("action")
+        print("action", action)
+        if "delete_wemo" in action:
+            print("deleteing")
+            match = re.search(r'delete_wemo/(\d+)', action)
+            print("deleteing ", match.group(1))
+            if match:
+                target_id = match.group(1)
+                db.delete_wemo(target_id)
     return await render_response(request, error_msg)
     
 async def all_devices(request):
@@ -173,6 +190,8 @@ app.add_routes([
     web.post('/create_IP_device', create_IP_device),
     web.get('/create_wemo', create_wemo),
     web.post('/create_wemo', create_wemo),
+    web.get('/remove_wemo', remove_wemo),
+    web.post('/remove_wemo', remove_wemo),
     web.get('/all_devices', all_devices),
     web.post('/all_devices', all_devices),
     web.get('/zigbee2mqtt', z2m_page),

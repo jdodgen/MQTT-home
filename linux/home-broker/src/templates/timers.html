@@ -113,13 +113,13 @@ div.footer {
         <tr>
           <th  style="text-align: left;">
             <a href="http://{{IPaddr}}/zigbee2mqtt">
-              <h2>Maintain zigbee2mqtt Devices</h2>
+              <h3>Maintain zigbee2mqtt Devices</h3>
             </a>
             <a href="http://{{IPaddr}}/">
-              <h2>Device and WeMo/fauxmo Management</h2>
+              <h3>Device and WeMo/fauxmo Management</h3>
             </a>
             <a href="http://{{IPaddr}}:8083/">
-                <h2>Set Triggers</h2>
+                <h3>Set Triggers</h2>
             </a>
             <h3 style="color: red" ;>{{error_message}}</h3>
           </th>
@@ -127,7 +127,7 @@ div.footer {
         <tr class="tnone">
             <th colspan="100%" align="center">
                 {{ debug }}
-                <font size="+4" color="gray">Timers current: {{ time_now }}</font>
+                <font size="+3" color="gray">Maintain Timers {{ time_now }}</font>
             </th>
         </tr>
         <tr>
@@ -260,7 +260,7 @@ div.footer {
                     </tr>
                     <tr>
                         <td>
-                            <input type="submit" name="state" value="Create timer">
+                            <input type="submit" name="state" value="Create timer">&nbsp;<input type="submit" name="state" value="Restart Timer Process">
                         </td>
                     </tr>
                 </table>

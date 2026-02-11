@@ -93,7 +93,7 @@ if __name__ == "__main__":
             print("watchdog http_thread needs to be started")
         
         if not timers_http_task:
-            timers_http_task = timers_http.start_timers_http()
+            timers_http_task = timers_http.start_timers_http(watch_dog_queue)
             
         if not timers_daemon_task:
             timers_daemon_task = timers_daemon.start_timers_daemon()
@@ -116,6 +116,10 @@ if __name__ == "__main__":
                 # comes from http_server.py after a restart request
                 fauxmo_manager.stop_fauxmo_task(fauxmo_task)
                 fauxmo_task = None # this cause it to be started
+            elif command == "restarttimertask":
+                # comes from http_server.py after a restart request
+                timers_daemon_task.terminate()
+                timers_daemon_task =  None
             elif command == "shutdown":
                 active = active_children()
                 for child in active:
