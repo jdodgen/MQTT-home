@@ -32,8 +32,8 @@ input[type=checkbox] {width:20px; height:20px;}
 table.tbody, tr, td, th{
     border-collapse: collapse;
     }
-table.tbody, tr td, th {
-    border: 1px solid black;
+table.tnone, tr td, th {
+    border: none;
     }
 
 tr.dark {
@@ -121,20 +121,20 @@ div.footer {
             <h3 style="color: red" ;>{{error_message}}</h3>
           </th>
         </tr>
+        <tr class="tnone">
+            <th colspan="100%" align="center">
+                {{ debug }}
+                <font size="+4" color="gray">Timers current: {{ time_now }}</font>
+            </th>
+        </tr>
         <tr>
             <th colspan="100%" align="left">
                 <font color="red">{{ timer_msg }}</font>
             </th>
         </tr>
-        <tr class="dark">
-            <th colspan="100%" align="center">
-                &nbsp;&nbsp;&nbsp;&nbsp;{{ debug }}
-                <font size="+1" color="green">Timers {{ time_now }}</font>
-            </th>
-        </tr>
         <tr>
             <td>
-                <table class="tbody">
+                <table> <!-- </table> class="tbody"> -->
                     <tr class="dark">
                         <th colspan="100%">Select Device</th>
                     </tr>
@@ -170,15 +170,15 @@ div.footer {
                     <input type="checkbox" name="TIMED:days" value="{{ day_val }}" checked>{{ day_name }}
                 {% endfor %}
 
-                <table class="tbody">
+                <table>
                     <tr class="dark">
                         <th>Start Time</th>
                     </tr>
                     <tr>
                         <td>
-                            Fixed <input type="radio" onClick="start_fixed_date();" name="TIMED:start" value="Fixed" checked>
-                            Sunrise <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunrise">
-                            Sunset <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunset">
+                            <input type="radio" onClick="start_fixed_date();" name="TIMED:start" value="Fixed" checked>Start Time<br>
+                            <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunrise">At Sunrise<br>
+                            <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunset">At Sunset
                         </td>
                     </tr>
                     <tr class="dark">
@@ -218,9 +218,9 @@ div.footer {
                     </tr>
                     <tr>
                         <td>
-                            Fixed <input type="radio" onClick="stop_fixed_date();" name="TIMED:stop" value="Fixed" checked>
-                            Sunrise <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunrise">
-                            Sunset <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunset">
+                            <input type="radio" onClick="stop_fixed_date();" name="TIMED:stop" value="Fixed" checked>Stop Time<br>
+                            <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunrise">At Sunrise<br> 
+                            <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunset">At Sunset
                         </td>
                     </tr>
                     <tr class="dark">
@@ -257,14 +257,14 @@ div.footer {
                     </tr>
                     <tr>
                         <td>
-                            <input type="submit" name="state" value="Set timer">
+                            <input type="submit" name="state" value="Create timer">
                         </td>
                     </tr>
                 </table>
             </td>
         </tr>
         <tr>
-            <table class="tbody">
+            <table>
                 <tr class="dark">
                     <th colspan="100%">Current Timers</th>
                 </tr>

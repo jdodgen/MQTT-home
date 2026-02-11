@@ -10,6 +10,15 @@ from datetime import datetime
 import database
 import const
 
+xprint = print # copy print
+my_name = "[timer_http]"
+def print(*args, **kwargs): # replace print
+    #return  # comment/uncomment to turn print on off
+    # do whatever you want to do
+    #xprint('statement before print')
+    xprint(my_name, *args, **kwargs) # the copied real print
+
+
 # --- DATABASE SETUP ---
 async def init_db(app):
     # Open connection once at startup
@@ -38,8 +47,9 @@ async def timer_manager(request):
         state = form.get("state", "")
         print("state [%s]" % (state,))
         # Logic for "Set timer"
-        if state == "Set timer":
+        if state == "Create timer":
             selected_rowid = form.get("selected_rowid")
+            print("row_id", selected_rowid)
             days_list = form.getall("TIMED:days", [])
             days_str = ",".join(days_list)
             print("processing new timer\ndays_list[%s] rowid[%s]" % (days_str, selected_rowid))

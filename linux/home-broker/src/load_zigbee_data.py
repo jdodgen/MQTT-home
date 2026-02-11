@@ -112,44 +112,37 @@ def load_database_from_zigbee(zigbee2mqtt_devices):
 
             can_published, can_set, can_get = parse_access_flags(access)
             print("name[%s] property[%s] access[%s] published[%s] set[%s] get[%s]" % (name, property, access, can_published, can_set, can_get,))
+            data_list = {
+                "friendly_name": name, 
+                "property": property,
+                "description": desc,
+                "type": type,
+                "true_value": true_value,
+                "false_value": false_value,
+                 }
             if can_set:
-                topic = "zigbee2mqtt/%s/set" %  (name)
-                pubsub = "sub"
-                db.upsert_feature(name, 
-                                property,  
-                                desc,
-                                type,
-                                pubsub,
-                                topic,
-                                true_value,
-                                false_value,
-                                )
+                data_list["topic"] = "zigbee2mqtt/%s/set" %  (name)
+                data_list["access"] = "sub"
+                db.upsert_feature(data_list)
+                                # name, 
+                                # property,  
+                                # desc,
+                                # type,
+                                # pubsub,
+                                # topic,
+                                # true_value,
+                                # false_value,
+                                # )
                 #print("did set")
             if can_get:
-                topic = "zigbee2mqtt/%s/get" %  (name)
-                pubsub = "sub"
-                db.upsert_feature(name, 
-                                property,  
-                                desc,
-                                type,
-                                pubsub,
-                                topic,
-                                true_value,
-                                false_value,
-                                )
+                data_list["topic"] = "zigbee2mqtt/%s/get" %  (name)
+                data_list["access"] = "sub"
+                db.upsert_feature(data_list)
                 #print("did get")
             if can_published:
-                topic = "zigbee2mqtt/%s" % name
-                pubsub = "pub"    
-                db.upsert_feature(name, 
-                                property,  
-                                desc,
-                                type,
-                                pubsub,
-                                topic,
-                                true_value,
-                                false_value,
-                                )
+                data_list["topic"] = "zigbee2mqtt/%s" % name
+                data_list["access"] = "pub"    
+                db.upsert_feature(data_list)
                 #print("did publish")
 
 def parse_access_flags(access):
