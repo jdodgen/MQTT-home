@@ -1,12 +1,10 @@
 # MIT licence copyright 2026 Jim Dodgen
 
 import re
-# import aiosqlite
 import multiprocessing
 import aiohttp_jinja2
 import jinja2
 from aiohttp import web
-from datetime import datetime
 import database
 import const
 
@@ -24,8 +22,6 @@ def print(*args, **kwargs): # replace print
 async def init_db(app):
     # Open connection once at startup
     db = database.database(row_factory=True)
-    #  best to stay with one sqlite instance  not using ### db = await aiosqlite.connect("automation.db")
-    # db.row_factory = aiosqlite.Row  # Access columns by name: row['desc']
     app['db'] = db
     
 async def close_db(app):
@@ -103,7 +99,7 @@ def task(watch_dog_queue_in):
     watch_dog_queue = watch_dog_queue_in
     web.run_app(app, port=8082)
      
-def start_timers_http(watch_dog_queue):
+def start_triggers_http(watch_dog_queue):
     p = multiprocessing.Process(target=task,  args=[watch_dog_queue])
     p.start()
     return p

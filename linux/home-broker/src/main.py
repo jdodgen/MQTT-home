@@ -61,6 +61,8 @@ if __name__ == "__main__":
     http_thread = None 
     timers_http_task = None
     timers_daemon_task = None
+    triggers_http_task =  None
+    triggers_daemon_task =  True # change to None when coded
 
     # process watchdog starting now
     watch_dog_queue.put(["test_message",0])
@@ -94,9 +96,13 @@ if __name__ == "__main__":
         
         if not timers_http_task:
             timers_http_task = timers_http.start_timers_http(watch_dog_queue)
-            
         if not timers_daemon_task:
             timers_daemon_task = timers_daemon.start_timers_daemon()
+            
+        if not triggers_http_task:
+            triggers_http_task = triggers_http.start_triggers_http(watch_dog_queue)
+        if not triggers_daemon_task:
+            triggers_daemon_task = triggers_daemon.start_timers_daemon()
 
         # now looping
             
@@ -120,6 +126,10 @@ if __name__ == "__main__":
                 # comes from http_server.py after a restart request
                 timers_daemon_task.terminate()
                 timers_daemon_task =  None
+            elif command == "restarttriggertask":
+                # comes from http_server.py after a restart request
+                triggers_daemon_task.terminate()
+                triggers_daemon_task =  None
             elif command == "shutdown":
                 active = active_children()
                 for child in active:
