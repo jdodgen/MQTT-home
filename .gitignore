@@ -14,3 +14,4 @@ cfg.pm
 *.service
 *_cfg.py
 ipaddr.txt
+test.py
