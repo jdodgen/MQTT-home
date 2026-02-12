@@ -1,16 +1,242 @@
-<!DOCTYPE html>
 <html>
-<body style="background-color:PeachPuff;">
-    <a href="http://{{IPaddr}}/zigbee2mqtt">
-     <h3>Maintain zigbee2mqtt Devices</h3>
-    </a>
-    <a href="http://{{IPaddr}}/">
-        <h3>Device and WeMo/fauxmo Management</h3>
-    </a>
-    <a href="http://{{IPaddr}}:8081/">
-        <h3>Set Timers</h3>
-    </a>
-    
-    <br>Trigger process is UNDER DEVELOPMENT
-</body>
+<head>
+<script>
+function start_fixed_date() {
+   document.getElementById("starthidefixed").style.display = '';
+   document.getElementById("starthidedawn").style.display = 'none';
+}
+function start_dawn() {
+   document.getElementById("starthidedawn").style.display = '';
+   document.getElementById("starthidefixed").style.display = 'none';
+}
+function stop_fixed_date() {
+   document.getElementById("stophidefixed").style.display = '';
+   document.getElementById("stophidedawn").style.display = 'none';
+}
+function stop_dawn() {
+   document.getElementById("stophidedawn").style.display = '';
+   document.getElementById("stophidefixed").style.display = 'none';
+}
+</script>
+<style>
+hr {
+    display: block;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: auto;
+    margin-right: auto;
+    border-style: inset;
+    border-width: 3px;
+}
+input[type=checkbox] {width:20px; height:20px;}
+table.tbody, tr, td, th{
+    border-collapse: collapse;
+    }
+table.tnone, tr td, th {
+    border: none;
+    }
+
+tr.dark {
+    background-color:#B0B0B0 ;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+tr.top {
+    vertical-align: top;
+    text-align: center;
+}
+tr.alert {background-color:red;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+body {
+    background-color: PeachPuff;
+}
+
+a:hover {
+    background-color: yellow;
+}
+
+div.header {
+    background-color:#888888;
+    color:white;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+    text-align:left;
+    padding-left:5px;
+}
+div.nav {
+    line-height:130%;
+    background-color:#888888;
+    width:115px;
+    padding-left:5px;
+    padding-right:5px;
+    position:fixed;
+    font-family: "Verdana", sans-serif;
+    xfont-size: 130%;
+    border: 2px solid brown;
+    border-radius: 10px;
+    text-align: center;
+}
+div.body {
+    padding-left:135px;
+    xwidth:600px;
+}
+div.border {
+    xfloat:left;
+    padding:5px;
+    font-family: "Verdana", sans-serif;
+    xborder: 4px solid #a1a1a1;
+    xborder-radius: 10px;
+}
+
+table.center{
+      border: 2px solid black;
+      xborder-collapse: collapse;
+}
+
+div.footer {
+    background-color:black;
+    color:white;
+    clear:both;
+    text-align:left;
+    padding:7px;
+    font-family: "Comic Sans MS", cursive, sans-serif;
+}
+</style>
+
+</head>
+<form action="/set_trigger" method="post">
+
+<div id="{{ triggers_here }}" class="border">
+    <table class="tbody">
+        <tr>
+          <th  style="text-align: left;">
+            <a href="http://{{IPaddr}}/zigbee2mqtt">
+              <h3>Maintain zigbee2mqtt Devices</h3>
+            </a>
+            <a href="http://{{IPaddr}}/">
+              <h3>Device and WeMo/fauxmo Management</h3>
+            </a>
+            <a href="http://{{IPaddr}}:8081/">
+                <h3>Set Timers</h3>
+            </a>
+            <h3 style="color: red" ;>{{error_message}}</h3>
+          </th>
+        </tr>
+        <tr class="tnone">
+            <th colspan="100%" align="center">
+                <font size="+3" color="gray">Maintain Triggers </font>
+                 {{ debug }}
+            </th>
+        </tr>
+        <tr>
+            <th colspan="100%" align="left">
+                <font color="red">{{ trigger_msg }}</font>
+            </th>
+        </tr>
+        <tr>
+            <td>
+                <table> <!-- </table> class="tbody"> -->
+                    <tr class="dark">
+                        <th colspan="100%">Select Device to subscribe and select true or false to compare</th>
+                    </tr>
+                    <tr class="dark">
+                        <th>topic</th>
+                        <th>true</th>
+                        <th>false</th>
+                    </tr>
+                    {% for sub in subs %}
+                    <tr>
+                        <td>{{sub.topic}}</td>
+                        <td><input type="radio" name="selected_sub" value="{{sub.topic}}|{{sub.true_value}}">{{sub.true_value}}</td>
+                        <td><input type="radio" name="selected_sub" value="{{sub.topic}}|{{sub.false_value}}">{{sub.false_value}}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+        <tr class="dark">
+            <th>&nbsp;</th>
+        </tr>
+        <tr>
+            <td>
+                <table> <!-- </table> class="tbody"> -->
+                    <tr class="dark">
+                        <th colspan="100%">Select Device to Publish and true/false values to send</th>
+                    </tr>
+                    <tr class="dark">
+                        <th>topic</th>
+                        <th>true</th>
+                        <th>false</th>
+                    </tr>
+                    {% for pub in pubs %}
+                    <tr>
+                        <td>{{pub.topic}}</td>
+                        <td><input type="radio" name="selected_pub" value="{{pub.topic}}|{{pub.true_value}}">{{pub.true_value}}</td>
+                        <td><input type="radio" name="selected_pub" value="{{pub.topic}}|{{pub.false_value}}">{{pub.false_value}}</td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+        <tr class="dark">
+            <th>&nbsp;</th>
+        </tr>
+        <tr class="dark">
+            <td>
+                <button type="submit" name=action value="Create trigger">Create Trigger</button>
+                <button type="submit" name=action value="Restart trigger Process">Restart trigger Subprocess</button>
+            </td>
+        </tr>
+        <tr class="dark">
+            <th>&nbsp;</th>
+        </tr>
+        <tr>
+            <table class="center">
+                <tr class="dark">
+                    <th colspan="100%">Current Triggers</th>
+                </tr>
+                <tr class="dark">
+                    <th></th>
+                    <th colspan=2>
+                        Subscribed to:
+                    </th>
+                    <th colspan=2>
+                        Publishing to:
+                    </th>
+                </tr>
+                <tr class="dark">
+                    <th>&nbsp;</th>
+                    <th>Topic</th>
+                    <th>Payload</th>
+                    <th>Topic</th>
+                    <th>Payload</th>
+                </tr>
+                {% for trigger in current_triggers %}
+                <tr>
+                    <td>
+                        <input type="submit" name=action value="Remove Trigger:{{ trigger.rowid }}">
+                    </td>
+                    <td>{{ trigger.pub_topic }}</td>
+                    <td>{{ trigger.pub_payload }}</td>
+                    <td>{{ trigger.sub_topic }}</td>
+                    <td>{{ trigger.sub_payload }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </tr>
+    </table>
+</form>
 </html>
+
+
+
+
+
+
+
+
+
+
+

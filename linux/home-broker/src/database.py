@@ -542,7 +542,7 @@ class database:
         #   print(e)
         return all
         
-    def get_timers_devices(self):
+    def get_publish_devices(self):
         cur = self.con.cursor()
         cur.execute("""
         select distinct 
@@ -559,6 +559,31 @@ class database:
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
         
         where (type = "binary" and source = "ZB" and property like "state%" and topic like "%set")
+            or source = "IP"
+
+        order by topic desc
+        """)
+        all = cur.fetchall()
+        cur.close()
+        return all
+        
+    def get_subscribe_devices(self):
+        cur = self.con.cursor()
+        cur.execute("""
+        select distinct 
+            mqtt_feature.rowid,
+            -- source,
+            topic,
+            type,
+            property,
+            true_value,
+            false_value
+
+        from mqtt_feature
+        
+        left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
+        
+        where (type = "binary" and source = "ZB" and property like "state%" and topic like "%get")
             or source = "IP"
 
         order by topic desc
@@ -591,6 +616,22 @@ class database:
         cur.close()
         return all
         
+    def get_all_triggers(self):
+        cur = self.con.cursor()
+        cur.execute("""
+        select
+            rowid,
+            pub_topic,
+            pub_payload,
+            sub_topic,
+            sub_payload
+            from triggers
+            order by pub_topic
+        """)
+        all = cur.fetchall()
+        cur.close()
+        return all
+
     def get_device_info(self, rowid):
         cur = self.con.cursor()
         cur.execute("""
@@ -695,6 +736,15 @@ class database:
             time_to_start, /* calculated every day at midnight + 1 second */
             seconds_from_midnight INTEGER, /* calculated every day at midnight+ a second  not sure if needed */
             state INTEGER
+        );
+        drop table if exists triggers;
+        CREATE TABLE triggers
+        (
+            sub_topic,   -- trigger_deamon subscribes to this
+            sub_payload, -- if it matches
+            pub_topic,   -- and publishes this
+            pub_payload, -- with this
+            primary key (sub_topic,sub_payload,pub_topic,pub_payload)
         );
         """
         self.con.executescript(create)  # drop and create the tables
