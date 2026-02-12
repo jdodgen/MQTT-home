@@ -42,7 +42,7 @@ class ZigbeeDeviceRefresher():
                 time.sleep(1)
                 continue
             if item is None:
-                print("ZigbeeDeviceRefresher: no reply from ", self.topic)
+                print("ZigbeeDeviceRefresher: no reply from ")
                 break
             print("ZigbeeDeviceRefresher item[0] [%s]" % (item[0],))
             if item[0] == "callback":
