@@ -98,7 +98,7 @@ async def timer_manager(request):
     # 2. Fetch Data for the UI (Always happens for GET and after POST)
     # Fetch available alerts for the <select> box
     #cursor = db.execute("SELECT * FROM devices") # Adjust table name as needed
-    context['alerts'] = db.get_timers_devices() # await cursor.fetchall()
+    context['alerts'] = db.get_publish_devices() # await cursor.fetchall()
 
     # Fetch existing timers for the bottom table
     # cursor = db.execute("SELECT rowid, * FROM timed_events")
