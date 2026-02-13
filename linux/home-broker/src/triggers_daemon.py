@@ -59,7 +59,7 @@ def task():
                         continue
             print("Error: unknown callback:", topic, payload)
 
-def start_timers_daemon():
+def start_daemon():
     p = multiprocessing.Process(target=task)
     p.start()
     return p

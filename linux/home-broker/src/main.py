@@ -62,7 +62,7 @@ if __name__ == "__main__":
     timers_http_task = None
     timers_daemon_task = None
     triggers_http_task =  None
-    triggers_daemon_task =  True # change to None when coded
+    triggers_daemon_task =  None # change to None when coded
 
     # process watchdog starting now
     watch_dog_queue.put(["test_message",0])
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         if not triggers_http_task:
             triggers_http_task = triggers_http.start_triggers_http(watch_dog_queue)
         if not triggers_daemon_task:
-            triggers_daemon_task = triggers_daemon.start_timers_daemon()
+            triggers_daemon_task = triggers_daemon.start_daemon()
 
         # now looping
             
