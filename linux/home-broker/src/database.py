@@ -740,10 +740,10 @@ class database:
         drop table if exists triggers;
         CREATE TABLE triggers
         (
-            sub_topic,   -- trigger_deamon subscribes to this
-            sub_payload, -- if it matches
-            pub_topic,   -- and publishes this
-            pub_payload, -- with this
+            sub_topic not null,   -- trigger_deamon subscribes to this
+            sub_payload not null, -- if it matches
+            pub_topic not null,   -- and publishes this
+            pub_payload not null, -- with this
             primary key (sub_topic,sub_payload,pub_topic,pub_payload)
         );
         """
