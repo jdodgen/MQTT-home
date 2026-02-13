@@ -6,8 +6,8 @@ if os.name =="nt": # testing under Windows
    db_name = 'C:\\Users\\jim\\Dropbox\\wip\\timers\\devices.db'
    log_path = 'C:\\Users\\jim\\log\\'
    error_log_path = 'C:\\Users\\jim\\log\\error\\'
-   windows_broker = "home-broker.local"
-   #windows_broker = "192.168.0.193"
+   #windows_broker = "home-broker.local"
+   windows_broker = "192.168.0.193"
    mosquitto_file_path = "mosquitto.conf"
    fauxmo_default_dir = "fauxmo"
 else: # running as a system under Linux
