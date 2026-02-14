@@ -6,6 +6,8 @@ import database
 import const
 import multiprocessing
 import re
+import message
+import mqtt_hello
 
 db=None
 
@@ -146,8 +148,8 @@ async def all_devices(request):
         if parts[0] == "send":
             send_mqtt_publish(parts[2], parts[1])
         elif parts[0] == "zbrefresh":
-            subscribe.simple(const.zigbee2mqtt_bridge_devices, hostname=message.our_ip_address())
-            # message.simple_subscribe(const.zigbee2mqtt_bridge_devices)
+            # subscribe.simple(const.zigbee2mqtt_bridge_devices, hostname=message.our_ip_address())
+            message.simple_subscribe(const.zigbee2mqtt_bridge_devices)
             msg="ZigBee devices refreshing"
         elif parts[0] == "iprefresh":
             message.publish_single(mqtt_hello.hello_request_topic, my_name) 

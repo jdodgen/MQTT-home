@@ -26,6 +26,8 @@ import zigbee2mqtt_manager
 import mqtt_service_task
 import timers_http
 import timers_daemon
+import triggers_daemon
+import triggers_http
 import load_zigbee_data
 import const
 import database
@@ -62,7 +64,7 @@ if __name__ == "__main__":
     timers_http_task = None
     timers_daemon_task = None
     triggers_http_task =  None
-    triggers_daemon_task =  None # change to None when coded
+    triggers_daemon_task =  None
 
     # process watchdog starting now
     watch_dog_queue.put(["test_message",0])
