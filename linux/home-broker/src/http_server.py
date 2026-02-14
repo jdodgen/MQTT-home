@@ -6,10 +6,22 @@ import database
 import const
 import multiprocessing
 import re
+import queue
 import message
 import mqtt_hello
 
-db=None
+db=None # built at runtime from database.database
+msg=None   # built at runtime from message.message
+q=None  #  messages queue
+
+# conditional print
+import os 
+my_name = "http_server"
+xprint = print # copy print
+def print(*args, **kwargs): # replace print
+    #return
+    xprint("["+my_name+"]", *args, **kwargs) # the copied real print
+#
 
 # Global placeholders from your snippet
 #shared, q, btc, db_values = [], True, None, None, None
@@ -19,6 +31,12 @@ fauxmo_task, watch_dog_queue = None, None
 async def render_response(request, error, update_ip=False, manIP_rowid=None):
     global db
     # This replaces your 'render' function and uses the Jinja2 engine
+    # flush the message q 
+    while True:
+        try:
+            q.get_nowait()
+        except queue.Empty:
+            break
     context = {
         "error_message": error,
         "do_update_IP": update_ip,
@@ -134,7 +152,7 @@ async def remove_wemo(request):
     return await render_response(request, error_msg)
     
 async def all_devices(request):
-    msg = ""
+    error = ""
     if request.method == "POST":
         global db
         rowid=None
@@ -149,19 +167,19 @@ async def all_devices(request):
             send_mqtt_publish(parts[2], parts[1])
         elif parts[0] == "zbrefresh":
             # subscribe.simple(const.zigbee2mqtt_bridge_devices, hostname=message.our_ip_address())
-            message.simple_subscribe(const.zigbee2mqtt_bridge_devices)
-            msg="ZigBee devices refreshing"
+            msg.subscribe(const.zigbee2mqtt_bridge_devices)
+            error="ZigBee devices refreshing"
         elif parts[0] == "iprefresh":
-            message.publish_single(mqtt_hello.hello_request_topic, my_name) 
-            msg="Auto IP devices refreshed"
+            msg.publish(mqtt_hello.hello_request_topic, my_name) 
+            error="Auto IP devices refreshed"
         elif parts[0] == 'delete':
             db.delete_device(parts[1])
         elif parts[0] == "manIP":
             update_IP = True
             rowid = parts[1]
         else:
-            msg="unknown request"
-    return await render_response(request, msg, update_ip=update_IP, manIP_rowid=rowid)
+            error="unknown request"
+    return await render_response(request, error, update_ip=update_IP, manIP_rowid=rowid)
     # return render(msg, update_ip=update_IP,manIP_rowid=rowid)
 
 # async def all_devices(request):
@@ -204,14 +222,27 @@ def task(fauxmo, watch_dog_queue_in):
     global fauxmo_task
     global db
     global watch_dog_queue
+    global msg
+    global q
+
     db=database.database()
+    q = queue.Queue() 
+    msg = message.message(q, my_parent=my_name)
+    msg.subscribe(const.zigbee2mqtt_bridge_devices)
+    msg.publish(mqtt_hello.hello_request_topic, my_name)
+    
     watch_dog_queue = watch_dog_queue_in
     fauxmo_task = fauxmo
     # os.nice(-1)
     db=database.database()
     print("Starting http server...")
-    web.run_app(app, port=const.http_port)
-    print("http_server.serve_forever we should not get here")
+    try:
+        web.run_app(app, port=const.http_port)
+        print("http_server.serve_forever we should not get here")
+    except Exception as e:
+        print("Error during web.run_app:", e)
+
+        
 
 def start_http_task(fauxmo, watch_dog_queue):
     p = multiprocessing.Process(target=task, args=[fauxmo, watch_dog_queue])
