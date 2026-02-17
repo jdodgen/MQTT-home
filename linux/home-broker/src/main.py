@@ -24,6 +24,10 @@ import fauxmo_manager
 import mosquitto_manager
 import zigbee2mqtt_manager
 import mqtt_service_task
+import timers_http
+import timers_daemon
+import triggers_daemon
+import triggers_http
 import load_zigbee_data
 import const
 import database
@@ -45,7 +49,7 @@ def print(*args, **kwargs): # replace print
 #
 if __name__ == "__main__":
     # not working os.nice(-1)   # HTTP thread needs this
-    print("home-broker starting: Version[%s]" % (const.version,))
+    print("AlertAway home-broker starting: Version[%s]" % (const.version,))
     time.sleep(20) # a pause to read above
     mqtt_queue = Queue()
     watch_dog_queue = Queue()
@@ -55,7 +59,12 @@ if __name__ == "__main__":
     mqtt_task = None
     fauxmo_task = None 
     zigbee_task = None 
+    z2m_task = None
     http_thread = None 
+    timers_http_task = None
+    timers_daemon_task = None
+    triggers_http_task =  None
+    triggers_daemon_task =  None
 
     # process watchdog starting now
     watch_dog_queue.put(["test_message",0])
@@ -78,11 +87,24 @@ if __name__ == "__main__":
         if not zigbee_task:
             zigbee_task = zigbee2mqtt_manager.start_zigbee2mqtt_task(watch_dog_queue)
             print("watchdog zigbee_task needs to be started")
-            load_zigbee_data.ZigbeeDeviceRefresher()
+            
+        if not z2m_task:
+            z2m_task = load_zigbee_data.start_ZigbeeDeviceRefresher()
+            print("watchdog z2m_task needs to be started")
 
         if not http_thread or not http_thread.is_alive():
             http_thread = http_server.start_http_task(fauxmo_task, watch_dog_queue)
             print("watchdog http_thread needs to be started")
+        
+        if not timers_http_task:
+            timers_http_task = timers_http.start_timers_http(watch_dog_queue)
+        if not timers_daemon_task:
+            timers_daemon_task = timers_daemon.start_timers_daemon()
+            
+        if not triggers_http_task:
+            triggers_http_task = triggers_http.start_triggers_http(watch_dog_queue)
+        if not triggers_daemon_task:
+            triggers_daemon_task = triggers_daemon.start_daemon()
 
         # now looping
             
@@ -102,6 +124,14 @@ if __name__ == "__main__":
                 # comes from http_server.py after a restart request
                 fauxmo_manager.stop_fauxmo_task(fauxmo_task)
                 fauxmo_task = None # this cause it to be started
+            elif command == "restarttimertask":
+                # comes from http_server.py after a restart request
+                timers_daemon_task.terminate()
+                timers_daemon_task =  None
+            elif command == "restarttriggertask":
+                # comes from http_server.py after a restart request
+                triggers_daemon_task.terminate()
+                triggers_daemon_task =  None
             elif command == "shutdown":
                 active = active_children()
                 for child in active:

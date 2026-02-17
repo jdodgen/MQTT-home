@@ -36,13 +36,14 @@ async def _memory(self):
         print("RAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc(),))  
         
 def get_8x8_matrix(string):
+    print("get_8x8_matrix [%s]" % (string))
     try:
         item = cfg.tm1640_chars[string] # might be a full word match like boot1
     except:
         try:
             item = cfg.tm1640_chars[string[0]] # Just lookup the first char
         except:
-            print("get_8x8_matrix not found in cfg.tm1640_chars", string)
+            print("get_8x8_matrix not found in cfg.tm1640_chars [%s]" % (string,))
             item = cfg.tm1640_chars["?"]
     #print("get_8x8_matrix [%s] returning [%s]" % (string,item))
     return item  
@@ -71,6 +72,13 @@ async def do_single_led(single_led_queue):
         print("do_single_led [%s]" % (cmd,))
         if cmd == "all_off":
             led.turn_off()
+        elif cmd == "heart_beat":
+            # flash every 5 seconds 
+            while single_led_queue.empty():
+                led.turn_on()
+                await asyncio.sleep(0.5)
+                led.turn_off()
+                await asyncio.sleep(5)
         elif cmd == "boot":
             led.turn_on()
             await asyncio.sleep(1)
@@ -94,7 +102,7 @@ class do_8x8_list:
         self.led_8x8_queue = led_8x8_queue
         self.d=display8x8(clk=cfg.clock8X8_pin, dio=cfg.data8x8_pin, bright=cfg.brightness8x8)
         self.question_mark = get_8x8_matrix("?")
-        self.turn_off = get_8x8_matrix("all_off")
+        self.turn_off = get_8x8_matrix("_")
         self.d.write(self.turn_off)
 
     async def write(self, topic_list):
@@ -106,23 +114,32 @@ class do_8x8_list:
             if isinstance(topic, str):
                 # parse topic get letter
                 try:
-                    ident = topic.split("/")[2]
+                    piece = topic.split("/")[2]
                 except:
-                    ident = topic
-                #print("do_8x8_list ident", ident)
-                matrix_list = get_8x8_matrix(ident)
-                if dry_contact:
-                    matrix_list[0] = 0x80
-                char_matrix.append(matrix_list)
+                    piece = topic
+                ident = piece.split(" ")[0]
+                print("do_8x8_list ident ident[%s] piece[%s]" % (ident, piece,))
+                # now loop through each ident char\
+                ident_list = []
+                for char in ident:
+                    char_set = get_8x8_matrix(char)
+                    if dry_contact and char != "_":
+                        char_set[0] = 0x80  # first row Turn on high left bit
+                    ident_list.append(char_set)
+                char_matrix.append(ident_list)
             else:
                 char_matrix.append(self.question_mark)  # error
         await asyncio.sleep(0)
-        while True: # displays letters until another message arrives
-            for char8x8 in char_matrix:
-                self.d.write(char8x8)
-                await asyncio.sleep(0.5)
+        while True: # displays short strings until another message arrives
+            for list_of_chars in char_matrix:
+                for char8x8 in list_of_chars:
+                    self.d.write(char8x8)
+                    await asyncio.sleep(0.5)
+                    self.d.write(self.turn_off)
+                    await asyncio.sleep(0.2)
+                await asyncio.sleep(1)
                 self.d.write(self.turn_off)
-                await asyncio.sleep(0.2)
+                await asyncio.sleep(1)
             if not self.led_8x8_queue.empty():  # this loops until another msg availble
                 break
             await asyncio.sleep(1)
@@ -148,12 +165,13 @@ async def up_so_subscribe(client, led_8x8_queue, single_led_queue, topics):
         await client.up.wait()
         client.up.clear()
         print('doing subscribes', topics)
-        led_8x8_queue.put((("all_off",False), ))
-        single_led_queue.put("all_off")
+        led_8x8_queue.put((("_",False), ))
+        single_led_queue.put("heart_beat")
         for topic in topics:
             await client.subscribe(topic)
-        print("emailing startup")
-        await send_email("PCN Starting", boilerplate)
+        if cfg.send_start_email:
+            print("emailing startup")
+            await send_email("PCN Starting", boilerplate)
         
  
 async def down_report_outage(client, led_8x8_queue, single_led_queue):
@@ -162,8 +180,8 @@ async def down_report_outage(client, led_8x8_queue, single_led_queue):
         await client.down.wait()
         client.down.clear()
         print('down_report_outage got outage')
-        led_8x8_queue.put((("wifi",False),))
-        single_led_queue.put("5")
+        led_8x8_queue.put((("^",False),))
+        single_led_queue.put("all_off")
         machine.soft_reset()
         
 boilerplate = '''Starting up:
@@ -224,11 +242,11 @@ async def make_first_connection(config, led_8x8_queue, single_led_queue):
                 try:
                     x=client._addr
                     print("we have ip address broker not connecting", client._addr)
-                    led_8x8_queue.put((("?", False),("broker", False),)) # report 3 flashes
+                    led_8x8_queue.put((("?", False),("#", False),("_", False),("#", False),("_", False),)) # report 3 flashes
                     single_led_queue.put("broker")
                 except:
                     print("wifi failed no ip address")
-                    led_8x8_queue.put((("?",False),("wifi",False),))  # report 2 flashes
+                    led_8x8_queue.put((("+",False),("^",False),("+", False),("^",False),("+", False),))  # report 2 flashes
                     single_led_queue.put("wifi")
                 await asyncio.sleep(cfg.wifi_sleep)
             else:

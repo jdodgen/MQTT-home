@@ -1,27 +1,43 @@
 #inside const.py constants and configurable items
-version = 0.3
+version = 2.0
 
 import os
 if os.name =="nt": # testing under Windows
-   db_name = 'C:\\Users\jim\devices.db'
+   db_name = 'C:\\Users\\jim\\Dropbox\\wip\\timers\\devices.db'
    log_path = 'C:\\Users\\jim\\log\\'
    error_log_path = 'C:\\Users\\jim\\log\\error\\'
-   windows_broker = "home-broker.local"
-   #windows_broker = "192.168.0.193"
+   #windows_broker = "home-broker.local"
+   windows_broker = "192.168.0.193"
    mosquitto_file_path = "mosquitto.conf"
    fauxmo_default_dir = "fauxmo"
 else: # running as a system under Linux
    db_name = 'devices.db'
    log_path = "/dev/shm/log/"
    error_log_path = "log/"
-   windows_broker = None
+   windows_broker = "localhost" #None
    mosquitto_file_path = "/etc/mosquitto/mosquitto.conf"
    fauxmo_default_dir = "/etc/fauxmo"  
+
+# import socket
+# def get_ip_address():
+    # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # s.connect(("192.168.253.253", 50000))
+    # ip =  s.getsockname()[0]
+    # s.close()
+    # return ip
+    
+try:
+    with open("ipaddr.txt", "r") as text_file:
+        IPaddr = text_file.read()
+except:
+    IPaddr = "192.168.0.134" # desktop
+
+print("Our ip address:", IPaddr)
 
 ifname = b"eth0"  #our network interface, see "ip a" 
 
 fauxmo_config_file_path = fauxmo_default_dir+"/config.json"
-fauxmo_sleep_seconds = 120 # wake up every two minutes, Zzzzzz
+fauxmo_sleep_seconds = 240 # wake up every 4 minutes, Zzzzzz
 #
 broker_mqtt_port = 1883
 #

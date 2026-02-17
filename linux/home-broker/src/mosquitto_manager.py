@@ -36,9 +36,8 @@ def is_mosquitto_alive():
         return result[0]
 
 def reload_config():
-    mos_config = open(const.mosquitto_file_path, "w")
-    n = mos_config.write(const.mosquitto_configuration)
-    mos_config.close()
+    with open(const.mosquitto_file_path, "w") as mos_config:
+        n = mos_config.write(const.mosquitto_configuration)
     pid = is_mosquitto_alive()
     if not pid:
         return False

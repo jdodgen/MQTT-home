@@ -1,4 +1,4 @@
-# MIT license copyright 2024,25 Jim Dodgen
+# MIT license copyright 2024,25,26 Jim Dodgen
 # this configures and installs software
 # it replaces the cfg.py file each time it runs
 # Y N defaults are designed for rapid deployment during development
@@ -60,22 +60,25 @@ def wifi_list_of_list(cluster):
         l.append([ssid, pw])
     print(l)
     return l
-        
+       
 def print_sensors(sensors):
+    index = 1
+    ix = {}
     sensor_keys = list(sensors.keys())
     sensor_keys.sort()
     for key in sensor_keys:
         #print("sensor key=", key)
-        if len(key) != 1:
-            print("id [%s] mist be a single letter or number" % (key, ))
         try:
             desc =sensors[key]["desc"]
         except:
             desc=""
-        print("%s) %s" % (key, desc))
+        print("%s) %s %s" % (index,key, desc))
+        ix[index] = key
+        index += 1
         if(('+' in desc) or ('/' in desc) or ('+' in key) or ('/' in key)):
             print("\nERROR: future topic  [%s][%s] contains a / or +,  MQTT reserved fix in toml file\n" % (key,desc,))
             sys.exit()
+    return ix
 
 class create_cfg:
     def __init__(self, cluster, sensor_to_make):
@@ -87,6 +90,7 @@ class create_cfg:
         self.set_cfg_values()
         self.create_hard_tracked_topics()
         self.c8x8 = char8x8(invert=self.cluster.get("invert_8x8", False))
+        self.send_start_email = self.cluster.get("send_start_email", False)
         self.pretty_name = "From: %s %s" % (self.sensor_to_make, self.sensors[self.sensor_to_make].get("desc", self.sensor_to_make))
         self.write_cfg()
        
@@ -103,7 +107,7 @@ class create_cfg:
         #self.publish_to = self.sensor_to_make+" "+desc if desc else self.sensor_to_make
 
         self.send_email = self.sensors[self.sensor_to_make].get("send_email",False)
-        self.no_heartbeat = self.sensors[self.sensor_to_make].get("no_heartbeat", False)
+        self.led8x8_heartbeat = self.sensors[self.sensor_to_make].get("led8x8_heartbeat", False)
         #self.ssid = self.sensors[self.sensor_to_make].get("ssid", self.cluster["network"]["ssid"])
         #self.wifi_password = self.sensors[self.sensor_to_make].get("wifi_password", self.cluster["network"]["wifi_password"])
         
@@ -203,7 +207,8 @@ switch_subject_event_true = "%s"
 switch_subject_event_false = "%s"
 tm1640_chars = %s
 device_letter = "%s"
-no_heartbeat = %s
+led8x8_heartbeat = %s
+send_start_email = %s
 
 """
         now = datetime.datetime.now()
@@ -229,8 +234,9 @@ no_heartbeat = %s
             self.switch_subject_event_true,
             self.switch_subject_event_false,
             self.c8x8.create_tm1640_dict(),
-            self.sensor_to_make[0],
-            self.no_heartbeat,
+            self.sensor_to_make,
+            self.led8x8_heartbeat,
+            self.send_start_email,
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))
@@ -261,8 +267,9 @@ def push_library_code(serial_port):
 
 def push_application_code(serial_port):
     code = [
-    "run.py",
     "cfg.py",
+    "run.py",
+    mp_lib_offset+"pcn.py",
     ]
     print("now pushing python application code")
     for c in code:
@@ -282,57 +289,58 @@ def main():
             break
         except:
             print("Try again")
-    
     while True:
-        print_sensors(cluster["sensor"])
-        print("select one (case insensitive): ", end="")
-        sensor_to_make = input().upper()
-        if sensor_to_make.lower() in cluster["sensor"]:
-           sensor_to_make =  sensor_to_make.lower()
-        print("request = ", sensor_to_make)
-        if sensor_to_make in cluster["sensor"]:
-            break
-        else:
-            print(">>> not found <<<")
-            
-    create_cfg(cluster, sensor_to_make) # drops cfg.py file
-    
-    # install micropython kernal
-    f=flasher("COM7", "/dev/ttyACM0")
-    serial_port = f.port()
-    did_we_flash = False
-    print("\ninstall micropython? (y,N)")
-    ans = input()
-    if (ans.upper() == "Y"):
-        did_we_flash = True
-        print ("\npress and hold O (flat side)\nthen press RST (indent) momentary\nrelease O\nthen press Enter to continue")
-        input()
-        f.flash()
-    # install library code
-    
-    if did_we_flash == False:
-        print("install library code? (y,N)")
-        lans = input()
-    else:
-        lans = "Y"
-    if (lans.upper() == "Y"):
-        push_library_code(serial_port)
-    # install application code
-    if did_we_flash == True or lans.upper() == "Y":
-         ans = "Y"
-    else:
-        print("\ninstall application code? (Y,n)")
+        while True:
+            ix = print_sensors(cluster["sensor"])
+            print("select one: ", end="")
+            index = input()
+            sensor_to_make = ix[int(index)]
+            if sensor_to_make.lower() in cluster["sensor"]:
+               sensor_to_make =  sensor_to_make.lower()
+            print("request = ", sensor_to_make)
+            if sensor_to_make in cluster["sensor"]:
+                break
+            else:
+                print(">>> not found <<<")
+                
+        create_cfg(cluster, sensor_to_make) # drops cfg.py file
+        
+        # install micropython kernal
+        f=flasher("COM7", "/dev/ttyACM0")
+        serial_port = f.port()
+        did_we_flash = False
+        print("\ninstall micropython? (y,N)")
         ans = input()
-    if (ans.upper() != "N"):
-        push_application_code(serial_port)
-    os.system("ampy --port %s ls" % (serial_port,))
-    if os.name == 'nt':
-        print("\n  putty -serial ", serial_port)
-        os.system("putty -serial  %s " % (serial_port,))
-    else:
-        print("\n  picocom -b 115200 ", serial_port)
-    if (ans.upper() != "N"):
-        print("\nCreated [%s:%s] device" % (cluster["cluster_id"],sensor_to_make)) 
+        if (ans.upper() == "Y"):
+            did_we_flash = True
+            print ("\npress and hold O (flat side)\nthen press RST (indent) momentary\nrelease O\nthen press Enter to continue")
+            input()
+            f.flash()
+        # install library code
+        
+        if did_we_flash == False:
+            print("install library code? (y,N)")
+            lans = input()
+        else:
+            lans = "Y"
+        if (lans.upper() == "Y"):
+            push_library_code(serial_port)
+        # install application code
+        if did_we_flash == True or lans.upper() == "Y":
+             ans = "Y"
+        else:
+            print("\ninstall application code? (Y,n)")
+            ans = input()
+        if (ans.upper() != "N"):
+            push_application_code(serial_port)
+        os.system("ampy --port %s ls" % (serial_port,))
+        if os.name == 'nt':
+            print("\n  putty -serial ", serial_port)
+            os.system("putty -serial  %s " % (serial_port,))
+        else:
+            print("\n  picocom -b 115200 ", serial_port)
+        if (ans.upper() != "N"):
+            print("\nCreated [%s:%s] device" % (cluster["cluster_id"],sensor_to_make)) 
 
 if __name__ == "__main__":
     main()

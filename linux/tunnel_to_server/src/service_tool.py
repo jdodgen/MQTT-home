@@ -1,3 +1,6 @@
+# MIT Licence copyright 2025, 2026 Jim Dodgen
+# this creates and installs a ssh tunnel to a server on the Internet
+# 
 import os
 import cfg
 
@@ -6,27 +9,28 @@ def install():
     systemd_path = "/etc/systemd/system/"
     print("installing [%s]\nservice:\n=====" % (service_name))
     ExecStart='''\
-/usr/bin/sshpass -p %s \
-/usr/bin/autossh -M 0 \
--N \
--vvv \
+/usr/bin/sshpass -p "%s" \
+/usr/bin/ssh -N -v \
 -o "ExitOnForwardFailure=yes"  \
 -o "StrictHostKeyChecking=no" \
 -o "ServerAliveInterval=30" \
 -o "ServerAliveCountMax=3" \
--R *:%s:localhost:%s  %s@%s''' % (cfg.password, cfg.port, cfg.port, cfg.remote_user, cfg.ip_addr) 
+-R *:%s:127.0.0.1:%s  %s@%s''' % (cfg.password, cfg.port, cfg.port, cfg.remote_user, cfg.ip_addr) 
     print(ExecStart)
     service = '''\
 [Unit]
 Description=Persistent tunnel from local server to VPS
-After=network.target
+After=network-online.target
+Wants=network-online.target
 StartLimitIntervalSec=0
+StartLimitBurst=0
+OnFailure=http_filter_restart.service
 
 [Service]
 User=%s
 ExecStart=%s
-Restart=on-failure
-RestartSec=30
+Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target

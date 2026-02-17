@@ -37,6 +37,9 @@ files = [
 "src/main.py",
 "src/json_tools.py",
 "src/index_html.py",
+"src/cfg.py",
+"src/timers_daemon.py",
+"src/timers_http.py",
 "../../library/mqtt_hello.py",   
 ]
 #

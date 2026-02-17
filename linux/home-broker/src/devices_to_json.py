@@ -18,14 +18,14 @@ def devices_to_json():
     current_friendly_name = None
     for feat in features:
         (friendly_name, 
-			property,  
-			description, 
-			type,
-			access, 
-			topic,
-			true_value,  
-			false_value,
-			) = feat
+            property,  
+            description, 
+            type,
+            access, 
+            topic,
+            true_value,  
+            false_value,
+            ) = feat
         #print(feat)
         if current_friendly_name == None:
             current_friendly_name = friendly_name       

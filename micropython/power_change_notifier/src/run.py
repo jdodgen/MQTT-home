@@ -139,27 +139,6 @@ def make_email_body():
     print(body)
     return body
 
-# async def up_so_subscribe(client, led_8x8_queue, single_led_queue):
-    # wild_topic = wildcard_subscribe.topic()
-    # while True:
-        # await client.up.wait()
-        # client.up.clear()
-        # print('doing subscribes', wild_topic)
-        # led_8x8_queue.put((("all_off",False), ))
-        # single_led_queue.put("all_off")
-        # await client.subscribe(wildcard_subscribe.topic())
-        # print("emailing startup")
-        # await send_email("PCN Starting", boilerplate)
-
-# async def down_report_outage(client, led_8x8_queue, single_led_queue):
-    # while True:
-        # await client.down.wait()
-        # client.down.clear()
-        # print('got outage')
-        # machine.soft_reset()   # 
-        # #led_8x8_queue.put((("wifi",False),))
-        # #single_led_queue.put("5")
-
 async def check_for_down_sensors(led_8x8_queue, single_led_queue):
     global current_watched_sensors
     should_we_turn_on_led = False
@@ -188,10 +167,14 @@ async def check_for_down_sensors(led_8x8_queue, single_led_queue):
             should_we_turn_on_led = True
     if sensor_down:
         led_8x8_queue.put(sensor_down) # list of problem topics
-        single_led_queue.put("sensor_down")
+        single_led_queue.put("sensor_down")   # LED on solid
     else:
-        led_8x8_queue.put([("all_off", False),("life", False)])
-        single_led_queue.put("all_off")
+        if cfg.led8x8_heartbeat == True:
+            led_8x8_queue.put([("_", False),(".", False)])
+            single_led_queue.put("all_off")
+        else:
+            led_8x8_queue.put([("_", False)])
+            single_led_queue.put("heart_beat")
     if need_email and cfg.send_email:
         await send_email("PCN One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
 
@@ -214,7 +197,7 @@ async def main():
 
     MQTTClient.DEBUG = True  # Optional: print diagnostic messages
 
-    led_8x8_queue.put([("boot1",False),(cfg.device_letter,False),("boot2",False),(cfg.device_letter,False),])
+    led_8x8_queue.put([("_",False),(cfg.device_letter,False),("_",False),(cfg.device_letter,False),])
     single_led_queue.put("boot")
     
     print("creating asyncio tasks")
@@ -234,11 +217,12 @@ async def main():
 
     sw = switch.switch(cfg.switch_pin, client)
     print("switch is",sw.test())
-    if cfg.no_heartbeat == True:
-        led_8x8_queue.put([("all_off", False)])
+    if cfg.led8x8_heartbeat == True:
+        led_8x8_queue.put([("_", False),(".", False)])
+        single_led_queue.put("all_off")
     else:
-        led_8x8_queue.put([("all_off", False),("life", False)])
-    single_led_queue.put("all_off")
+        led_8x8_queue.put([("_", False)])
+        single_led_queue.put("heart_beat") # default
     switch_detected_true_value = True if cfg.switch_type == "NO" else False  # NO Normaly Open
     switch_on_email_sent = False
     sw_value = 0; # test fixture

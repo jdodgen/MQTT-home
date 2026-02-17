@@ -123,6 +123,7 @@ pretty_name = "%s"
 cluster_id = "%s"
 device_letter = "%s"
 image_urls = %s
+port = %s
 """
         now = datetime.datetime.now()
         cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
@@ -138,6 +139,7 @@ image_urls = %s
             self.cluster["cluster_id"],
             self.sensor_to_make[0:2],
             self.cluster["image_urls"],
+            self.cluster["port"],
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))

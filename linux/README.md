@@ -1,1 +1,2 @@
-Linux IoT usualy running as servers
+Linux/raspberry pi IoT servers and dedicated processors
+
