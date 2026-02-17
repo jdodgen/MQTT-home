@@ -103,7 +103,7 @@ async def wait_and_send(client, t, what, s):
     if seconds > 0:    
         await asyncio.sleep(seconds)
         client.publish(topic, payload)
-        print("task [%s][%s] sleep done %s time to plublish" % (t, what, datetime.datetime.now()))
+        print("task [%s][%s] sleep done %s time to publish" % (t, what, datetime.datetime.now()))
     else:
         print("task [%s][%s] past time exiting %s" % (t, what, datetime.datetime.now()))
     
