@@ -113,12 +113,14 @@ pnpm start
 # its running
 On first start, Zigbee2MQTT will start the onboarding on port 8080. Navigate to this board and configure accordingly
 turn on front end
-if it gets honked up delete /opt/zigbee2mqtt/data/configuration.yaml 
-
+if it gets honked up delete sudo rm /opt/zigbee2mqtt/data/configuration.yaml 
+delete this at last resort and requires repairing of zigbee devices sudo rm /opt/zigbee2mqtt/data/coordinator_backup.json
+sudo mount -o remount,rw /
 # change config to use home-broker.local for the broker
 # broker has not been configured yet sshpass -p foobar sftp -oBatchMode=no -b install_files.bat jim@192.168.0.193
 
 
+cd /opt/zigbee2mqtt/data
 
 # now install home-broker code
 sftp down the following (filezilla):
@@ -155,4 +157,31 @@ sudo reboot
 # configuration.yaml should be fresh
 # coordinator_backup.json should be deleted
 # Unsure about database.db or devices.db 
+
+
+boot from sd instead of eMMC
+
+cd /boot/efi
+boot.ini
+boot_targets=mmc1 mmc0
+
+setenv boot_targets mmc1 mmc0 usb
+or
+env set boot_targets mmc1 mmc0 usb
+env save
+env print
+
+### raw install on armbian linux ubuntu (noble) 24.04 LTS minimal 
+
+sudo apt udate
+sudo apt upgrade
+
+filezilla'ed a sample .img.xz 
+push xz_dd_tool.py # the imaging tool 
+
+
+
+
+
+
 
