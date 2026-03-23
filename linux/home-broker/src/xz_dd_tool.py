@@ -1,5 +1,16 @@
 import os
 
+# this is run in .bashrc and needs the following
+# sudo visudo
+# add this line: jim ALL=(ALL) NOPASSWD: /home/jim/xz_dd_tool.py
+#
+os.system("ip a")
+choice = input("\nMount eMMc (/dev/mmcblk1p1) (y,N):")
+if choice == "y":
+    os.system("sudo mkdir /mnt/emmc")
+    os.system("sudo mount /dev/mmcblk1p1 /mnt/emmc")
+
+print("\nhome-broker eMMC imager\n")
 files = [f for f in os.listdir('.') if f.endswith('.img.xz')]
 if len(files) == 0:
     print("Nothing to do, no .img.gz files")
