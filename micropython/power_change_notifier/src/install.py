@@ -309,7 +309,7 @@ def main():
         f=flasher("COM7", "/dev/ttyACM0")
         serial_port = f.port()
         did_we_flash = False
-        print("\ninstall micropython? (y,N)")
+        print(f"\n{sensor_to_make}: install micropython? (y,N)")
         ans = input()
         if (ans.upper() == "Y"):
             did_we_flash = True
@@ -319,7 +319,7 @@ def main():
         # install library code
         
         if did_we_flash == False:
-            print("install library code? (y,N)")
+            print(f"\n{sensor_to_make}: install library code? (y,N)")
             lans = input()
         else:
             lans = "Y"
@@ -329,7 +329,7 @@ def main():
         if did_we_flash == True or lans.upper() == "Y":
              ans = "Y"
         else:
-            print("\ninstall application code? (Y,n)")
+            print(f"\n{sensor_to_make}: install application code? (Y,n)")
             ans = input()
         if (ans.upper() != "N"):
             push_application_code(serial_port)
