@@ -44,7 +44,7 @@ class mqtt_manager:
     def on_connect(self, client, userdata, flags, rc):
         print("on_connect connected")
         for topic in cfg.topics.keys():
-            xprint("subscribed to", topic)
+            xprint("[mqtt_manager] subscribed to", topic)
             client.subscribe(topic)
 
     def on_message(self, client, userdata, message):

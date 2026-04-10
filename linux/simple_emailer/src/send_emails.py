@@ -25,7 +25,7 @@ from queue import Empty
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
-    xprint("[run]", *args, **kwargs) # the copied real print
+    xprint("[send_emails]", *args, **kwargs) # the copied real print
     
 def download_image_data(url_info):
     print("download_image_data", url_info)
@@ -66,16 +66,16 @@ def send_email_task(image_q, cluster_id_only=False):
     chunk_size = 100
     while True:
         found_match, jpgs = image_q.get()
-        idd = cfg.cluster_id if cluster_id_only else cfg.pretty_name
-        # print("our id [%s]" % (id,))
+        ident = cfg.cluster_id if cluster_id_only else cfg.pretty_name
+        print("send_email_task our id [%s]" % (ident,))
         msg = MIMEMultipart()
-        msg['Subject'] = found_match["subject"] # +" "+idd
+        msg['Subject'] = found_match["subject"] # +" "+ident
         msg['From'] = cfg.gmail_user
         msg['To'] = found_match["cc_string"]
         msg['Cc'] = found_match["cc_string"]
         msg.attach(MIMEText(found_match["body"]))
         for url, jpg in jpgs:
-            print("MIMEImage", url)
+            print("send_email_task MIMEImage", url)
             msg_image = MIMEImage(jpg, "jpeg", name="")
             msg.attach(msg_image)
         smtp = smtplib.SMTP('smtp.gmail.com', 587)
@@ -86,10 +86,12 @@ def send_email_task(image_q, cluster_id_only=False):
         smtp.quit()
 
 def main():
+    print("main starting")
     mqtt_q = multiprocessing.Queue(10)
     image_q = multiprocessing.Queue(10)
     emailer = multiprocessing.Process(target=send_email_task, args=(image_q,))
     emailer.start()
+    
     client = mqtt_manager(mqtt_q)
     toggle_list = {"topic":  "payload",}
     last_publish = 0
@@ -110,15 +112,16 @@ def main():
             last_publish = now
         payload = payload_raw.decode('utf-8')
         this_topic = cfg.topics.get(topic, None)
-        #print("from mqtt_q: topic[%s], payload[%s] " % (topic, payload))
-        if this_topic:  # just checking
-           
-            #print("main this_topic:", this_topic)
-            #print("keys:",this_topic.keys())
+        print("main from mqtt_q:message topic[%s], payload[%s] " % (topic, payload))
+        if not this_topic:  # just checking 
+            print(f"main got a missing subscribe {topic}")
+        else:  # good one
+            print("main this_topic:", this_topic)
+            print("main keys:",this_topic.keys())
             
             found_match = {}
             if payload in this_topic.keys():  
-                found_match = this_topic[payload]
+                found_match = this_topic[payload] # see cfg.py
                 if found_match["only_on_change_of_payload"]:
                     if topic in toggle_list and toggle_list[topic] == payload: # then bypass
                         continue
@@ -129,22 +132,24 @@ def main():
                 found_match = this_topic["AlL"]
                 #print("main AlL found")
             if found_match:
-                print(f"processing: [{topic}],[{payload}]")
+                print(f"main processing: [{topic}],[{payload}]")
                 images = []
                 image_urls = found_match["image_urls"]
                 for url in image_urls:
+                    print("main: processing image")
                     try:
                         image = download_image_data(url)
                     except Exception as e:
-                        print("Exception download_image_data", e)
+                        print("main Exception download_image_data", e)
                         image = None
                     else:
                         #print("got image", url, type(image), image[:50])
                         images.append([url, image])
                 image_q.put([found_match, images])
+    print("exiting main??")
 
 ############ startup ###############
-print("run __name__ = %s" %__name__)
+#print("run __name__ = %s" %__name__)
 if __name__ == "__main__":
     main()
-print("exiting, should not get here")
+    print("exiting, should not get here")
