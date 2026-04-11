@@ -144,7 +144,7 @@ class do_8x8_list:
                 break
             await asyncio.sleep(1)
 
-#  asyncio task to display information
+#  asyncio task to display information this runs forever
 async def led_8x8_display(led_8x8_queue):
     # wait for an error
     error_code = 0
