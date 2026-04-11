@@ -15,7 +15,7 @@ logo = "R";
 //make_button();
 // rotate([180,0,0]) LED_pizo_buzzer_top();
 //
-//base_unit();
+base_unit();
 
 lth_y=25.4;
 width_x=34.3;
