@@ -116,17 +116,23 @@ def main():
         if not this_topic:  # just checking 
             print(f"main got a missing subscribe {topic}")
         else:  # good one
-            print("main this_topic:", this_topic)
+            #print("main this_topic:", this_topic)
             print("main keys:",this_topic.keys())
             
             found_match = {}
             if payload in this_topic.keys():  
                 found_match = this_topic[payload] # see cfg.py
                 if found_match["only_on_change_of_payload"]:
-                    if topic in toggle_list and toggle_list[topic] == payload: # then bypass
-                        continue
-                    else: # different or new payload
+                    print(f"main match on change topic [{topic}][{payload}] toggle list [{toggle_list}]")
+                    if topic in toggle_list:
+                        print(f"main toggle_list payload [{toggle_list[topic]}] == topic [{topic}]")
+                        if toggle_list[topic] == payload: # been here loas time so then bypass
+                            print(f"main payload was the same so ignored")
+                            continue
+                        toggle_list[topic] = payload # update payload
+                    else: # new guy
                         toggle_list[topic] = payload
+                
                 #print("main msg found")
             elif "AlL"  in this_topic.keys():  # this is gets all for mqtt topic ignoring payload
                 found_match = this_topic["AlL"]
