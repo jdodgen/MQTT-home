@@ -82,9 +82,9 @@ def download_image_data(url_info):
                 image_data_rotated = img.rotate(rotate, expand=True)
                 output_stream = io.BytesIO()
                 image_data_rotated.save(output_stream, format="jpeg")
-                print("download_image_data returning rotate") 
+                #print("download_image_data returning rotate") 
                 return output_stream.getvalue()
-            print("download_image_data returning normal")
+            #print("download_image_data returning normal")
             return image_data
         else:
             print(f"download_image_data Failed to download image. Status code:[{response.status_code}]")
