@@ -5,11 +5,13 @@ import cfg
 
 xprint = print # copy print
 my_name = "mqtt_manager"
+xprint = print # copy print
 def print(*args, **kwargs): # replace print
-    return  # comment/uncomment to turn print on off
-    # do whatever you want to do
-    #xprint('statement before print')
-    xprint(my_name, *args, **kwargs) # the copied real print
+    #return # comment/uncomment to turn print on off
+    area, comment = args[0].split(None,1)
+    xprint("["+my_name+"/"+area+"] "+comment, **kwargs) # concat strings, minimal overhead
+    # xprint("[send_emails]", *args) #, **kwargs) # the copied real print
+ 
 
 class mqtt_manager:
     def __init__(self, email_q):
@@ -27,18 +29,19 @@ class mqtt_manager:
         self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
         try:
             print("connecting to [%s]" % (cfg.broker))
-            self.client.connect(cfg.broker,8883)
+            default_port=8883;
+            self.client.connect(cfg.broker,default_port)
             print ("connected")
         except:
-            print ("could not connect")
+            print (f"__init__ could not connect to broker {cfg.broker},{default_port}")
             exit()
-        print("starting")
+        print("__init__ starting")
         self.client.on_connect=self.on_connect
         self.client.on_message=self.on_message
         self.client.loop_start()
 
     def publish_command(self, topic, payload):
-        print("publish_command: topic [%s] payload [%s]" % (topic, payload,))
+        print("publish_command topic [%s] payload [%s]" % (topic, payload,))
         self.client.publish(topic, payload=payload)
 
     def on_connect(self, client, userdata, flags, rc):

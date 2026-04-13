@@ -22,10 +22,15 @@ import io
 from queue import Empty
 
 #client = None
+my_name = "send_emails"
 xprint = print # copy print
-def print(*args, **kwargs): # replace print
+def print(*args): #, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
-    xprint("[send_emails]", *args, **kwargs) # the copied real print
+    area, comment = args[0].split(None,1)
+    xprint("["+my_name+"/"+area+"] "+comment) # concat strings, minimal overhead
+    # xprint("[send_emails]", *args) #, **kwargs) # the copied real print   
+#   test print(f"xxxx yyyy ffff [{"ggggg"}] f  f  f f ")
+#   test print exit()
     
 def download_image_data(url_info):
     print("download_image_data", url_info)
@@ -49,23 +54,25 @@ def download_image_data(url_info):
                 image_data_rotated = img.rotate(rotate, expand=True)
                 output_stream = io.BytesIO()
                 image_data_rotated.save(output_stream, format="jpeg")
+                print("download_image_data returning rotate") 
                 return output_stream.getvalue()
+            print("download_image_data returning normal")
             return image_data
         else:
-            print("Failed to download image. Status code:", response.status_code)
+            print("download_image_data Failed to download image. Status code:", response.status_code)
             image_data = None
             response.close() 
             return None
     except Exception as e:
         image_data = None
-        print("Error during HTTP request:", e)
+        print("download_image_data Error during HTTP request:", e)
         return None       
         
-def send_email_task(image_q, cluster_id_only=False):
+def send_email_task(emailer_q, cluster_id_only=False):
     print("send_email_task starting")
     chunk_size = 100
     while True:
-        found_match, jpgs = image_q.get()
+        found_match, jpgs = emailer_q.get()
         ident = cfg.cluster_id if cluster_id_only else cfg.pretty_name
         print("send_email_task our id [%s]" % (ident,))
         msg = MIMEMultipart()
@@ -78,18 +85,23 @@ def send_email_task(image_q, cluster_id_only=False):
             print("send_email_task MIMEImage", url)
             msg_image = MIMEImage(jpg, "jpeg", name="")
             msg.attach(msg_image)
-        smtp = smtplib.SMTP('smtp.gmail.com', 587)
-        smtp.ehlo()
-        smtp.starttls()
-        smtp.login(cfg.gmail_user, cfg.gmail_password)
-        smtp.send_message(msg)
-        smtp.quit()
+        try:
+            print("send_email_task  SMTP")
+            smtp = smtplib.SMTP('smtp.gmail.com', 587)
+            smtp.ehlo()
+            smtp.starttls()
+            smtp.login(cfg.gmail_user, cfg.gmail_password)
+            smtp.send_message(msg)
+            smtp.quit()
+        except:
+            print("send_email_task  FAILED")
+            time.sleep(1)
 
 def main():
     print("main starting")
     mqtt_q = multiprocessing.Queue(10)
-    image_q = multiprocessing.Queue(10)
-    emailer = multiprocessing.Process(target=send_email_task, args=(image_q,))
+    emailer_q = multiprocessing.Queue(10)
+    emailer = multiprocessing.Process(target=send_email_task, args=(emailer_q,))
     emailer.start()
     
     client = mqtt_manager(mqtt_q)
@@ -98,12 +110,17 @@ def main():
     while True:
         #print("waiting for message")
         # topic, payload_raw = mqtt_q.get()
+        #
+        # MAIN LOOP
+        #
         try:
             topic, payload_raw = mqtt_q.get(block=True, timeout=cfg.number_of_seconds_to_wait)
         except Empty:
             # send PCN alive now
             client.publish_command(cfg.publish,"up")
             last_publish = time.time()
+            if not emailer.is_alive():
+                print("main emailer process dead")
             continue
         now = time.time()
         if last_publish+cfg.number_of_seconds_to_wait < now:
@@ -138,9 +155,10 @@ def main():
                 found_match = this_topic["AlL"]
                 #print("main AlL found")
             if found_match:
-                print(f"main processing: [{topic}],[{payload}]")
+                print(f"main found_match: [{topic}],[{payload}]")
                 images = []
                 image_urls = found_match["image_urls"]
+                # url's loop
                 for url in image_urls:
                     print("main: processing image")
                     try:
@@ -150,8 +168,10 @@ def main():
                         image = None
                     else:
                         #print("got image", url, type(image), image[:50])
+                        print("main got image")
                         images.append([url, image])
-                image_q.put([found_match, images])
+                print("main emailer_q.put emailer")
+                emailer_q.put([found_match, images])
     print("exiting main??")
 
 ############ startup ###############
