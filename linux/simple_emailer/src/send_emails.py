@@ -163,8 +163,8 @@ def main():
         else:  # good one
             #print("main this_topic:", this_topic)
             print("main this_topic.keys:",this_topic.keys())
-            
             found_match = {}
+            
             if payload in this_topic.keys():  
                 found_match = this_topic[payload] # see cfg.py
                 if found_match["only_on_change_of_payload"]:

@@ -81,7 +81,7 @@ class mqtt_manager:
             # should add a message to watchdog about the problem
         else:
             self.email_q.put([message.topic, message.payload], block=False)
-            print("on_message >> after email_q.put")
+            #print("on_message >> after email_q.put")
 
 # this task is running as a seperate process
 # publishing flow state on or off
