@@ -5,18 +5,43 @@ import cfg
 
 xprint = print # copy print
 my_name = "mqtt_manager"
+
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
-    area, comment = args[0].split(None,1)
-    xprint("["+my_name+"/"+area+"] "+comment, **kwargs) # concat strings, minimal overhead
-    # xprint("[send_emails]", *args) #, **kwargs) # the copied real print
- 
-
+    #xprint("send_emails args type", type(args))
+    #if isinstance(args, tuple):
+        #xprint ("args are a tuple", args)
+    #xprint("send_emails args", args)
+    try:
+        if isinstance(args, tuple) :
+            #xprint("tuple", args)
+            area, comment = args[0].split(None,1)
+            try: 
+                comment += " "+" ".join(list(args[1:]))
+            except Exception as e:
+                #xprint(f"join exception {e}")
+                exit()
+            #xprint(f"area[{area}] comment[{comment}]")
+            #area = args[0]
+            # xprint("???", args)
+            #comment = ""
+        else:
+            area, comment = args[0].split(None,1)    
+        #area, comment = args[0].split(None,1)
+        xprint("["+my_name+"/"+area+"]",comment, **kwargs)
+    except:
+        #xprint("except")
+        xprint(f"[{my_name}]", *args, **kwargs) # the copied real print
+        
+# for topic in cfg.topics.keys():
+            # print("on_connect subscribed to", topic, "dogpoo") 
+# exit()
 class mqtt_manager:
     def __init__(self, email_q):
         self.email_q = email_q
-        self.client = mqtt.Client()
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        print(f"__init__ cfg.user[{cfg.user}], cfg.password [{cfg.password}]")
         self.client.username_pw_set(cfg.user, cfg.password)
         # Configure TLS/SSL settings
         # You can adjust cert_reqs based on your security requirements:
@@ -27,15 +52,14 @@ class mqtt_manager:
        # ssl.CERT_NONE: No server certificate verification.
         #self.client.tls_set(cert_reqs=ssl.CERT_OPTIONAL) 
         self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
+        print(f"__init__ connecting to [{cfg.broker}]-[{cfg.default_port}]")
         try:
-            print("connecting to [%s]" % (cfg.broker))
-            default_port=8883;
-            self.client.connect(cfg.broker,default_port)
-            print ("connected")
+            self.client.connect(cfg.broker,cfg.default_port)
+            print ("__init__ connected")
         except:
-            print (f"__init__ could not connect to broker {cfg.broker},{default_port}")
+            print (f"__init__ could not connect to broker [{cfg.broker}],[{default_port}]")
             exit()
-        print("__init__ starting")
+        print("__init__ setting callbacks")
         self.client.on_connect=self.on_connect
         self.client.on_message=self.on_message
         self.client.loop_start()
@@ -44,16 +68,16 @@ class mqtt_manager:
         print("publish_command topic [%s] payload [%s]" % (topic, payload,))
         self.client.publish(topic, payload=payload)
 
-    def on_connect(self, client, userdata, flags, rc):
-        print("on_connect connected")
+    def on_connect(self, client, userdata, flags, reason_code, properties):
+        print("on_connect connected, doing subscribes")
         for topic in cfg.topics.keys():
-            xprint("[mqtt_manager] subscribed to", topic)
+            print("on_connect subscribed:", topic)
             client.subscribe(topic)
 
     def on_message(self, client, userdata, message):
-        print(">>> on_message received message topic[%s] payload[%s] <<<" % (message.topic, message.payload,))
+        print(f"on_message received message topic[{message.topic}] payload[{message.payload}]")
         if self.email_q.full():
-            print("on_message >>>>> queue full cant put <<<<<< ")
+            print("on_message >>>>> queue full can not put <<<<<< ")
             # should add a message to watchdog about the problem
         else:
             self.email_q.put([message.topic, message.payload], block=False)
@@ -98,7 +122,7 @@ if __name__ == "__main__":
     q = multiprocessing.Queue(5)
     client = mqtt_manager(q)
     while True:
-        print(q.get())
+        print(" testing returned: ", q.get())
     # import array
     #  0)import multiprocessing
     # #shared = array.array('i',[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])

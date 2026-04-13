@@ -24,16 +24,37 @@ from queue import Empty
 #client = None
 my_name = "send_emails"
 xprint = print # copy print
-def print(*args): #, **kwargs): # replace print
+def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
-    area, comment = args[0].split(None,1)
-    xprint("["+my_name+"/"+area+"] "+comment) # concat strings, minimal overhead
-    # xprint("[send_emails]", *args) #, **kwargs) # the copied real print   
+    #xprint("send_emails args type", type(args))
+    #if isinstance(args, tuple):
+        #xprint ("args are a tuple", args)
+    #xprint("send_emails args", args)
+    try:
+        if isinstance(args, tuple) :
+            #xprint("tuple", args)
+            area, comment = args[0].split(None,1)
+            try: 
+                comment += " "+" ".join(list(args[1:]))
+            except Exception as e:
+                #xprint(f"join exception {e}")
+                exit()
+            #xprint(f"area[{area}] comment[{comment}]")
+            #area = args[0]
+            # xprint("???", args)
+            #comment = ""
+        else:
+            area, comment = args[0].split(None,1)    
+        #area, comment = args[0].split(None,1)
+        xprint("["+my_name+"/"+area+"]",comment, **kwargs)
+    except:
+        #xprint("except")
+        xprint(f"[{my_name}]", *args, **kwargs) # the copied real print
 #   test print(f"xxxx yyyy ffff [{"ggggg"}] f  f  f f ")
 #   test print exit()
     
 def download_image_data(url_info):
-    print("download_image_data", url_info)
+    print(f"download_image_data [{url_info['url']}][{url_info.get('user', '')},{url_info.get('pw', '')}]")
     try:
         url = url_info["url"]
         user = url_info.get("user", None)
@@ -41,9 +62,16 @@ def download_image_data(url_info):
         rotate = url_info.get("rotate", 0)
         if user:
             # print("download_image_data doing auth[%s][%s]" % (user, pw))
-            response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw))
+            try:
+                response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw))
+            except Exception as e:
+                print(f"download_image_data requests.get  with user Error: [{e}]")
         else:
-            response = requests.get(url)
+            try:
+                response = requests.get(url)
+            except Exception as e:
+                print(f"download_image_data requests.get  NO user Error: [{e}]")
+                
         if response.status_code == 200:
             image_data = response.content # Read the content as bytes
             response.close()
@@ -59,13 +87,13 @@ def download_image_data(url_info):
             print("download_image_data returning normal")
             return image_data
         else:
-            print("download_image_data Failed to download image. Status code:", response.status_code)
+            print(f"download_image_data Failed to download image. Status code:[{response.status_code}]")
             image_data = None
             response.close() 
             return None
     except Exception as e:
         image_data = None
-        print("download_image_data Error during HTTP request:", e)
+        print(f"download_image_data Error during HTTP request: [{e}]")
         return None       
         
 def send_email_task(emailer_q, cluster_id_only=False):
@@ -82,7 +110,7 @@ def send_email_task(emailer_q, cluster_id_only=False):
         msg['Cc'] = found_match["cc_string"]
         msg.attach(MIMEText(found_match["body"]))
         for url, jpg in jpgs:
-            print("send_email_task MIMEImage", url)
+            print(f"send_email_task MIMEImage[{url['url']}]")
             msg_image = MIMEImage(jpg, "jpeg", name="")
             msg.attach(msg_image)
         try:
@@ -134,13 +162,13 @@ def main():
             print(f"main got a missing subscribe {topic}")
         else:  # good one
             #print("main this_topic:", this_topic)
-            print("main keys:",this_topic.keys())
+            print("main this_topic.keys:",this_topic.keys())
             
             found_match = {}
             if payload in this_topic.keys():  
                 found_match = this_topic[payload] # see cfg.py
                 if found_match["only_on_change_of_payload"]:
-                    print(f"main match on change topic [{topic}][{payload}] toggle list [{toggle_list}]")
+                    #print(f"main match on change topic [{topic}][{payload}] toggle list [{toggle_list}]")
                     if topic in toggle_list:
                         print(f"main toggle_list payload [{toggle_list[topic]}] == topic [{topic}]")
                         if toggle_list[topic] == payload: # been here loas time so then bypass
@@ -160,11 +188,11 @@ def main():
                 image_urls = found_match["image_urls"]
                 # url's loop
                 for url in image_urls:
-                    print("main: processing image")
+                    print("main getting download_image_data")
                     try:
                         image = download_image_data(url)
                     except Exception as e:
-                        print("main Exception download_image_data", e)
+                        print(f"main Exception download_image_data: [{e}]")
                         image = None
                     else:
                         #print("got image", url, type(image), image[:50])

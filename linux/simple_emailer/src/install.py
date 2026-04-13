@@ -146,6 +146,7 @@ broker = '%s'
 ssl = %s # true or false
 user = '%s'
 password = '%s'
+default_port = 8883
 #
 # gmail account to send emails through
 #
