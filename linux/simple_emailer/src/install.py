@@ -147,6 +147,7 @@ ssl = %s # true or false
 user = '%s'
 password = '%s'
 default_port = 8883
+http_image_timeout = 15
 #
 # gmail account to send emails through
 #

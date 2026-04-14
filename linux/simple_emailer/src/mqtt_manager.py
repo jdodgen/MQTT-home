@@ -52,13 +52,15 @@ class mqtt_manager:
        # ssl.CERT_NONE: No server certificate verification.
         #self.client.tls_set(cert_reqs=ssl.CERT_OPTIONAL) 
         self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
-        print(f"__init__ connecting to [{cfg.broker}]-[{cfg.default_port}]")
-        try:
-            self.client.connect(cfg.broker,cfg.default_port)
-            print ("__init__ connected")
-        except:
-            print (f"__init__ could not connect to broker [{cfg.broker}],[{default_port}]")
-            exit()
+        while True:
+            print(f"__init__ connecting to [{cfg.broker}]-[{cfg.default_port}]")
+            try:
+                self.client.connect(cfg.broker,cfg.default_port)
+                print ("__init__ connected")
+                break
+            except:
+                print (f"__init__ could not connect to broker [{cfg.broker}],[{cfg.default_port}]")
+                time.sleep(5)
         print("__init__ setting callbacks")
         self.client.on_connect=self.on_connect
         self.client.on_message=self.on_message

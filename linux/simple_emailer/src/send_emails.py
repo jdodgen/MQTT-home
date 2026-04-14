@@ -63,15 +63,18 @@ def download_image_data(url_info):
         if user:
             # print("download_image_data doing auth[%s][%s]" % (user, pw))
             try:
-                response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw))
-            except Exception as e:
+                print("download_image_data doing auth[%s][%s]" % (user, pw))
+                response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw), timeout=10)
+                print("download_image_data requests.get returned")
+            except requests.exceptions.RequestException as e:
                 print(f"download_image_data requests.get  with user Error: [{e}]")
+                return None
         else:
             try:
                 response = requests.get(url)
             except Exception as e:
                 print(f"download_image_data requests.get  NO user Error: [{e}]")
-                
+                return None
         if response.status_code == 200:
             image_data = response.content # Read the content as bytes
             response.close()
@@ -145,8 +148,11 @@ def main():
             topic, payload_raw = mqtt_q.get(block=True, timeout=cfg.number_of_seconds_to_wait)
         except Empty:
             # send PCN alive now
-            client.publish_command(cfg.publish,"up")
-            last_publish = time.time()
+            try:
+                client.publish_command(cfg.publish,"up")
+                last_publish = time.time()
+            except Exception as e:
+                print(f"main publish up failed {e}")
             if not emailer.is_alive():
                 print("main emailer process dead")
             continue
@@ -191,13 +197,16 @@ def main():
                     print("main getting download_image_data")
                     try:
                         image = download_image_data(url)
+                        if image is None:
+                            print("main download_image_data returned None")
                     except Exception as e:
                         print(f"main Exception download_image_data: [{e}]")
                         image = None
                     else:
                         #print("got image", url, type(image), image[:50])
                         print("main got image")
-                        images.append([url, image])
+                        if image:
+                            images.append([url, image])
                 print("main emailer_q.put emailer")
                 emailer_q.put([found_match, images])
     print("exiting main??")
