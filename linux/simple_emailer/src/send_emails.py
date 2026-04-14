@@ -64,7 +64,7 @@ def download_image_data(url_info):
             # print("download_image_data doing auth[%s][%s]" % (user, pw))
             try:
                 print("download_image_data doing auth[%s][%s]" % (user, pw))
-                response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw), timeout=10)
+                response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw), timeout=cfg.http_image_timeout)
                 print("download_image_data requests.get returned")
             except requests.exceptions.RequestException as e:
                 print(f"download_image_data requests.get  with user Error: [{e}]")
@@ -163,7 +163,7 @@ def main():
             last_publish = now
         payload = payload_raw.decode('utf-8')
         this_topic = cfg.topics.get(topic, None)
-        print("main from mqtt_q:message topic[%s], payload[%s] " % (topic, payload))
+        #print("main from mqtt_q:message topic[%s], payload[%s] " % (topic, payload))
         if not this_topic:  # just checking 
             print(f"main got a missing subscribe {topic}")
         else:  # good one
@@ -176,7 +176,7 @@ def main():
                 if found_match["only_on_change_of_payload"]:
                     #print(f"main match on change topic [{topic}][{payload}] toggle list [{toggle_list}]")
                     if topic in toggle_list:
-                        print(f"main toggle_list payload [{toggle_list[topic]}] == topic [{topic}]")
+                        print(f"main toggle_list[{toggle_list[topic]}] ==  payload [{payload}]")
                         if toggle_list[topic] == payload: # been here loas time so then bypass
                             print(f"main payload was the same so ignored")
                             continue
