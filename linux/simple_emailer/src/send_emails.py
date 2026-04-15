@@ -4,12 +4,12 @@
 # to a one or more email addresses 
 # triggered by a MQTT topic and payload (optional)
 # all contained in a cfg.py file
-#
-# requires only a MQTT Broker. Local or in the Cloud
+# requires only a MQTT Broker.
+# all contained in a cfg.py file
 # can run on command line/systemd or included in other projects
 # using start_daemon()
 #
-VERSION = (1, 0, 1)
+VERSION = (2, 0, 0)
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -30,32 +30,15 @@ my_name = "send_emails"
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
-    #xprint("send_emails args type", type(args))
-    #if isinstance(args, tuple):
-        #xprint ("args are a tuple", args)
-    #xprint("send_emails args", args)
     try:
         if isinstance(args, tuple) :
-            #xprint("tuple", args)
             area, comment = args[0].split(None,1)
-            try: 
-                comment += " "+" ".join(list(args[1:]))
-            except Exception as e:
-                #xprint(f"join exception {e}")
-                exit()
-            #xprint(f"area[{area}] comment[{comment}]")
-            #area = args[0]
-            # xprint("???", args)
-            #comment = ""
+            comment += " "+" ".join(list(args[1:]))
         else:
             area, comment = args[0].split(None,1)    
-        #area, comment = args[0].split(None,1)
         xprint("["+my_name+"/"+area+"]",comment, **kwargs)
     except:
-        #xprint("except")
         xprint(f"[{my_name}]", *args, **kwargs) # the copied real print
-#   test print(f"xxxx yyyy ffff [{"ggggg"}] f  f  f f ")
-#   test print exit()
     
 def download_image_data(url_info):
     print(f"download_image_data [{url_info['url']}][{url_info.get('user', '')},{url_info.get('pw', '')}]")
@@ -103,13 +86,13 @@ def download_image_data(url_info):
         print(f"download_image_data Error during HTTP request: [{e}]")
         return None       
         
-def send_email_task(emailer_q, cluster_id_only=False):
+def send_email_task(emailer_q): #, cluster_id_only=False):
     print("send_email_task starting")
     chunk_size = 100
     while True:
         found_match, jpgs = emailer_q.get()
-        ident = cfg.cluster_id if cluster_id_only else cfg.pretty_name
-        print("send_email_task our id [%s]" % (ident,))
+        # ident = cfg.cluster_id if cluster_id_only else cfg.pretty_name
+        # print("send_email_task our id [%s]" % (ident,))
         msg = MIMEMultipart()
         msg['Subject'] = found_match["subject"] # +" "+ident
         msg['From'] = cfg.gmail_user
