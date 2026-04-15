@@ -8,14 +8,20 @@ import message
 import queue
 import database
 
+my_name = "triggers_daemon"
 xprint = print # copy print
-my_name = "[triggers_daemon]"
 def print(*args, **kwargs): # replace print
-    #return  # comment/uncomment to turn print on off
-    # do whatever you want to do
-    #xprint('statement before print')
-    xprint(my_name, *args, **kwargs) # the copied real print
-    
+    #return # comment/uncomment to turn print on off
+    try:
+        if isinstance(args, tuple) :
+            area, comment = args[0].split(None,1)
+            comment += " "+" ".join(list(args[1:]))
+        else:
+            area, comment = args[0].split(None,1)    
+        xprint("["+my_name+"/"+area+"]",comment, **kwargs)
+    except:
+        xprint(f"[{my_name}]", *args, **kwargs) # the copied real print
+
 def make_trigger_structure(db):
     triggers = {}
     raw_triggers = db.get_all_triggers()
