@@ -1,9 +1,13 @@
-# MIT license copyright 2025 Jim Dodgen
-# simple_emailer is built off of Power Change Notifier
-# accepts a payload with subject and body and emails to the cfg.py emails
-# this version to develop into a framework 
+# MIT license copyright 2025,2026 Jim Dodgen
+# simple_emailer 
+# emails a pre-defined collection of ip camera jpgs as well as some text.
+# to a one or more email addresses 
+# triggered by a MQTT topic and payload (optional)
+# all contained in a cfg.py file
 #
 # requires only a MQTT Broker. Local or in the Cloud
+# can run on command line/systemd or included in other projects
+# using start_daemon()
 #
 VERSION = (1, 0, 1)
 import smtplib
