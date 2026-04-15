@@ -28,6 +28,8 @@ import timers_http
 import timers_daemon
 import triggers_daemon
 import triggers_http
+import simple_emailer
+import simple_emailer_http
 import load_zigbee_data
 import const
 import database
@@ -65,49 +67,59 @@ if __name__ == "__main__":
     timers_daemon_task = None
     triggers_http_task =  None
     triggers_daemon_task =  None
+    emailer_http_task = None
+    emailer_daemon_task  = None
 
     # process watchdog starting now
     watch_dog_queue.put(["test_message",0])
     print("entering start/watchdog loop")
     time.sleep(2)
+    # now looping
     while True:
         # this runs once to start all proceses
         if not mosquitto_task or not mosquitto_task.is_alive():
             mosquitto_task=mosquitto_manager.start_mosquitto_task()
-            print("watchdog mosquitto_task needs to be started")
+            print("watchdog mosquitto_task Starting:")
 
         if not fauxmo_task or not fauxmo_task.is_alive():
             fauxmo_task = fauxmo_manager.start_fauxmo_task()
-            print("watchdog fauxmo_task needs to be started")
+            print("watchdog fauxmo_task Starting:")
         
         if not mqtt_task or not mqtt_task.is_alive():
-            print("watchdog mqtt_task needs to be started")
+            print("watchdog mqtt_task Starting:")
             mqtt_task   = mqtt_service_task.start_MQTT_service_task(mqtt_queue)
 
         if not zigbee_task:
             zigbee_task = zigbee2mqtt_manager.start_zigbee2mqtt_task(watch_dog_queue)
-            print("watchdog zigbee_task needs to be started")
+            print("watchdog zigbee_task Starting:")
             
         if not z2m_task:
             z2m_task = load_zigbee_data.start_ZigbeeDeviceRefresher()
-            print("watchdog z2m_task needs to be started")
+            print("watchdog z2m_task Starting:")
 
         if not http_thread or not http_thread.is_alive():
             http_thread = http_server.start_http_task(fauxmo_task, watch_dog_queue)
-            print("watchdog http_thread needs to be started")
+            print("watchdog http_thread Starting:")
         
         if not timers_http_task:
             timers_http_task = timers_http.start_timers_http(watch_dog_queue)
+            print("watchdog timers_http_task Starting:")
         if not timers_daemon_task:
             timers_daemon_task = timers_daemon.start_timers_daemon()
-            
+            print("watchdog timers_daemon_task Starting:")
         if not triggers_http_task:
             triggers_http_task = triggers_http.start_triggers_http(watch_dog_queue)
+            print("watchdog triggers_http_task Starting:")
         if not triggers_daemon_task:
             triggers_daemon_task = triggers_daemon.start_daemon()
+        if not emailer_http_task:
+            emailer_http_task = simple_emailer_http.start_triggers_http(watch_dog_queue)
+            print("watchdog triggers_http_task Starting:")
+        if not emailer_http_task:
+            emailer_http_task = simple_emailer.start_daemon()
 
-        # now looping
-            
+        
+        # now the watchdog queue processes a single message or times out 
         try:
             item = watch_dog_queue.get(timeout=const.watch_dog_queue_timeout)
         except Empty : # timed out
@@ -131,6 +143,10 @@ if __name__ == "__main__":
             elif command == "restarttriggertask":
                 # comes from http_server.py after a restart request
                 triggers_daemon_task.terminate()
+                triggers_daemon_task =  None
+            elif command == "restartemailertask":
+                # comes from http_server.py after a restart request
+                emailer_daemon_task.terminate()
                 triggers_daemon_task =  None
             elif command == "shutdown":
                 active = active_children()
