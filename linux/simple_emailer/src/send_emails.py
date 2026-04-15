@@ -210,8 +210,13 @@ def main():
                 print("main emailer_q.put emailer")
                 emailer_q.put([found_match, images])
     print("exiting main??")
-
-############ startup ###############
+    
+def start_daemon():
+    p = multiprocessing.Process(target=main)
+    p.start()
+    return p
+    
+############ CLI startup ###############
 #print("run __name__ = %s" %__name__)
 if __name__ == "__main__":
     main()
