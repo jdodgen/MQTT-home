@@ -746,6 +746,63 @@ class database:
             pub_payload not null, -- with this
             primary key (sub_topic,sub_payload,pub_topic,pub_payload)
         );
+        
+        drop table if exists cameras;
+        CREATE TABLE cameras
+        (
+            camera_name,            
+            url,  
+            user,
+            password,
+            rotate,
+            PRIMARY KEY (camera_name)
+        );
+        
+        drop table if exists email_cameras;
+        CREATE TABLE email_cameras
+        (
+            email_name,   
+            camera_name,         
+            PRIMARY KEY (email_name, camera_name)
+        );
+        
+        drop table if exists emails
+        CREATE TABLE emails
+        (
+            email_name,                 -- 
+            matching_payload,           --  EXAMPLE: "down"  # only payloads that mach this
+            only_on_change_of_payload,  --  EXAMPLE: true # only one email until different payload arrives
+            mqtt_topic,                 --  EXAMPLE: "home/jimdod/GAR Garage door/power"
+            subject,                    --  EXAMPLE: "The Garage door is open"
+            body,                       --  EXAMPLE: "by cracky I sence that the carrage house door is open. I hope the horses don't run out."
+            to_list,                    --  EXAMPLE: ["jan@dodgen.us", "jim@dodgen.us"]       
+            PRIMARY KEY (email_name)
+        );
+        
+        drop table if exists config;
+        CREATE TABLE config
+        (
+            id INTEGER PRIMARY KEY CHECK (id = 0),
+            start_delay   INTEGER DEFAULT 0,                 -- startup delay
+            number_of_seconds_to_wait INTEGER DEFAULT 30,    -- all things publish "power" messages every 30 seconds
+            -- other_message_threshold  -- 4   -- how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off
+            -- cluster_file_name   --  "cluster_simple_emailer.toml"
+            --
+            broker TEXT DEFAULT 'home-broker.local,  
+            ssl   INTEGER DEFAULT FALSE, 
+            user  TEXT DEFAULT NULL, 
+            password TEXT DEFAULT NULL, 
+            --
+            -- gmail (or opther) account to send emails through
+            --
+            gmail_password  TEXT DEFAULT NULL, 
+            gmail_user  TEXT DEFAULT NULL, 
+            publish  TEXT DEFAULT "home/jimdod/E1 simple_emailer/power"
+        );
+        INSERT INTO config (id) VALUES (0);
+        
+        
+        
         """
         self.con.executescript(create)  # drop and create the tables
 
