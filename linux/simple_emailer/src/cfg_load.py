@@ -7,7 +7,7 @@
 start_delay=0 # startup delay
 number_of_seconds_to_wait=30  # all sensors publish "power" messages every 30 seconds
 other_message_threshold=4  # how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off
-cluster_name = "cluster_simple_emailer.toml"
+cluster_file_name = "cluster_simple_emailer.toml"
 #
 broker = '26d590584baf4655a81048787c932f80.s1.eu.hivemq.cloud'
 ssl = True # true or false
@@ -27,12 +27,7 @@ device_letter = "E1"
 
 topics = {'home/jimdod/Front door/quad_chimes': {'AlL': {'subject': 'Front door bell pressed', 'body': 'Three pictures here', 'cc_string': '<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4&type=0', 'user': 'admin', 'pw': 'dr0wssap!', 'rotate': -90}], 'to_list': ['jim@dodgen.us'], 'only_on_change_of_payload': False}}, 'home/jimdod/Pub/quad_chimes': {'AlL': {'subject': 'Button on bar pressed', 'body': 'See! it did work!!!', 'cc_string': '<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}], 'to_list': ['jim@dodgen.us'], 'only_on_change_of_payload': False}}, 'home/jimdod/D Garage door/power': {'down': {'subject': 'The Garage door is open', 'body': "by cracky I sence that the carrage house door is open. I hope the horses don't run out.", 'cc_string': '<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jim@dodgen.us'], 'only_on_change_of_payload': True}, 'up': {'subject': 'The garage door is closed', 'body': 'Horses be contained, all is well now, ta! ta! cheerio', 'cc_string': '<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jim@dodgen.us'], 'only_on_change_of_payload': True}}}
 
-def load_cluster(cluster_file_name):
-    if len(cluster_file_name) > 1:
-        cluster_toml = cluster_lib+"/"+cluster_file_name
-    else:
-        print("testing from current directory")
-        cluster_toml = "cluster-example.toml"  # test cluster
+def load_cluster(cluster_toml):
     print("using:", cluster_toml)
     try:
         with open(cluster_toml, 'rb') as toml_file:
@@ -90,9 +85,9 @@ def load_topics(cluster):
 publish
 
 try:
-    cluster = load_cluster(cluster_name)
+    cluster = load_cluster(cluster_file_name)
 except:
-    print(f"could not find  [{cluster_name}]")
+    print(f"could not find  [{cluster_file_name}]")
     sys.exit()
 topics = load(cluster)
 broker = cluster["mqtt_broker"]["broker"]
