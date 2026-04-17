@@ -150,7 +150,7 @@ def main():
             last_publish = now
         payload = payload_raw.decode('utf-8')
         this_topic = cfg.topics.get(topic, None)
-        #print("main from mqtt_q:message topic[%s], payload[%s] " % (topic, payload))
+        print("main from mqtt_q:message topic[%s], payload[%s] " % (topic, payload))
         if not this_topic:  # just checking 
             print(f"main got a missing subscribe {topic}")
         else:  # good one
