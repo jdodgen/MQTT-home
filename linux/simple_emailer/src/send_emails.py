@@ -5,8 +5,8 @@
 # triggered by a MQTT topic and payload (optional)
 # requires only a MQTT Broker.
 # all contained in a config.py file
-# can run on command line/systemd or included in other projects
-# using start_daemon()
+# can run on command line/systemd or 
+# included in other projects using start_daemon()
 #
 VERSION = (2, 0, 0)
 import smtplib
