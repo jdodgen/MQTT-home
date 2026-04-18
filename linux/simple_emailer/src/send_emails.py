@@ -202,7 +202,6 @@ def start_daemon():
     return p
     
 ############ CLI startup ###############
-#print("run __name__ = %s" %__name__)
 if __name__ == "__main__":
     main()
     print("exiting, should not get here")
