@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head><title>Camera Manager</title></head>
+<body>
+    <h2>Managed Cameras</h2>
+    <table border="1">
+        <tr>
+            <th>Name</th><th>URL</th><th>User</th><th>Password</th><th>Rotate</th><th>Action</th>
+        </tr>
+        {% for name, url, user, password, rotate in cameras %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ url }}</td>
+            <td>{{ user }}</td>
+            <td>{{ password }}</td>
+            <td>{{ rotate }}</td>
+            <td>
+                <form action="/delete" method="post">
+                    <input type="hidden" name="camera_name" value="{{ name }}">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Add New Camera</h3>
+    <form action="/add" method="post">
+        <input type="text" name="camera_name" placeholder="Camera Name" required><br>
+        <input type="text" name="url" placeholder="URL" required><br>
+        <input type="text" name="user" placeholder="Username"><br>
+        <input type="password" name="password" placeholder="Password"><br>
+        <input type="number" name="rotate" placeholder="Rotate (0, 90, 180)"><br>
+        <button type="submit">Add Camera</button>
+    </form>
+</body>
+</html>
