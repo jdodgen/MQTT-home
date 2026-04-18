@@ -1,9 +1,9 @@
 #inside const.py constants and configurable items
 version = 2.0
-
+db_name = 'devices.db'
 import os
 if os.name =="nt": # testing under Windows
-   db_name = 'C:\\Users\\jim\\Dropbox\\wip\\timers\\devices.db'
+   # db_name = 'C:\\Users\\jim\\Dropbox\\wip\\timers\\devices.db'
    log_path = 'C:\\Users\\jim\\log\\'
    error_log_path = 'C:\\Users\\jim\\log\\error\\'
    #windows_broker = "home-broker.local"
@@ -11,7 +11,7 @@ if os.name =="nt": # testing under Windows
    mosquitto_file_path = "mosquitto.conf"
    fauxmo_default_dir = "fauxmo"
 else: # running as a system under Linux
-   db_name = 'devices.db'
+   
    log_path = "/dev/shm/log/"
    error_log_path = "log/"
    windows_broker = "localhost" #None
