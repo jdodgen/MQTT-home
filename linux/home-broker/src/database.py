@@ -742,22 +742,21 @@ class database:
         );
 
         drop table if exists topics
-        CREATE TABLE topics ( -- as in MQTT topics
-            topics_name,                 --
+        CREATE TABLE events ( -- as in MQTT topics
+            events_name,                 --
+            mqtt_topic,                 --  EXAMPLE: "home/jimdod/GAR Garage door/power"
             matching_payload,           --  EXAMPLE: "down"  # only payloads that mach this
             only_on_change_of_payload,  --  EXAMPLE: true # only one email until different payload arrives
-            mqtt_topic,                 --  EXAMPLE: "home/jimdod/GAR Garage door/power"
             subject,                    --  EXAMPLE: "The Garage door is open"
             body,                       --  EXAMPLE: "by cracky I sence that the carrage house door is open. I hope the horses don't run out."
-            to_list,                    --  EXAMPLE: ["jan@dodgen.us", "jim@dodgen.us"]
-            PRIMARY KEY (email_name)
+            PRIMARY KEY (events_name)
         );
 
-        drop table if exists cameras_in_topics;
-        CREATE TABLE cameras_in_topics (
-            topics_name,
+        drop table if exists cameras_in_events;
+        CREATE TABLE cameras_in_events (
+            events_name,
             camera_name,
-            PRIMARY KEY (topics_name, camera_name)
+            PRIMARY KEY (events_name, camera_name)
         );
 
         drop table if exists cameras;
@@ -770,11 +769,11 @@ class database:
             PRIMARY KEY (camera_name)
         );
 
-        drop table if exists emailaddr_in_topics;
-        CREATE TABLE emailaddr_in_topics (
-            topics_name,
+        drop table if exists emailaddr_in_events;
+        CREATE TABLE emailaddr_in_events (
+            events_name,
             emailaddr_name,
-            PRIMARY KEY (topics_name, emailaddr_name)
+            PRIMARY KEY (events_name, emailaddr_name)
         );
         
         drop table if exists emailaddr;
@@ -787,18 +786,11 @@ class database:
         drop table if exists config;
         CREATE TABLE config ( -- this is a singleton
             id INTEGER PRIMARY KEY CHECK (id = 0),
-            start_delay   INTEGER DEFAULT 0,                 -- startup delay
-            number_of_seconds_to_wait INTEGER DEFAULT 30,    -- all things publish "power" messages every 30 seconds
-            -- other_message_threshold  -- 4   -- how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off
-            -- cluster_file_name   --  "cluster_simple_emailer.toml"
-            --
-            broker TEXT DEFAULT 'home-broker.local,
+            alive_interval INTEGER DEFAULT 30,
+            broker TEXT DEFAULT 'home-broker.local',
             ssl   INTEGER DEFAULT FALSE,
             user  TEXT DEFAULT NULL,
             password TEXT DEFAULT NULL,
-            --
-            -- gmail (or opther) account to send emails through
-            --
             gmail_password  TEXT DEFAULT NULL,
             gmail_user  TEXT DEFAULT NULL,
             publish  TEXT DEFAULT "home/SEM simple_emailer/power"
