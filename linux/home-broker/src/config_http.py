@@ -70,5 +70,13 @@ async def init_app():
     ])
     return app
 
-if __name__ == "__main__":
+def main():
     web.run_app(init_app(), port=8082)
+
+def start_daemon():
+    p = multiprocessing.Process(target=main)
+    p.start()
+    return p
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,9 @@
 #inside const.py constants and configurable items
 version = 2.0
 
+#http
+
+
 import os
 if os.name =="nt": # testing under Windows
    db_name = 'C:\\Users\\jim\\Dropbox\\wip\\timers\\devices.db'
@@ -26,19 +29,37 @@ else: # running as a system under Linux
     # s.close()
     # return ip
     
+import socket
+
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 try:
-    with open("ipaddr.txt", "r") as text_file:
-        IPaddr = text_file.read()
-except:
-    IPaddr = "192.168.0.134" # desktop
+    # Doesn't actually connect, just triggers local IP resolution
+    s.connect(('8.8.8.8', 80))
+    local_ip = s.getsockname()[0]
+except Exception:
+    local_ip = '127.0.0.1'
+finally:
+    s.close()
+IPaddr = local_ip
+
+# try:
+    # with open("ipaddr.txt", "r") as text_file:
+        # IPaddr = text_file.read()
+# except:
+    # IPaddr = "192.168.0.134" # desktop
 
 print("Our ip address:", IPaddr)
+
+# http ports
+
 
 ifname = b"eth0"  #our network interface, see "ip a" 
 
 fauxmo_config_file_path = fauxmo_default_dir+"/config.json"
 fauxmo_sleep_seconds = 240 # wake up every 4 minutes, Zzzzzz
 #
+
 broker_mqtt_port = 1883
 #
 base_faxmo_port = 56000
@@ -48,7 +69,14 @@ MQTTPlugin = "mqttplugin.py"
 zigbe2mqtt = "zigbee2mqtt"
 zigbee_refresh_seconds = 30
 
-http_port = 80  # home-broker note the z2m package uses port 8080
+http_port = 80  # home-broker 
+Z2M_HTTP_PORT = 8080
+TRIGGERS_HTTP_PORT = 8082
+TIMERS_HTTP_PORT = 8081
+CONFIG_HTTP_PORT = 8083
+SIMPLE_EMAILER_HTTP_PORT = 8084
+
+
 mqtt_service_q_timeout = 60*60*4   # seconds every four hours if it times out then zb/ip devices are refreshed and "home/MQTT_devices" is published
 watch_dog_queue_timeout = 20
 db_timeout = 120 # we have nothing that would cause a long lock
