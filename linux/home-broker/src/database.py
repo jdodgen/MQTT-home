@@ -9,7 +9,7 @@ import time
 from textwrap import wrap
 #
 # conditional print
-import os 
+import os
 my_name = os.path.basename(__file__).split(".")[0]
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
@@ -35,7 +35,7 @@ class database:
     def __del__(self):
         self.con.commit()
         self.con.close()
-        
+
     def close(self):
         self.con.commit()
         self.con.close()
@@ -47,21 +47,21 @@ class database:
         status = True
         try:
             cur.execute("""
-            insert or replace into password (password) values (?)""", 
+            insert or replace into password (password) values (?)""",
                 (pw,))
         except:
             status = False
         cur.close()
         self.con.commit()
         return status
-    
+
     def get_devices_for_wemo(self):
         cur = self.con.cursor()
         cur.execute("""
         select distinct
             mqtt_feature.rowid,
-            mqtt_device.friendly_name,  
-            mqtt_device.description, 
+            mqtt_device.friendly_name,
+            mqtt_device.description,
             mqtt_feature.property,
             mqtt_feature.description,
             mqtt_feature.topic,
@@ -75,7 +75,7 @@ class database:
         all = cur.fetchall()
         cur.close()
         return all
-    
+
     def get_fauxmo_devices(self):
         cur = self.con.cursor()
         where = ''
@@ -97,18 +97,18 @@ class database:
         all = cur.fetchall()
         cur.close()
         return all
-    
+
     def get_all_features(self):
         cur = self.con.cursor()
         query = """
         select
             friendly_name,
             property,
-            description, 
+            description,
             type,
-            access, 
+            access,
             topic,
-            true_value,  
+            true_value,
             false_value
         from mqtt_feature
         order by friendly_name, property
@@ -137,7 +137,7 @@ class database:
             mqtt_feature.description,
             mqtt_feature.type,
             mqtt_feature.access,
-            mqtt_feature.topic, 
+            mqtt_feature.topic,
             mqtt_feature.true_value,
             mqtt_feature.false_value
         from mqtt_device
@@ -151,7 +151,7 @@ class database:
         #print(all)
         cur.close()
         return all
-    
+
     def cook_devices_features_for_html(self, source=None):
         all = self.get_all_devices_features(source=source)
         last_friendly_name = ""
@@ -170,7 +170,7 @@ class database:
                     #'Thu, 28 Jun 2001 14:17:15 +0000
                 except:
                     new[3] = ''
-                cooked_address = " ".join(wrap(d[1],width=9)) 
+                cooked_address = " ".join(wrap(d[1],width=9))
             last_friendly_name = d[1]
             print("access [%s]" % (access,))
             new.append(True if access == "sub" else False)
@@ -183,19 +183,19 @@ class database:
             new_all.append(tuple(new))
         print(new_all)
         return new_all
-    
+
     def get_manIP_device(self, rowid):
         if rowid == None:
             return None
         cur = self.con.cursor()
         cur.execute("""
         select
-            mqtt_feature.rowid, 
-            mqtt_device.friendly_name,  
+            mqtt_feature.rowid,
+            mqtt_device.friendly_name,
             mqtt_feature.property,
             mqtt_feature.type,
-            mqtt_feature.topic,  
-            mqtt_feature.true_value,  
+            mqtt_feature.topic,
+            mqtt_feature.true_value,
             mqtt_feature.false_value,
             mqtt_feature.access
             from mqtt_device
@@ -205,31 +205,31 @@ class database:
         rec = cur.fetchone()
         print(all)
         cur.close()
-        return rec  
-    
-    def update_manIP_feature(self,   
+        return rec
+
+    def update_manIP_feature(self,
             value_type,
             access,
             topic,
-            true_value,  
+            true_value,
             false_value,
-            rowid, 
+            rowid,
             ):
         cur=self.get_cursor()
         print("database: topic", type(topic))
-        cur.execute("""update mqtt_feature 
+        cur.execute("""update mqtt_feature
             set type    = ?,
-            access      = ?, 
-            topic   = ?,  
-            true_value  = ?,  
+            access      = ?,
+            topic   = ?,
+            true_value  = ?,
             false_value = ?
             where rowid = ?
             """,(value_type,
                 access,
                 topic,
-                true_value,  
-                false_value, 
-                rowid,  
+                true_value,
+                false_value,
+                rowid,
             ))
         cur.close()
         self.con.commit()
@@ -237,9 +237,9 @@ class database:
     def get_wemo(self, row_id):
         cur = self.con.cursor()
         cur.execute("""
-        select wemo.rowid, 
+        select wemo.rowid,
             wemo_name,
-            wemo_port, 
+            wemo_port,
             mqtt_feature.rowid,
             mqtt_device.friendly_name,
             mqtt_feature.property,
@@ -255,13 +255,13 @@ class database:
         rec = cur.fetchone()
         cur.close()
         return rec
-    
+
     def delete_all_zb_devices(self):
         cur=self.get_cursor()
         try:
             cur.execute("""delete from mqtt_feature where mqtt_feature.friendly_name in
                             (select mqtt_device.friendly_name from mqtt_device where source = \"ZB\")""")
-            cur.execute("delete from mqtt_device where source = \"ZB\"")        
+            cur.execute("delete from mqtt_device where source = \"ZB\"")
         except:
             print("delete_all_zb_devices failed")
         cur.close()
@@ -281,7 +281,7 @@ class database:
     def upsert_device(self, description, name, source):
         # first check to see if we have a major change
         # notifiers may need this to reduce MQTT traffic
-        #   
+        #
         #
         # we always update atleast for date
         #
@@ -290,13 +290,13 @@ class database:
         cur=self.get_cursor()
         cur.execute(
             """
-            insert or ignore into mqtt_device 
-                (description, 
-                friendly_name, 
+            insert or ignore into mqtt_device
+                (description,
+                friendly_name,
                 source,
-                date) 
+                date)
             values (?,?,?,?)
-            """, 
+            """,
                 (description, name, source, now))
         cur.close()
         self.con.commit()
@@ -306,17 +306,17 @@ class database:
         cur = self.con.cursor()
         cur.execute("""
         select  distinct
-            friendly_name, 
-            description, 
+            friendly_name,
+            description,
             source,
             date
-        from mqtt_device 
+        from mqtt_device
         """)
         all = cur.fetchall()
         print(all)
         cur.close()
         return all
-    
+
     def decode_access(self,access):
         published = True if (access & 1) else False
         set         = True if (access & 2) else False
@@ -330,16 +330,16 @@ class database:
         #   self.con = sqlite3.connect(const.db_name)
         #   cur = self.con.cursor()
         return cur
-        
+
     def upsert_feature(self, data_list):
     # data_list should be a list of tuples or dictionaries
         cur = self.con.cursor()
         query = """
             INSERT or REPLACE INTO mqtt_feature (
-                friendly_name, property, description, type, 
+                friendly_name, property, description, type,
                 access, topic, true_value, false_value
             ) VALUES (
-                :friendly_name, :property, :description, :type, 
+                :friendly_name, :property, :description, :type,
                 :access, :topic, :true_value, :false_value
             )
         """
@@ -352,23 +352,23 @@ class database:
         self.con.commit()
 
     def old_upsert_feature(self,
-            friendly_name, 
-            property,  
-            description, 
+            friendly_name,
+            property,
+            description,
             type,
-            access, 
-            topic,  
-            true_value,  
+            access,
+            topic,
+            true_value,
             false_value
             ):
         # first check to see if we have a change
         # notifiers may need this to reduce MQTT traffic
-        #  
+        #
         cur = self.con.cursor()
         cur.execute("""
             select
             friendly_name
-            from mqtt_feature 
+            from mqtt_feature
             where friendly_name = ?
             and property = ?
             and description = ?
@@ -384,24 +384,24 @@ class database:
             return True
         cur=self.get_cursor()
         try:
-            cur.execute("""insert or replace into mqtt_feature 
-                (friendly_name, 
-                property,  
-                description, 
+            cur.execute("""insert or replace into mqtt_feature
+                (friendly_name,
+                property,
+                description,
                 type,
-                access, 
-                topic,  
-                true_value,  
+                access,
+                topic,
+                true_value,
                 false_value
                 )
-                values (?,?,?,?,?,?,?,?)""", 
+                values (?,?,?,?,?,?,?,?)""",
                 (friendly_name,
-                property,  
-                description, 
+                property,
+                description,
                 type,
-                access, 
-                topic,  
-                true_value,  
+                access,
+                topic,
+                true_value,
                 false_value,))
         except:
             pass
@@ -411,22 +411,22 @@ class database:
     def get_feature(self, friendly_name, property, topic):
         cur = self.con.cursor()
         cur.execute("""
-        select 
+        select
             mqtt_device.rowid,
             mqtt_device.friendly_name,
             mqtt_device.description,
-            mqtt_device.source,  
-            mqtt_feature.rowid, 
+            mqtt_device.source,
+            mqtt_feature.rowid,
             mqtt_feature.property,
             mqtt_feature.description,
-            mqtt_feature.type, 
-            mqtt_feature.access, 
-            mqtt_feature.topic, 
-            mqtt_feature.true_value, 
-            mqtt_feature.false_value, 
+            mqtt_feature.type,
+            mqtt_feature.access,
+            mqtt_feature.topic,
+            mqtt_feature.true_value,
+            mqtt_feature.false_value,
             from mqtt_feature
             join mqtt_device on mqtt_device.friendly_name = mqtt_feature.friendly_name
-            where mqtt_feature.friendly_name = ? 
+            where mqtt_feature.friendly_name = ?
             AND   mqtt_feature.property = ?
             AND   mqtt_feature.topic = ?
         """, (friendly_name, property, topic))
@@ -438,11 +438,11 @@ class database:
     def get_feature_mqtt(self, rowid):
         cur = self.con.cursor()
         cur.execute("""
-        select 
-            access, 
-            topic, 
-            true_value, 
-            false_value 
+        select
+            access,
+            topic,
+            true_value,
+            false_value
             from mqtt_feature
             where rowid = ?
         """, (rowid,))
@@ -480,16 +480,16 @@ class database:
         try:
             cur.execute("""
             insert or replace into wemo (
-               wemo_name, 
+               wemo_name,
                wemo_port,
                friendly_name,
                property,
                topic
-               ) 
-                select 
+               )
+                select
                 ?,
                 ?,
-                mqtt_device.friendly_name, 
+                mqtt_device.friendly_name,
                 mqtt_feature.property,
                 mqtt_feature.topic
                 from mqtt_feature
@@ -505,17 +505,17 @@ class database:
     def get_all_wemo(self):
         cur = self.con.cursor()
         cur.execute("""
-        select  
+        select
                 wemo.rowid,
                 wemo_name,
                 wemo_port,
                 mqtt_device.friendly_name,
-                mqtt_feature.property, 
+                mqtt_feature.property,
                 mqtt_feature.topic,
                 mqtt_feature.true_value,
                 mqtt_feature.false_value
             from wemo
-            left join mqtt_device  on mqtt_device.friendly_name = wemo.friendly_name 
+            left join mqtt_device  on mqtt_device.friendly_name = wemo.friendly_name
             left join mqtt_feature on mqtt_device.friendly_name = mqtt_feature.friendly_name
                     and mqtt_feature.property = wemo.property
                     and mqtt_feature.topic = wemo.topic
@@ -529,7 +529,7 @@ class database:
     def get_all_manual_device_names(self):
         cur = self.con.cursor()
         cur.execute("""
-        select 
+        select
             mqtt_device.friendly_name,
             mqtt_device.description
             from mqtt_device
@@ -541,11 +541,11 @@ class database:
         #for e in all:
         #   print(e)
         return all
-        
+
     def get_publish_devices(self):
         cur = self.con.cursor()
         cur.execute("""
-        select distinct 
+        select distinct
             mqtt_feature.rowid,
             -- source,
             topic,
@@ -555,9 +555,9 @@ class database:
             false_value
 
         from mqtt_feature
-        
+
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
-        
+
         where (type = "binary" and source = "ZB" and property like "state%" and topic like "%set")
             or source = "IP"
 
@@ -566,11 +566,11 @@ class database:
         all = cur.fetchall()
         cur.close()
         return all
-        
+
     def get_subscribe_devices(self):
         cur = self.con.cursor()
         cur.execute("""
-        select distinct 
+        select distinct
             mqtt_feature.rowid,
             -- source,
             topic,
@@ -580,9 +580,9 @@ class database:
             false_value
 
         from mqtt_feature
-        
+
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
-        
+
         where (type = "binary" and source = "ZB" and property like "state%" and topic like "%get")
             or source = "IP"
 
@@ -591,7 +591,7 @@ class database:
         all = cur.fetchall()
         cur.close()
         return all
-        
+
     def get_all_timers(self):
         cur = self.con.cursor()
         cur.execute("""
@@ -606,8 +606,8 @@ class database:
             stop_type,
             stop_hour,
             stop_minute,
-            stop_offset 
-            
+            stop_offset
+
             from timers
 
             order by topic
@@ -615,7 +615,7 @@ class database:
         all = cur.fetchall()
         cur.close()
         return all
-        
+
     def get_all_triggers(self):
         cur = self.con.cursor()
         cur.execute("""
@@ -642,35 +642,34 @@ class database:
 
         from mqtt_device
         join mqtt_feature on mqtt_feature.friendly_name = mqtt_device.friendly_name
-        where 
+        where
             mqtt_feature.rowid = ?
         """, (rowid,))
         rec = cur.fetchone()
         cur.close()
         print("get_feature_mqtt returned [%s]" % (rec,))
         return rec
-        
+
     def get_timers_for_today(self):
         print("get_timers_for_today")
         cur = self.con.cursor()
         cur.execute("""
-        select 
+        select
             *
             from timers
-            
+
             WHERE days LIKE strftime('%%%w%%','now' ,'localtime')
         """)
         all = cur.fetchall()
         return all
-        
+
     def initialize(self, create_test_data=False):
         create="""
         drop table if exists wemo;
-        create table wemo
-        (
-            wemo_name unique,
-            wemo_port unique,
-            friendly_name,
+        create table wemo (
+            wemo_name unique, -- set by user
+            wemo_port unique, -- also, must not exist at this location
+            friendly_name, --
             property,
             topic,
             qos default 0,
@@ -678,24 +677,22 @@ class database:
             PRIMARY KEY (wemo_name, wemo_port)
         );
         drop table if exists mqtt_device;
-        create table mqtt_device
-        (
+        create table mqtt_device (
             friendly_name,
             description,
             source, -- "zigbee", or "IP" others in future
                     -- zigbee2mqtt forces unique "friendly_name"s zigbee2mqtt
                     -- our IP devices CAN share the same name to support MQTT multicast
                     -- IEEE is stored but not use. For IP devices it will be the last one reporting in
-                    -- if the devices sharing friendly names have different features 
-                    -- the one that gets published in devices_to_json() will be a collection 
+                    -- if the devices sharing friendly names have different features
+                    -- the one that gets published in devices_to_json() will be a collection
                     -- of unique property features
-            date, 
+            date,
             PRIMARY KEY (friendly_name)
         );
 
         drop table if exists device_ieee;
-        create table device_ieee
-        (
+        create table device_ieee (
             ieee_addr text,
             friendly_name,
             date,
@@ -703,22 +700,20 @@ class database:
         );
 
         drop table if exists mqtt_feature;
-        create table mqtt_feature
-        (   mqtt_feature_id integer auto increment,
+        create table mqtt_feature (   mqtt_feature_id integer auto increment,
             friendly_name NOT NULL,
             property NOT NULL,  -- unique within a device same as zigbee name
-            description, 
+            description,
             type NOT NULL, -- like "binary", lots of others things like battery etc.
-            access NOT NULL,   -- sub or pub 
+            access NOT NULL,   -- sub or pub
             topic NOT NULL,
             true_value,    -- usually the "on" value or result from a pub only device
-            false_value,   -- off value 
+            false_value,   -- off value
             PRIMARY KEY (friendly_name, property, type, topic, access)
             --PRIMARY KEY (friendly_name, property, type, topic, access,  true_value, false_value)
         );
         drop table if exists timers;
-        CREATE TABLE timers
-        (
+        CREATE TABLE timers (
             topic,
             true_value,  -- payload
             false_value, -- payload
@@ -738,71 +733,77 @@ class database:
             state INTEGER
         );
         drop table if exists triggers;
-        CREATE TABLE triggers
-        (
+        CREATE TABLE triggers (
             sub_topic not null,   -- trigger_deamon subscribes to this
             sub_payload not null, -- if it matches
             pub_topic not null,   -- and publishes this
             pub_payload not null, -- with this
             primary key (sub_topic,sub_payload,pub_topic,pub_payload)
         );
-        
-        drop table if exists cameras;
-        CREATE TABLE cameras
-        (
-            camera_name,            
-            url,  
-            user,
-            password,
-            rotate,
-            PRIMARY KEY (camera_name)
-        );
-        
-        drop table if exists email_cameras;
-        CREATE TABLE email_cameras
-        (
-            email_name,   
-            camera_name,         
-            PRIMARY KEY (email_name, camera_name)
-        );
-        
-        drop table if exists emails
-        CREATE TABLE emails
-        (
-            email_name,                 -- 
+
+        drop table if exists topics
+        CREATE TABLE topics ( -- as in MQTT topics
+            topics_name,                 --
             matching_payload,           --  EXAMPLE: "down"  # only payloads that mach this
             only_on_change_of_payload,  --  EXAMPLE: true # only one email until different payload arrives
             mqtt_topic,                 --  EXAMPLE: "home/jimdod/GAR Garage door/power"
             subject,                    --  EXAMPLE: "The Garage door is open"
             body,                       --  EXAMPLE: "by cracky I sence that the carrage house door is open. I hope the horses don't run out."
-            to_list,                    --  EXAMPLE: ["jan@dodgen.us", "jim@dodgen.us"]       
+            to_list,                    --  EXAMPLE: ["jan@dodgen.us", "jim@dodgen.us"]
             PRIMARY KEY (email_name)
         );
+
+        drop table if exists cameras_in_topics;
+        CREATE TABLE cameras_in_topics (
+            topics_name,
+            camera_name,
+            PRIMARY KEY (topics_name, camera_name)
+        );
+
+        drop table if exists cameras;
+        CREATE TABLE cameras (
+            camera_name,
+            url,
+            user,
+            password,
+            rotate,
+            PRIMARY KEY (camera_name)
+        );
+
+        drop table if exists emailaddr_in_topics;
+        CREATE TABLE emailaddr_in_topics (
+            topics_name,
+            emailaddr_name,
+            PRIMARY KEY (topics_name, emailaddr_name)
+        );
         
+        drop table if exists emailaddr;
+        CREATE TABLE emailaddr(
+            emailaddr_name, -- jim
+            email_address,  -- jim@foo.com   standard local-part@domain format.,
+            PRIMARY KEY (emailaddr_name)
+        );
+
         drop table if exists config;
-        CREATE TABLE config
-        (
+        CREATE TABLE config ( -- this is a singleton
             id INTEGER PRIMARY KEY CHECK (id = 0),
             start_delay   INTEGER DEFAULT 0,                 -- startup delay
             number_of_seconds_to_wait INTEGER DEFAULT 30,    -- all things publish "power" messages every 30 seconds
             -- other_message_threshold  -- 4   -- how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off
             -- cluster_file_name   --  "cluster_simple_emailer.toml"
             --
-            broker TEXT DEFAULT 'home-broker.local,  
-            ssl   INTEGER DEFAULT FALSE, 
-            user  TEXT DEFAULT NULL, 
-            password TEXT DEFAULT NULL, 
+            broker TEXT DEFAULT 'home-broker.local,
+            ssl   INTEGER DEFAULT FALSE,
+            user  TEXT DEFAULT NULL,
+            password TEXT DEFAULT NULL,
             --
             -- gmail (or opther) account to send emails through
             --
-            gmail_password  TEXT DEFAULT NULL, 
-            gmail_user  TEXT DEFAULT NULL, 
-            publish  TEXT DEFAULT "home/jimdod/E1 simple_emailer/power"
+            gmail_password  TEXT DEFAULT NULL,
+            gmail_user  TEXT DEFAULT NULL,
+            publish  TEXT DEFAULT "home/SEM simple_emailer/power"
         );
-        INSERT INTO config (id) VALUES (0);
-        
-        
-        
+        INSERT INTO config (id) VALUES (0);  -- this is a singleton
         """
         self.con.executescript(create)  # drop and create the tables
 
@@ -811,15 +812,15 @@ class database:
             # this is a dummy device mostly for testing
             #
             #b [mqtt_hello] [send_hello] topic[home/70a8d3dd39f1/hello] payload[
-            
+
             name = "friendly_example"
             self.upsert_device("test description", name, "manIP")
             self.upsert_feature(name,
                         "state",
                         "relay1",
-                        "binary", 
-                        "sub", 
-                        "/home/"+name+"/valve", 
+                        "binary",
+                        "sub",
+                        "/home/"+name+"/valve",
                         "ON",
                         "OFF",
                         )
@@ -829,11 +830,11 @@ class database:
         pass
 
     # def void_make_wifi_tail(self,off, on, set,get, get_payload):
-    #   tail =  """{"payload_off": "%s", 
-    #               "payload_on": "%s", 
+    #   tail =  """{"payload_off": "%s",
+    #               "payload_on": "%s",
     #               "topic_set": "%s",
     #               "topic_get": "%s",
-    #               "get_payload": "%s", 
+    #               "get_payload": "%s",
     #               }""" %  (off, on, set, get, get_payload)
     #   try:
     #       work = json.loads(tail)
@@ -842,11 +843,11 @@ class database:
     #       print("did not like work")
     #   print("work", work)
     #   new_tail = json.dumps(work)
-        
+
     #   return new_tail
 
-    
-# test stuff  not running when imported 
+
+# test stuff  not running when imported
 if __name__ == "__main__":
     db=database()
     # print(db.cook_devices_features_for_html())
@@ -858,11 +859,11 @@ if __name__ == "__main__":
     #   "foobar",
     #   "state",
     #   "relay1",
-    #   "binary", 
-    #   "sub", 
-    #   "/home/foobar/thing", 
+    #   "binary",
+    #   "sub",
+    #   "/home/foobar/thing",
     #   "ON",
-    #   "OFF")  
+    #   "OFF")
     # print(rc)
     # print(db.delete_device(13))
 
@@ -885,11 +886,11 @@ if __name__ == "__main__":
 
     # """rowid,device_name, topic, payload_on, payload_off,payload_state,
     #       broker_name, client_id """
-    
+
     # db.upsert_device("a foo device", "foo", "IP")
-    
+
     # db.upsert_device(row)
-    # devices = db.get_all_devices()    
+    # devices = db.get_all_devices()
     # for row in devices:
     #   print(row)
     #   #for col in row:
@@ -905,5 +906,5 @@ if __name__ == "__main__":
 
 
 
-    
+
 
