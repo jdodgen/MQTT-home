@@ -1,0 +1,30 @@
+<html>
+<head><title>Emailer Config</title></head>
+<body>
+    <h1>Configure Simple Emailer</h1>
+    <form action="/update" method="post">
+    <label>Broker:</label>
+    <input type="text" maxlength=60 name="broker" value="{{ config.broker }}"><br>
+    <label>Use SSL:</label>
+    <input type="checkbox" name="ssl" {{ 'checked' if config.ssl else '' }}><br>
+    <label>User:</label>
+    <input type="text" name="user" maxlength=30 value="{{ config.user or '' }}"><br>
+    <label>Pass:</label>
+    <input type="password" name="password" maxlength=30 value="{{ config.password or '' }}"><br>
+
+    <hr>
+    <h3>Gmail Settings</h3>
+    <label>User:</label>
+    <input type="email" name="gmail_user" value="{{ config.gmail_user or '' }}"><br>
+    <label>Password:</label>
+    <input type="password" name="gmail_password" value="{{ config.gmail_password or '' }}"><br>
+
+    <hr>
+    <label>Publish Topic:</label>
+    <input type="text" name="publish" value="{{ config.publish }}"><br>
+    <input type="number" name="alive_interval" value="{{ config.alive_interval }}"><br>
+    <button type="submit">Update Configuration</button>
+    </form>
+
+</body>
+</html>
