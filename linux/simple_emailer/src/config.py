@@ -2,8 +2,10 @@
 # MIT license copyright 2024, 2025 Jim Dodgen
 # it loads a toml file creating CONSTANTS
 # this runs at import and leaves values access like "self.broker = cfg.BROKER"
+import sys
 import tomllib
 
+cluster_path = "cluster_simple_emailer.toml"
 my_name = "config"
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
@@ -74,21 +76,22 @@ def load_topics(cluster):
     return l
 
 try:
-    cluster = load_cluster(cluster_file_name)
+    cluster = load_cluster(cluster_path)
 except:
-    print(f"could not find  [{cluster_file_name}]")
+    print(f"could not find  [{cluster_path}]")
     sys.exit()
     
-# shared items
-topics = load_topics(cluster)
-print(f"topics {topics}")
-broker = cluster["mqtt_broker"]["broker"]
-ssl = cluster["mqtt_broker"]["ssl"]
-user = cluster["mqtt_broker"]["user"]
-password = cluster["mqtt_broker"]["password"]
-gmail_password = cluster["email"]["gmail_password"]
-gmail_user = cluster["email"]["gmail_user"]
-send_messages_to = cluster["email"]["to_list"]
-default_port = 8883
-http_image_timeout = 15
-publish = cluster["alive_publish"]
+# EXPOSED CONST
+TOPICS = load_topics(cluster)
+BROKER = cluster["mqtt_broker"]["broker"]
+SSL = cluster["mqtt_broker"]["ssl"]
+USER = cluster["mqtt_broker"]["user"]
+PASSWORD = cluster["mqtt_broker"]["password"]
+GMAIL_PASSWORD = cluster["email"]["gmail_password"]
+GMAIL_USER = cluster["email"]["gmail_user"]
+SEND_MESSAGES_TO = cluster["email"]["to_list"]
+ALIVE_PUBLISH = cluster["alive_publish"]
+
+DEFAULT_PORT = 8883
+ALIVE_INTERVAL = 30
+HTTP_IMAGE_TIMEOUT = 15

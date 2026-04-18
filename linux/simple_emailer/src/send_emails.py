@@ -3,9 +3,8 @@
 # emails a pre-defined collection of ip camera jpgs as well as some text.
 # to a one or more email addresses 
 # triggered by a MQTT topic and payload (optional)
-# all contained in a cfg.py file
 # requires only a MQTT Broker.
-# all contained in a cfg.py file
+# all contained in a config.py file
 # can run on command line/systemd or included in other projects
 # using start_daemon()
 #
@@ -18,7 +17,7 @@ import ssl
 import binascii
 import multiprocessing
 from mqtt_manager import mqtt_manager
-import cfg
+import config
 import time
 import requests
 from PIL import Image
@@ -51,7 +50,7 @@ def download_image_data(url_info):
             # print("download_image_data doing auth[%s][%s]" % (user, pw))
             try:
                 print("download_image_data doing auth[%s][%s]" % (user, pw))
-                response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw), timeout=cfg.http_image_timeout)
+                response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw), timeout=config.HTTP_IMAGE_TIMEOUT)
                 print("download_image_data requests.get returned")
             except requests.exceptions.RequestException as e:
                 print(f"download_image_data requests.get  with user Error: [{e}]")
@@ -91,11 +90,10 @@ def send_email_task(emailer_q): #, cluster_id_only=False):
     chunk_size = 100
     while True:
         found_match, jpgs = emailer_q.get()
-        # ident = cfg.cluster_id if cluster_id_only else cfg.pretty_name
         # print("send_email_task our id [%s]" % (ident,))
         msg = MIMEMultipart()
         msg['Subject'] = found_match["subject"] # +" "+ident
-        msg['From'] = cfg.gmail_user
+        msg['From'] = config.GMAIL_USER
         msg['To'] = found_match["cc_string"]
         msg['Cc'] = found_match["cc_string"]
         msg.attach(MIMEText(found_match["body"]))
@@ -108,7 +106,7 @@ def send_email_task(emailer_q): #, cluster_id_only=False):
             smtp = smtplib.SMTP('smtp.gmail.com', 587)
             smtp.ehlo()
             smtp.starttls()
-            smtp.login(cfg.gmail_user, cfg.gmail_password)
+            smtp.login(config.GMAIL_USER, config.GMAIL_PASSWORD)
             smtp.send_message(msg)
             smtp.quit()
         except:
@@ -132,11 +130,11 @@ def main():
         # MAIN LOOP
         #
         try:
-            topic, payload_raw = mqtt_q.get(block=True, timeout=cfg.number_of_seconds_to_wait)
+            topic, payload_raw = mqtt_q.get(block=True, timeout=config.ALIVE_INTERVAL)
         except Empty:
             # send PCN alive now
             try:
-                client.publish_command(cfg.publish,"up")
+                client.publish_command(config.ALIVE_PUBLISH,"up")
                 last_publish = time.time()
             except Exception as e:
                 print(f"main publish up failed {e}")
@@ -144,12 +142,12 @@ def main():
                 print("main emailer process dead")
             continue
         now = time.time()
-        if last_publish+cfg.number_of_seconds_to_wait < now:
+        if last_publish+config.ALIVE_INTERVAL < now:
             # send PCN alive now
-            client.publish_command(cfg.publish,"up")
+            client.publish_command(config.ALIVE_PUBLISH,"up")
             last_publish = now
         payload = payload_raw.decode('utf-8')
-        this_topic = cfg.topics.get(topic, None)
+        this_topic = config.TOPICS.get(topic, None)
         print("main from mqtt_q:message topic[%s], payload[%s] " % (topic, payload))
         if not this_topic:  # just checking 
             print(f"main got a missing subscribe {topic}")
@@ -159,7 +157,7 @@ def main():
             found_match = {}
             
             if payload in this_topic.keys():  
-                found_match = this_topic[payload] # see cfg.py
+                found_match = this_topic[payload] # see config.py for the data structure
                 if found_match["only_on_change_of_payload"]:
                     #print(f"main match on change topic [{topic}][{payload}] toggle list [{toggle_list}]")
                     if topic in toggle_list:
