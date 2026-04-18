@@ -72,7 +72,6 @@ def load_topics(cluster):
             subject = l[topic][need_payload]["subject"]
             print("subject", subject)
     return l
-publish
 
 try:
     cluster = load_cluster(cluster_file_name)
@@ -92,4 +91,4 @@ gmail_user = cluster["email"]["gmail_user"]
 send_messages_to = cluster["email"]["to_list"]
 default_port = 8883
 http_image_timeout = 15
-publish = cluster["publish"]
+publish = cluster["alive_publish"]
