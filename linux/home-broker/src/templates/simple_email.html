@@ -1,0 +1,18 @@
+<html>
+<head><title>Emailer Config</title></head>
+<body>
+    <h1>Configure Simple Emailer</h1>
+    <form action="/update" method="post">
+        <label>Broker:</label><br>
+        <input type="text" maxlength=60 name="broker" value="{{ config.broker }}"><br><br>
+        
+        <label>Publish Topic:</label><br>
+        <input type="text" maxlength=30 name="publish" value="{{ config.publish }}"><br><br>
+        
+        <label>Delay (seconds):</label><br>
+        <input type="number" name="delay" value="{{ config.number_of_seconds_to_wait }}"><br><br>
+        
+        <button type="submit">Save Settings</button>
+    </form>
+</body>
+</html>
