@@ -9,7 +9,7 @@ cluster_path = "cluster_simple_emailer.toml"
 my_name = "config"
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
-    #return # comment/uncomment to turn print on off
+    return # comment/uncomment to turn print on off
     try:
         if isinstance(args, tuple) :
             area, comment = args[0].split(None,1)
@@ -32,13 +32,14 @@ def load_cluster(cluster_toml):
             print(cluster)
             return cluster
     except FileNotFoundError:
-        print("Error: ",cluster_toml," File not found")
+        xprint("Error: ",cluster_toml," File not found")
         sys.exit()
     except tomllib.TOMLDecodeError as e:
-        print("Error: Invalid TOML format in {file_path}: {e}")
+        xprint("Error: Invalid TOML format in {file_path}: {e}")
         sys.exit()
     except Exception as e:
-        print("cluster_toml open failed", e)
+        xprint("cluster_toml open failed", e)
+        sys.exit()
 
 def load_topics(cluster):
     l = {}
