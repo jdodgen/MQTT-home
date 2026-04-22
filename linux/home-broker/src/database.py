@@ -754,8 +754,8 @@ class database:
 
         drop table if exists cameras_in_events;
         CREATE TABLE cameras_in_events (
-            events_name,
-            camera_name,
+            events_name  REFERENCES event(events_name),
+            camera_name REFERENCES camera(camera_name),
             PRIMARY KEY (events_name, camera_name)
         );
 
@@ -771,8 +771,8 @@ class database:
 
         drop table if exists emailaddr_in_events;
         CREATE TABLE emailaddr_in_events (
-            events_name,
-            emailaddr_name,
+            events_name  REFERENCES event(events_name),
+            emailaddr_name REFERENCES emailaddr(emailaddr_name),
             PRIMARY KEY (events_name, emailaddr_name)
         );
         
