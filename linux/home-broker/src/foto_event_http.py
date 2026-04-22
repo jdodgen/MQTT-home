@@ -1,4 +1,4 @@
-# --- EMAIL HANDLERS --
+# 
 import asyncio
 from aiohttp import web
 import aiohttp_jinja2
@@ -61,7 +61,77 @@ async def handle_test_http(request):
             
     # Return a response or redirect back to the dashboard
     return web.Response(text=f"HTTP Request to {test_url} succeeded with status {status}")
+    
+async def handle_run_event(request):
+    data = await request.post()
+    e_name = data.get('events_name')
+    
+    # Optional: Look up the event details from the DB using e_name
+    async with aiosqlite.connect(DB_NAME) as db:
+        async with db.execute("SELECT mqtt_topic, subject FROM events WHERE events_name = ?", (e_name,)) as cursor:
+            row = await cursor.fetchone()
+            if row:
+                topic, subject = row
+                print(f"Running action for {e_name} (Topic: {topic})")
+                
+                # Perform your external HTTP call here
+                async with aiohttp.ClientSession() as session:
+                    # Example: Sending the event name to an external service
+                    async with session.post("http://httpbin.org", json={"event": e_name, "subj": subject}) as resp:
+                        print(f"External call status: {resp.status}")
 
+    # Redirect back so the user doesn't leave the page
+    raise web.HTTPFound('/events')
+
+@aiohttp_jinja2.template('manage_event.html')
+async def handle_manage_view(request):
+    event_name = request.query.get('events_name')
+    
+    async with aiosqlite.connect(DB_NAME) as db:
+        # 1. Get all available options
+        async with db.execute("SELECT camera_name FROM cameras") as c:
+            all_cameras = [r[0] for r in await c.fetchall()]
+        async with db.execute("SELECT emailaddr_name FROM emailaddr") as e:
+            all_emails = [r[0] for r in await e.fetchall()]
+            
+        # 2. Get currently linked options
+        async with db.execute("SELECT camera_name FROM cameras_in_events WHERE events_name=?", (event_name,)) as c:
+            linked_cameras = [r[0] for r in await c.fetchall()]
+        async with db.execute("SELECT emailaddr_name FROM emailaddr_in_events WHERE events_name=?", (event_name,)) as e:
+            linked_emails = [r[0] for r in await e.fetchall()]
+
+    return {
+        'event_name': event_name,
+        'all_cameras': all_cameras,
+        'all_emails': all_emails,
+        'linked_cameras': linked_cameras,
+        'linked_emails': linked_emails
+    }
+
+async def handle_update_links(request):
+    data = await request.post()
+    event_name = data.get('events_name')
+    # getall returns multiple values for the same key (checkboxes)
+    selected_cameras = data.getall('cameras', [])
+    selected_emails = data.getall('emails', [])
+
+    async with aiosqlite.connect(DB_NAME) as db:
+        # Clear existing links for this event
+        await db.execute("DELETE FROM cameras_in_events WHERE events_name=?", (event_name,))
+        await db.execute("DELETE FROM emailaddr_in_events WHERE events_name=?", (event_name,))
+        
+        # Insert new links
+        for c in selected_cameras:
+            await db.execute("INSERT INTO cameras_in_events VALUES (?, ?)", (event_name, c))
+        for e in selected_emails:
+            await db.execute("INSERT INTO emailaddr_in_events VALUES (?, ?)", (event_name, e))
+            
+        await db.commit()
+    
+    raise web.HTTPFound('/events')
+
+
+# here we go !
     
 app = web.Application()
 
@@ -74,6 +144,9 @@ app.add_routes([
     web.post('/events/add', handle_add_event),
     web.post('/events/delete', handle_delete_event),
     web.post('/test-http', handle_test_http)
+	web.get('/manage', handle_manage_view),
+	web.post('/update-links', handle_update_links),
+    web.post('/run-event', handle_run_event)
 ])
 
 # 4. Start the server

@@ -5,23 +5,35 @@
     <h2>MQTT Events</h2>
     <table border="1">
         <tr>
-            <th>Name</th><th>Topic</th><th>Payload</th><th>Only Change?</th><th>Subject</th><th>Action</th>
+            <th>Name</th><th>Topic</th><th>Payload</th><th>Only Change?</th><th>Subject</th><th>Body</th><th>Action</th>
         </tr>
         {% for name, topic, payload, change, subj, body in events %}
         <tr>
             <td>{{ name }}</td>
-            <td><code>{{ topic }}</code></td>
-            <td>"{{ payload }}"</td>
-            <td>{{ "Yes" if change == 1 else "No" }}</td>
+            <td>{{ topic }}</td>
+            <td>{{ payload }}</td>
+            <td>{{ change }}</td>
             <td>{{ subj }}</td>
+            <td>{{ body }}</td>
             <td>
-                <form action="/events/delete" method="post">
+                <!-- Form to trigger the HTTP run 
+                
+                
+                <form action="/run-event" method="post" style="display:inline;">
+                -->
+                    <a href="/manage?events_name={{ name }}">Link Cameras/Emails</a>
+                <!--
+                    <button type="submit">Run</button>
+                </form>
+
+                <!-- Existing Delete Form -->
+                <form action="/events/delete" method="post" style="display:inline;">
                     <input type="hidden" name="events_name" value="{{ name }}">
-                    <button type="submit">Delete</button>
+                    <button type="submit" style="color:red;">Delete</button>
                 </form>
             </td>
         </tr>
-        {% endfor %}
+{% endfor %}
     </table>
 
     <h3>Create New MQTT Event</h3>

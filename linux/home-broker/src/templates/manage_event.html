@@ -1,0 +1,25 @@
+<h2>Manage Links for: {{ event_name }}</h2>
+
+<form action="/update-links" method="post">
+    <input type="hidden" name="events_name" value="{{ event_name }}">
+
+    <h3>Cameras</h3>
+    {% for camera in all_cameras %}
+    <label>
+        <input type="checkbox" name="cameras" value="{{ camera }}" 
+               {{ 'checked' if camera in linked_cameras else '' }}> {{ camera }}
+    </label><br>
+    {% endfor %}
+
+    <h3>Email Addresses</h3>
+    {% for email in all_emails %}
+    <label>
+        <input type="checkbox" name="emails" value="{{ email }}" 
+               {{ 'checked' if email in linked_emails else '' }}> {{ email }}
+    </label><br>
+    {% endfor %}
+
+    <br>
+    <button type="submit">Save Changes</button>
+    <a href="/events">Cancel</a>
+</form>
