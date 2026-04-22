@@ -1,6 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head><title>Email Manager</title></head>
+<!DOCTYPE html>
+<html>
+    <style>
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; }
+        nav { background: #334; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+        nav a { color: white; text-decoration: none; margin-right: 15px; padding: 5px 10px; }
+        nav a:hover { background: #555; border-radius: 3px; }
+        .active { background: #007bff; border-radius: 3px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .refill-area { background: #f9f9f9; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+
+<body>
+    
+    <h1>Simple Emailer</h1>
+    <nav>
+		<a href="http://{{ my_ip }}:{{ ports['config_port'] }}">Configuation</a>
+        <a href="http://{{ my_ip }}:{{ ports['events_port'] }}">Events</a>
+        <a href="http://{{ my_ip }}:{{ ports['cam_port']    }}">Cameras</a>
+        <a href="http://{{ my_ip }}:{{ ports['email_port']  }}">Emails</a>
+    </nav>
+    
+<div class="refill-area">
+    
 <body>
     <h2>Email Addresses</h2>
     <table border="1">

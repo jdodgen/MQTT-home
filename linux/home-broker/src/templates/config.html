@@ -1,7 +1,29 @@
+<!DOCTYPE html>
 <html>
-<head><title>Emailer Config</title></head>
+    <style>
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; }
+        nav { background: #334; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+        nav a { color: white; text-decoration: none; margin-right: 15px; padding: 5px 10px; }
+        nav a:hover { background: #555; border-radius: 3px; }
+        .active { background: #007bff; border-radius: 3px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .refill-area { background: #f9f9f9; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+
 <body>
-    <h1>Configure Simple Emailer</h1>
+    
+    <h1>Simple Emailer</h1>
+    <nav>
+        <a href="http://{{ my_ip }}">Events</a>
+        <a href="http://{{ my_ip }}">Cameras</a>
+        <a href="http://{{ my_ip }}">Emails</a>
+    </nav>
+    
+<div class="refill-area">
+    
+    <h2>Configure</h2>
     <form action="/update" method="post">
     <label>Broker:</label>
     <input type="text" maxlength=60 name="broker" value="{{ config.broker }}"><br>
@@ -10,21 +32,24 @@
     <label>User:</label>
     <input type="text" name="user" maxlength=30 value="{{ config.user or '' }}"><br>
     <label>Pass:</label>
-    <input type="password" name="password" maxlength=30 value="{{ config.password or '' }}"><br>
+    <input type="text" name="password" maxlength=30 value="{{ config.password or '' }}"><br>
 
     <hr>
     <h3>Gmail Settings</h3>
     <label>User:</label>
     <input type="email" name="gmail_user" value="{{ config.gmail_user or '' }}"><br>
     <label>Password:</label>
-    <input type="password" name="gmail_password" value="{{ config.gmail_password or '' }}"><br>
+    <input type="text" name="gmail_password" value="{{ config.gmail_password or '' }}"><br>
 
     <hr>
-    <label>Publish Topic:</label>
-    <input type="text" name="publish" value="{{ config.publish }}"><br>
+    <h3>MQTT</h3>
+    <label>Alive topic:</label>
+    <input type="text" name="alive_publish_topic" value="{{ config.publish }}"><br>
+    <label>Alive interval:</label>
     <input type="number" name="alive_interval" value="{{ config.alive_interval }}"><br>
+    <hr>
     <button type="submit">Update Configuration</button>
     </form>
-
+</div>
 </body>
 </html>

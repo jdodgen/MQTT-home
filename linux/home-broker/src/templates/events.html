@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body { font-family: sans-serif; margin: 20px; line-height: 1.6; }
+        nav { background: #334; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+        nav a { color: white; text-decoration: none; margin-right: 15px; padding: 5px 10px; }
+        nav a:hover { background: #555; border-radius: 3px; }
+        .active { background: #007bff; border-radius: 3px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+        .refill-area { background: #f9f9f9; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+
+<body>
+    
+    <h1>Simple Emailer</h1>
+    <nav>
+        <a href="http://{{ my_ip }}">Events</a>
+        <a href="http://{{ my_ip }}">Cameras</a>
+        <a href="http://{{ my_ip }}">Emails</a>
+    </nav>
+
+<div class="refill-area">
+    <h2>Add / Edit Event</h2>
+    <form action="/events/add" method="post">
+        <input type="text" name="events_name" placeholder="Event Name" value="{{ query.get('refill_name', '') }}" required>
+        <input type="text" name="mqtt_topic" placeholder="Topic" value="{{ query.get('refill_topic', '') }}" required>
+        <input type="text" name="matching_payload" placeholder="Payload" value="{{ query.get('refill_payload', '') }}">
+        <br><br>
+        <input type="text" name="subject" placeholder="Email Subject" value="{{ query.get('refill_subj', '') }}" style="width: 100%;">
+        <br><br>
+        <textarea name="body" placeholder="Email Body" style="width: 100%; height: 60px;">{{ query.get('refill_body', '') }}</textarea>
+        <br><br>
+        <button type="submit" style="background: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer;">Save Event</button>
+    </form>
+</div>
+
+<table>
+    <tr><th>Name</th><th>Topic</th><th>Payload</th><th>Action</th></tr>
+    {% for name, topic, payload, change, subj, body in events %}
+    <tr>
+        <td>{{ name }}</td>
+        <td>{{ topic }}</td>
+        <td>{{ payload }}</td>
+        <td>
+            <form action="/events/delete" method="post" style="display:inline;">
+                <input type="hidden" name="events_name" value="{{ name }}">
+                <button type="submit">Delete & Edit</button>
+            </form>
+            <a href="/manage?events_name={{ name }}"><button>Link Assets</button></a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+</body>
+</html>
+
