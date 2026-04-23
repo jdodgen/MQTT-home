@@ -7,6 +7,11 @@ import jinja2
 from aiohttp import web
 import database
 import const
+import http_common
+
+DB_NAME =   http_common.DB_NAME
+OUR_PORT =  http_common.TRIGGERS_PORT
+http_vars = http_common.http_vars()
 
 watch_dog_queue = None
 xprint = print # copy print
@@ -105,4 +110,4 @@ def start_triggers_http(watch_dog_queue):
     return p
 
 if __name__ == "__main__":
-    web.run_app(app, port=8082)
+    web.run_app(app, port=OUR_PORT)
