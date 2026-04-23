@@ -741,7 +741,7 @@ class database:
             primary key (sub_topic,sub_payload,pub_topic,pub_payload)
         );
 
-        drop table if exists topics;
+        drop table if exists events;
         CREATE TABLE events ( -- as in MQTT topics
             events_name,                 --
             mqtt_topic,                 --  EXAMPLE: "home/jimdod/GAR Garage door/power"

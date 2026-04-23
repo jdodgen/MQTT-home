@@ -30,13 +30,19 @@ CAM_PORT = 8080
 EVENTS_PORT = 8080
 TRIGGERS_PORT = 8080
 TIMERS_PORT = 8080
-MAIN_PORT = 8080
+HTTP_MAIN_PORT = 8080
+
+DB_NAME = "devices.db"
+
 def ports():
     return {
     "config_port":  CONFIG_PORT, 
     "events_port":  EVENTS_PORT,
     "cam_port":     CAM_PORT,
     "email_port":   EMAIL_PORT,
+    "triggers_port": TRIGGERS_PORT,
+    "timers_port": TIMERS_PORT,
+    "http_main_port": HTTP_MAIN_PORT,
     }
 
 STYLE = '''

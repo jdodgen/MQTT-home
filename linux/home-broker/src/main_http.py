@@ -9,6 +9,11 @@ import re
 import queue
 import message
 import mqtt_hello
+import http_common
+
+DB_NAME =   http_common.DB_NAME
+OUR_PORT =  http_common.MAIN_PORT
+http_vars = http_common.http_vars()
 
 db=None # built at runtime from database.database
 msg=None   # built at runtime from message.message

@@ -22,16 +22,25 @@ import fauxmo_manager
 import mosquitto_manager
 import zigbee2mqtt_manager
 import mqtt_service_task
-import timers_http
+
+
 import timers_daemon
 import triggers_daemon
+import simple_emailer_daemon
+
+import main_http
+import timers_http
 import triggers_http
-import simple_emailer
-import simple_emailer_http
+import events_http
+import config_http
+import email_http
+import cameras_http
+
+
 import load_zigbee_data
 import const
 import database
-import http_server
+
 import time
 import os
 
