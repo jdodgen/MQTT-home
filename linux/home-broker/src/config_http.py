@@ -5,9 +5,13 @@ import jinja2
 import aiosqlite
 import http_common
 
+DB_NAME =   http_common.DB_NAME
+OUR_PORT =  http_common.CONFIG_PORT
+http_vars = http_common.http_vars()
+
 async def get_config():
     # 'async with' handles opening and automatically closing the connection
-    async with aiosqlite.connect(http_common.DB_NAME) as db:
+    async with aiosqlite.connect(DB_NAME) as db:
         # Set the row_factory to return Row objects (for column-name access)
         db.row_factory = aiosqlite.Row
         # 'execute' is an async method; use 'async with' to handle the cursor
@@ -18,7 +22,7 @@ async def get_config():
 
 async def update_config(data):
     # 'async with' ensures the connection is closed even if an error occurs
-    async with aiosqlite.connect(http_common.DB_NAME) as db:
+    async with aiosqlite.connect(DB_NAME) as db:
         # Business logic remains the same
         ssl_val = 1 if 'ssl' in data else 0
         
@@ -50,7 +54,7 @@ async def update_config(data):
 @aiohttp_jinja2.template("config.html")
 async def handle_index(request):
     config_row = await get_config()
-    return {"config": config_row,"my_ip": MY_IP}
+    return {"config": config_row,}|http_vars
 
 async def handle_update(request):
     # Retrieve form data from POST
@@ -76,5 +80,5 @@ app.add_routes([
 
 # 4. Start the server
 if __name__ == '__main__':
-    web.run_app(app, port=8080)
+    web.run_app(app, port=OUR_PORT)
 

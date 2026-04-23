@@ -8,7 +8,10 @@ import jinja2
 import aiosqlite
 import http_common
 
-DB_NAME = "devices.db"
+DB_NAME =   http_common.DB_NAME
+OUR_PORT =  http_common.EVENTS_PORT
+http_vars = http_common.http_vars()
+
 #
 # --- EVENT HANDLERS ---
 #
@@ -20,8 +23,7 @@ async def handle_list_events(request):
             return {
             'events': rows,
             'query': request.query,
-            "my_ip": http_common.get_ip()
-            }
+            }|http_vars
 
 async def handle_add_event(request):
     data = await request.post()
@@ -120,7 +122,7 @@ async def handle_manage_view(request):
         'all_emails':       all_emails,
         'linked_cameras':   linked_cameras,
         'linked_emails':    linked_emails
-    }
+    }|http_vars
 
 async def handle_update_links(request):
     data = await request.post()

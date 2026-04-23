@@ -3,8 +3,12 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 import aiosqlite
+import http_common
 
-DB_NAME = "devices.db"
+DB_NAME =   http_common.DB_NAME
+OUR_PORT =  http_common.CAM_PORT
+http_vars = http_common.http_vars()
+
 
 # --- HANDLERS ---
 
@@ -14,7 +18,7 @@ async def handle_list(request):
     async with aiosqlite.connect(DB_NAME) as db:
         async with db.execute("SELECT * FROM cameras") as cursor:
             rows = await cursor.fetchall()
-            return {'cameras': rows}
+            return {'cameras': rows}|http_vars
 
 async def handle_add(request):
     """Adds a new camera record"""
