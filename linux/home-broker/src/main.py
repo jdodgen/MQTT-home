@@ -1,6 +1,4 @@
-'''MIT License
-
-Copyright (c) 2023,2024 Jim Dodgen
+'''MIT License Copyright (c) 2023,2024,2026 Jim Dodgen
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -107,11 +105,13 @@ if __name__ == "__main__":
         if not timers_daemon_task:
             timers_daemon_task = timers_daemon.start_timers_daemon()
             print("watchdog timers_daemon_task Starting:")
+            
         if not triggers_http_task:
             triggers_http_task = triggers_http.start_triggers_http(watch_dog_queue)
             print("watchdog triggers_http_task Starting:")
         if not triggers_daemon_task:
             triggers_daemon_task = triggers_daemon.start_daemon()
+            
         if not emailer_http_task:
             emailer_http_task = simple_emailer_http.start_triggers_http(watch_dog_queue)
             print("watchdog triggers_http_task Starting:")
