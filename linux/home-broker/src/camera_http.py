@@ -1,5 +1,5 @@
 import asyncio
-from aiohttp import web
+from aiohttp import web, ClientSession
 import aiohttp_jinja2
 import jinja2
 import aiosqlite
@@ -9,54 +9,114 @@ DB_NAME =   http_common.DB_NAME
 OUR_PORT =  http_common.CAM_PORT
 http_vars = http_common.http_vars()
 
-
 # --- HANDLERS ---
 
 @aiohttp_jinja2.template('cameras.html')
 async def handle_list(request):
-    """Displays all cameras and the add/delete forms"""
     async with aiosqlite.connect(DB_NAME) as db:
-        async with db.execute("SELECT * FROM cameras") as cursor:
+        # This allows you to use camera['url'] or camera['camera_name'] in Jinja
+        db.row_factory = aiosqlite.Row 
+        async with db.execute("SELECT * FROM cameras order by camera_name") as cursor:
             rows = await cursor.fetchall()
-            return {'cameras': rows}|http_vars
+            return {'cameras': rows, 'edit_data': request.query} | http_vars
 
-async def handle_add(request):
-    """Adds a new camera record"""
-    data = await request.post()
-    
+async def handle_edit_redirect(request):
+    """Fetches data and redirects to form WITHOUT deleting from DB"""
+    c_name = request.query.get('camera_name')
     async with aiosqlite.connect(DB_NAME) as db:
-        try:
-            await db.execute(
-                "INSERT INTO cameras (camera_name, url, user, password, rotate) VALUES (?, ?, ?, ?, ?)",
-                (data['camera_name'], data['url'], data['user'], data['password'], data['rotate'])
-            )
-            await db.commit()
-        except aiosqlite.IntegrityError:
-            return web.Response(text="Error: Camera name already exists", status=400)
-    
+        async with db.execute("SELECT * FROM cameras WHERE camera_name = ?", (c_name,)) as cursor:
+            row = await cursor.fetchone()
+            if row:
+                # Redirect to home with data to pre-fill
+                return web.HTTPFound(f"/?camera_name={row[0]}&url={row[1]}&user={row[2]}&password={row[3]}&rotate={row[4]}")
     raise web.HTTPFound('/')
 
 async def handle_delete(request):
-    """Deletes a camera by its primary key (camera_name)"""
+    """Deletes the camera, but still sends the data to the form as a 'last look'"""
     data = await request.post()
     c_name = data.get('camera_name')
-
+    
     async with aiosqlite.connect(DB_NAME) as db:
-        await db.execute("DELETE FROM cameras WHERE camera_name = ?", (c_name,))
-        await db.commit()
+        # Get data before we kill the record
+        async with db.execute("SELECT * FROM cameras WHERE camera_name = ?", (c_name,)) as cursor:
+            row = await cursor.fetchone()
+            await db.execute("DELETE FROM cameras WHERE camera_name = ?", (c_name,))
+            await db.commit()
+            
+            if row:
+                return web.HTTPFound(f"/?camera_name={row[0]}&url={row[1]}&user={row[2]}&password={row[3]}&rotate={row[4]}")
     
     raise web.HTTPFound('/')
 
 # --- APP SETUP ---
 
-app = web.Application()
-aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
+async def handle_add(request):
+    data = await request.post()
+    async with aiosqlite.connect(DB_NAME) as db:
+        # Use REPLACE INTO to handle 'Edit' (which is just an overwrite)
+        await db.execute(
+            "INSERT OR REPLACE INTO cameras (camera_name, url, user, password, rotate) VALUES (?, ?, ?, ?, ?)",
+            (data['camera_name'], data['url'], data['user'], data['password'], data['rotate'])
+        )
+        await db.commit()
+    raise web.HTTPFound('/')
 
-app.add_routes([
-    web.get('/', handle_list),
-    web.post('/add', handle_add),
-    web.post('/delete', handle_delete)
-])
+async def handle_edit_load(request):
+    """Instead of deleting, we fetch data and redirect to UI with params"""
+    data = await request.post()
+    c_name = data.get('camera_name')
+    
+    async with aiosqlite.connect(DB_NAME) as db:
+        async with db.execute("SELECT * FROM cameras WHERE camera_name = ?", (c_name,)) as cursor:
+            row = await cursor.fetchone()
+            if row:
+                # Delete from DB then send to form
+                await db.execute("DELETE FROM cameras WHERE camera_name = ?", (c_name,))
+                await db.commit()
+                # Redirect back to home with the data in the URL
+                return web.HTTPFound(f"/?camera_name={row[0]}&url={row[1]}&user={row[2]}&password={row[3]}&rotate={row[4]}")
+    
+    raise web.HTTPFound('/')
+
+from aiohttp import web, ClientSession, DigestAuthMiddleware
+
+async def handle_test_jpg(request):
+    url = request.query.get('url')
+    user = request.query.get('user', '')
+    password = request.query.get('password', '')
+
+    if not url:
+        return web.Response(text="No URL provided", status=400)
+
+    try:
+        # Create middleware for Digest Authentication
+        auth_middleware = DigestAuthMiddleware(login=user, password=password)
+        
+        # Pass the middleware to the ClientSession
+        async with ClientSession(middlewares=[auth_middleware]) as session:
+            async with session.get(url, timeout=10) as resp:
+                if resp.status == 200:
+                    data = await resp.read()
+                    return web.Response(body=data, content_type='image/jpeg')
+                else:
+                    # If it's still 401, the username/password is likely wrong
+                    return web.Response(text=f"Auth Failed ({resp.status})", status=resp.status)
+    except Exception as e:
+        return web.Response(text=f"Connection Error: {str(e)}", status=500)
+
+def run():
+    # --- APP SETUP ---
+    app = web.Application()
+    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
+
+    app.add_routes([
+        web.get('/', handle_list),
+        web.post('/add', handle_add),         # Uses INSERT OR REPLACE
+        web.get('/edit', handle_edit_redirect), # New helper route
+        web.post('/delete', handle_delete),
+        web.get('/test', handle_test_jpg)
+    ])
+    web.run_app(app, port=OUR_PORT)
 
 if __name__ == '__main__':
-    web.run_app(app, port=8080)
+    run()
