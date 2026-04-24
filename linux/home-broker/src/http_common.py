@@ -13,7 +13,7 @@ def get_ip():
     finally:
         s.close()
     return ip
-# production
+# production ports
 # DB_NAME = "devices.db"
 # EMAIL_PORT = 8087
 # CONFIG_PORT = 8086
@@ -21,9 +21,12 @@ def get_ip():
 # EVENTS_PORT = 8084
 # TRIGGERS_PORT = 8083
 # TIMERS_PORT = 8082
-# MAIN_PORT = 8081
-# z2m is at 8080
-# testing
+# MAIN_PORT = 80
+# Z2M_PORT is at 8080
+#
+# testing ports
+#
+Z2M_PORT = 8080
 EMAIL_PORT = 8080
 CONFIG_PORT = 8080
 CAM_PORT = 8080
@@ -32,11 +35,26 @@ TRIGGERS_PORT = 8080
 TIMERS_PORT = 8080
 HTTP_MAIN_PORT = 8080
 DB_NAME = "devices.db"
+# end testing ports
 
 DB_TIMEOUT = 120 
 BROKER_MQTT_PORT = 1883
 BASE_FAXMO_PORT = 56000
 MQTT_KEEPALIVE = 120
+
+MOSQUITTO_FILE_PATH = "/etc/mosquitto/mosquitto.conf"
+ZIGBEE_REFRESH_SECONDS = 30
+MOSQUITTO_SLEEP_SECONDS =  = 1000 # change when checking for termination in future versions
+ZIGBEE2MQTT_BRIDGE_DEVICES = "zigbee2mqtt/bridge/devices"
+MQTT_SERVICE_Q_TIMEOUT = 60*60*4   # seconds every four hours if it times out then zb/ip devices are refreshed and "home/MQTT_devices" is published
+HOME_MQTT_DEVICES = "home/MQTTdevices/configuration"  # Normalized json of ALL devices.  home-broker "publish reatain"s this for other apps it has all the zb and ip devices unified
+WATCH_DOG_QUEUE_TIMEOUT = 20
+FAUXMO_DEFAULT_DIR = "/etc/fauxmo"  
+FAUXMO_CONFIG_FILE_PATH = FAUXMO_DEFAULT_DIR+"/config.json"
+MQTTPLUGIN = "mqttplugin.py"
+FAUXMO_SLEEP_SECONDS = 240 # wake up every 4 minutes, Zzzzzz
+MOSQUITTO_FILE_PATH = "/etc/mosquitto/mosquitto.conf"
+VERSON = "2.0"
 
 def ports():
     return {
@@ -60,6 +78,24 @@ th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 th { background-color: #f4f4f4; }
 .refill-area { background: #f9f9f9; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
 '''
+
+def nav_section():
+    my_ip = get_ip()
+    nav =  {"nav_section": f'''
+    <h1>AlertAway Toolbox</h1>
+    <nav>
+        <a href="http://{ my_ip }:{ CONFIG_PORT }">Configuation</a>
+        <a href="http://{ my_ip }:{ HTTP_MAIN_PORT }">MQTT Devices</a>
+        <a href="http://{ my_ip }:{ HTTP_MAIN_PORT }/zigbee2mqtt">zigbee2mqtt</a>
+        <a href="http://{ my_ip }:{ EVENTS_PORT }">Events</a>
+        <a href="http://{ my_ip }:{ TRIGGERS_PORT }">Triggers</a>
+        <a href="http://{ my_ip }:{ TIMERS_PORT }">Timers</a>
+        <a href="http://{ my_ip }:{ CAM_PORT }">Cameras</a>
+        <a href="http://{ my_ip }:{ EMAIL_PORT }">Emails</a>
+    </nav>
+    '''}
+    #print(nav)
+    return nav
 
 def http_vars():
     return {

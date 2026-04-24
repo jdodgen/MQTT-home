@@ -1,45 +1,39 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style>{{ style }}</style>
-    <title>Configuration</title>
+    <style>{{ style|safe }}</style>
+    <title>Cameras</title>
 </head>
-<body>
-    <h1>Simple Emailer</h1>
-    <nav>
-        <a href="http://{{ my_ip }}:{{ ports['config_port'] }}">Configuation</a>
-        <a href="http://{{ my_ip }}:{{ ports['events_port'] }}">Events</a>
-        <a href="http://{{ my_ip }}:{{ ports['cam_port']    }}">Cameras</a>
-        <a href="http://{{ my_ip }}:{{ ports['email_port']  }}">Emails</a>
-    </nav>
-    
+{{ nav_section|safe }}
+
 <div class="refill-area">
     <h2>Configure</h2>
     <form action="/update" method="post">
-    <label>Broker:</label>
-    <input type="text" maxlength=60 name="broker" value="{{ config.broker }}"><br>
-    <label>Use SSL:</label>
-    <input type="checkbox" name="ssl" {{ 'checked' if config.ssl else '' }}><br>
-    <label>User:</label>
-    <input type="text" name="user" maxlength=30 value="{{ config.user or '' }}"><br>
-    <label>Pass:</label>
-    <input type="text" name="password" maxlength=30 value="{{ config.password or '' }}"><br>
+		<h3>Broker</h3>
+		<label>Broker IP:</label>
+		<input type="text" maxlength=60 name="broker" value="{{ config.broker }}"><br>
+		<label>Use SSL:</label>
+		<input type="checkbox" name="ssl" {{ 'checked' if config.ssl else '' }}><br>
+		<label>User:</label>
+		<input type="text" name="user" maxlength=30 value="{{ config.user or '' }}"><br>
+		<label>Pass:</label>
+		<input type="text" name="password" maxlength=30 value="{{ config.password or '' }}"><br>
 
-    <hr>
-    <h3>Gmail Settings</h3>
-    <label>User:</label>
-    <input type="email" name="gmail_user" value="{{ config.gmail_user or '' }}"><br>
-    <label>Password:</label>
-    <input type="text" name="gmail_password" value="{{ config.gmail_password or '' }}"><br>
+		<hr>
+		<h3>Gmail Service Settings</h3>
+		<label>User:</label>
+		<input type="email" name="gmail_user" value="{{ config.gmail_user or '' }}"><br>
+		<label>Password:</label>
+		<input type="text" name="gmail_password" value="{{ config.gmail_password or '' }}"><br>
 
-    <hr>
-    <h3>MQTT</h3>
-    <label>Alive topic:</label>
-    <input type="text" name="alive_publish_topic" value="{{ config.publish }}"><br>
-    <label>Alive interval:</label>
-    <input type="number" name="alive_interval" value="{{ config.alive_interval }}"><br>
-    <hr>
-    <button type="submit">Update Configuration</button>
+		<hr>
+		<h3>PCN PowerChangeNotifier</h3>
+		<label>Alive topic:</label>
+		<input type="text" name="alive_publish_topic" value="{{ config.publish }}"><br>
+		<label>Alive interval:</label>
+		<input type="number" name="alive_interval" value="{{ config.alive_interval }}"><br>
+		<hr>
+		<button type="submit">Update Configuration</button>
     </form>
 </div>
 </body>

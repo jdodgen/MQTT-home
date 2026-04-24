@@ -3,11 +3,11 @@ from aiohttp import web, ClientSession
 import aiohttp_jinja2
 import jinja2
 import aiosqlite
-import http_common
+import http_common as config
 
-DB_NAME =   http_common.DB_NAME
-OUR_PORT =  http_common.CAM_PORT
-http_vars = http_common.http_vars()
+DB_NAME =   config.DB_NAME
+OUR_PORT =  config.CAM_PORT
+http_vars = config.http_vars()
 
 # --- HANDLERS ---
 
@@ -18,7 +18,7 @@ async def handle_list(request):
         db.row_factory = aiosqlite.Row 
         async with db.execute("SELECT * FROM cameras order by camera_name") as cursor:
             rows = await cursor.fetchall()
-            return {'cameras': rows, 'edit_data': request.query} | http_vars
+            return {'cameras': rows, 'edit_data': request.query, "style": config.STYLE} | config.nav_section()
 
 async def handle_edit_redirect(request):
     """Fetches data and redirects to form WITHOUT deleting from DB"""

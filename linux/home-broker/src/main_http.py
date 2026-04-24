@@ -3,17 +3,18 @@ import jinja2
 import aiohttp_jinja2
 from aiohttp import web
 import database
-import const
+#import const
 import multiprocessing
 import re
 import queue
 import message
 import mqtt_hello
-import http_common
+import http_common as config
 
-DB_NAME =   http_common.DB_NAME
-OUR_PORT =  http_common.MAIN_PORT
-http_vars = http_common.http_vars()
+MY_IP = config.get_ip()
+DB_NAME =   config.DB_NAME
+OUR_PORT =  config.MAIN_PORT
+http_vars = config.http_vars()
 
 db=None # built at runtime from database.database
 msg=None   # built at runtime from message.message
@@ -52,7 +53,7 @@ async def render_response(request, error, update_ip=False, manIP_rowid=None):
         "get_devices_for_wemo": db.get_devices_for_wemo(),
         "all_wemo": db.get_all_wemo(),
         "manual_device_names": db.get_all_manual_device_names(),
-        "IPaddr": const.IPaddr
+        "IPaddr":MY_IP
     }
     # This renders the template named 'index.html'
     return aiohttp_jinja2.render_template('index.html', request, context)
@@ -115,7 +116,7 @@ async def create_IP_device(request):
 
 async def z2m_page(request):
     print("z2m_page")
-    return aiohttp_jinja2.render_template('zigbee2mqtt.html', request, {"IPaddr": const.IPaddr})
+    return aiohttp_jinja2.render_template('zigbee2mqtt.html', request, {"IPaddr": MY_IP})
 
 async def whoareyou(request):
     myhost = os.uname()[1]
@@ -172,7 +173,7 @@ async def all_devices(request):
             send_mqtt_publish(parts[2], parts[1])
         elif parts[0] == "zbrefresh":
             # subscribe.simple(const.zigbee2mqtt_bridge_devices, hostname=message.our_ip_address())
-            msg.subscribe(const.zigbee2mqtt_bridge_devices)
+            msg.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES)
             error="ZigBee devices refreshing"
         elif parts[0] == "iprefresh":
             msg.publish(mqtt_hello.hello_request_topic, my_name) 
@@ -233,7 +234,7 @@ def task(fauxmo, watch_dog_queue_in):
     db=database.database()
     q = queue.Queue() 
     msg = message.message(q, my_parent=my_name)
-    msg.subscribe(const.zigbee2mqtt_bridge_devices)
+    msg.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES)
     msg.publish(mqtt_hello.hello_request_topic, my_name)
     
     watch_dog_queue = watch_dog_queue_in
@@ -242,7 +243,7 @@ def task(fauxmo, watch_dog_queue_in):
     db=database.database()
     print("Starting http server...")
     try:
-        web.run_app(app, port=const.http_port)
+        web.run_app(app, port=OUR_PORT)
         print("http_server.serve_forever we should not get here")
     except Exception as e:
         print("Error during web.run_app:", e)
@@ -266,4 +267,4 @@ def stop_http_task(p):
     
 if __name__ == '__main__':
     db=database.database()
-    web.run_app(app, port=const.http_port)
+    web.run_app(app, port=config.OUR_PORT)

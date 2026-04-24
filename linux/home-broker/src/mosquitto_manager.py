@@ -10,6 +10,7 @@ import time
 import const
 from  pgrep import pgrep
 import multiprocessing
+import http_common as config
 #
 # conditional print
 import os 
@@ -36,7 +37,7 @@ def is_mosquitto_alive():
         return result[0]
 
 def reload_config():
-    with open(const.mosquitto_file_path, "w") as mos_config:
+    with open(config.MOSQUITTO_FILE_PATH, "w") as mos_config:
         n = mos_config.write(const.mosquitto_configuration)
     pid = is_mosquitto_alive()
     if not pid:
@@ -59,7 +60,7 @@ def task():
         ## never returns, I hope :)
         #print("mosquitto exited, waiting and restarting")
         # future will be 
-        time.sleep(const.mosquitto_sleep_seconds)   # asleep as you see Zzzzzzzz
+        time.sleep(config.MOSQUITTO_SLEEP_SECONDS)   # asleep as you see Zzzzzzzz
 
 if __name__ == "__main__":
     #reload_config()

@@ -38,7 +38,7 @@ import cameras_http
 
 
 import load_zigbee_data
-import const
+#import const
 import database
 
 import time
@@ -46,6 +46,7 @@ import os
 
 from multiprocessing import Queue, active_children
 from queue import Empty
+import http_common as config
 #
 # conditional print
 import os 
@@ -58,7 +59,7 @@ def print(*args, **kwargs): # replace print
 #
 if __name__ == "__main__":
     # not working os.nice(-1)   # HTTP thread needs this
-    print("AlertAway home-broker starting: Version[%s]" % (const.version,))
+    print("AlertAway home-broker starting: Version[%s]" % (config.VERSION,))
     time.sleep(20) # a pause to read above
     mqtt_queue = Queue()
     watch_dog_queue = Queue()
@@ -130,7 +131,7 @@ if __name__ == "__main__":
         
         # now the watchdog queue processes a single message or times out 
         try:
-            item = watch_dog_queue.get(timeout=const.watch_dog_queue_timeout)
+            item = watch_dog_queue.get(timeout=config.WATCH_DOG_QUEUE_TIMEOUT)
         except Empty : # timed out
             continue # so loop
         except Exception as e: 

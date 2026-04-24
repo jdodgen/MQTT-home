@@ -3,11 +3,14 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 import aiosqlite
-import http_common
+import http_common as config
 
-DB_NAME =   http_common.DB_NAME
-OUR_PORT =  http_common.CONFIG_PORT
-http_vars = http_common.http_vars()
+
+OUR_PORT =  config.CONFIG_PORT
+DB_NAME =   config.DB_NAME
+OUR_PORT =  config.TRIGGERS_PORT
+NAV =       config.nav_section()
+STYLE = 	config.STYLE
 
 async def get_config():
     # 'async with' handles opening and automatically closing the connection
@@ -54,7 +57,7 @@ async def update_config(data):
 @aiohttp_jinja2.template("config.html")
 async def handle_index(request):
     config_row = await get_config()
-    return {"config": config_row,}|http_vars
+    return {"config": config_row, "style": STYLE,} | NAV
 
 async def handle_update(request):
     # Retrieve form data from POST
@@ -65,7 +68,7 @@ async def handle_update(request):
 
 # --- App Setup ---
 # Store the IP once when the app starts
-MY_IP = http_common.get_ip()
+MY_IP = config.get_ip()
     
 app = web.Application()
 

@@ -7,11 +7,12 @@ import jinja2
 from aiohttp import web
 import database
 #import const
-import http_common
+import http_common as config
 
-DB_NAME =   http_common.DB_NAME
-OUR_PORT =  http_common.TRIGGERS_PORT
-http_vars = http_common.http_vars()
+DB_NAME =   config.DB_NAME
+OUR_PORT =  config.TRIGGERS_PORT
+NAV =       config.nav_section()
+STYLE = 	config.STYLE
 
 watch_dog_queue = None
 xprint = print # copy print
@@ -82,9 +83,10 @@ async def trigger_manager(request):
     context['pubs'] = db.get_publish_devices() 
     context['subs'] = db.get_subscribe_devices() 
     context['current_triggers'] = db.get_all_triggers()
-    context["IPaddr"] = http_common.get_ip()
+    context["IPaddr"] = config.get_ip()
+    context["style"] = STYLE
 
-    return aiohttp_jinja2.render_template('trigger.html', request, context|http_vars)
+    return aiohttp_jinja2.render_template('trigger.html', request, context | config.nav_section())
 
 
 

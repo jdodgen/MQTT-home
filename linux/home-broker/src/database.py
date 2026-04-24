@@ -794,7 +794,11 @@ class database:
             password TEXT DEFAULT NULL,
             gmail_password  TEXT DEFAULT NULL,
             gmail_user  TEXT DEFAULT NULL,
-            publish  TEXT DEFAULT "home/SEM simple_emailer/power"
+            publish  TEXT DEFAULT "home/alertaway/power",
+            zigbee_refresh_seconds INTEGER default 30,
+            mosquitto_sleep_seconds INTEGER default 1000,
+            broker_mqtt_port INTEGER default 1883,
+            mqtt_keepalive INTEGER default 120
         );
         INSERT INTO config (id) VALUES (0);  -- this is a singleton
         """
