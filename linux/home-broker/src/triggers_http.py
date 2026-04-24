@@ -6,7 +6,7 @@ import aiohttp_jinja2
 import jinja2
 from aiohttp import web
 import database
-import const
+#import const
 import http_common
 
 DB_NAME =   http_common.DB_NAME
@@ -21,7 +21,6 @@ def print(*args, **kwargs): # replace print
     # do whatever you want to do
     #xprint('statement before print')
     xprint(my_name, *args, **kwargs) # the copied real print
-
 
 # --- DATABASE SETUP ---
 async def init_db(app):
@@ -83,26 +82,27 @@ async def trigger_manager(request):
     context['pubs'] = db.get_publish_devices() 
     context['subs'] = db.get_subscribe_devices() 
     context['current_triggers'] = db.get_all_triggers()
-    context["IPaddr"] = const.IPaddr
+    context["IPaddr"] = http_common.get_ip()
 
-    return aiohttp_jinja2.render_template('trigger.html', request, context)
+    return aiohttp_jinja2.render_template('trigger.html', request, context|http_vars)
 
-# --- APP ROUTING ---
-app = web.Application()
-aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
 
-app.on_startup.append(init_db)
-app.on_cleanup.append(close_db)
-
-app.add_routes([
-    web.get('/', trigger_manager),
-    web.post('/set_trigger', trigger_manager)
-])
 
 def task(watch_dog_queue_in):
     global watch_dog_queue
+    # --- APP ROUTING ---
+    app = web.Application()
+    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
+
+    app.on_startup.append(init_db)
+    app.on_cleanup.append(close_db)
+
+    app.add_routes([
+        web.get('/', trigger_manager),
+        web.post('/set_trigger', trigger_manager)
+    ])
     watch_dog_queue = watch_dog_queue_in
-    web.run_app(app, port=8082)
+    web.run_app(app, port=OUR_PORT)
      
 def start_triggers_http(watch_dog_queue):
     p = multiprocessing.Process(target=task,  args=[watch_dog_queue])
@@ -110,4 +110,4 @@ def start_triggers_http(watch_dog_queue):
     return p
 
 if __name__ == "__main__":
-    web.run_app(app, port=OUR_PORT)
+    task(None)
