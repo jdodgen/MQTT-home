@@ -8,9 +8,10 @@ import load_IP_device_data
 import sys
 import zlib
 import time
-import const
+#import const
 import mqtt_hello
 import database
+import http_common as config
 #
 # conditional print
 import os 
@@ -65,7 +66,7 @@ def task(q):
                 # to find a missbehaving thing
                 # If found we can filter by name TBD 
                 now = time.time()
-                if last_time_zigbee_refreshed + const.zigbee_refresh_seconds < now:   # ignore excess calls
+                if last_time_zigbee_refreshed + config.ZIGBEE_REFRESH_SECONDS < now:   # ignore excess calls
                     last_time_zigbee_refreshed = now
                     msg.subscribe(const.zigbee2mqtt_bridge_devices)  # this ia a re-subscribe of the zigbee2mqtt devices causinga refresh 
                     msg.publish(mqtt_hello.hello_request_topic, b"publish hello please")
