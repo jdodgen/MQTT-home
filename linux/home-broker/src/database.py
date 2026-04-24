@@ -1,12 +1,13 @@
 # database.py
 import sqlite3
 # from paho.mqtt.client import Client
-import const
+# import const
 # import os
 import json
 import logging
 import time
 from textwrap import wrap
+import http_common as const
 #
 # conditional print
 import os
@@ -19,8 +20,8 @@ def print(*args, **kwargs): # replace print
 #
 class database:
     def __init__(self, row_factory=False):
-        print(const.db_name)
-        self.con = sqlite3.connect(const.db_name, timeout=const.db_timeout)
+        print(const.DB_NAME)
+        self.con = sqlite3.connect(const.DB_NAME, timeout=const.DB_TIMEOUT)
         # print("working directory[%s]" % os.getcwd())
         if row_factory:
             self.con.row_factory=sqlite3.Row
@@ -327,7 +328,7 @@ class database:
         #try:
         cur = self.con.cursor()
         #except:
-        #   self.con = sqlite3.connect(const.db_name)
+        #   self.con = sqlite3.connect(const.DB_NAME)
         #   cur = self.con.cursor()
         return cur
 
@@ -472,7 +473,7 @@ class database:
             cur.close()
             print("current largest_wemo_port[%s]" % largest_wemo_port)
             if  largest_wemo_port == 0:
-                wemo_port = const.base_faxmo_port
+                wemo_port = const.BASE_FAXMO_PORT
             else:
                 wemo_port = int(largest_wemo_port) + 1
             cur = self.con.cursor()
