@@ -32,7 +32,7 @@ try:
 except:
     IPaddr = "192.168.0.134" # desktop
 
-print("Our ip address:", IPaddr)
+print("[const] Our ip address:", IPaddr)
 
 ifname = b"eth0"  #our network interface, see "ip a" 
 
