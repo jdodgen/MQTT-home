@@ -13,7 +13,7 @@ def get_ip():
     finally:
         s.close()
     return ip
-
+# production
 # DB_NAME = "devices.db"
 # EMAIL_PORT = 8087
 # CONFIG_PORT = 8086
@@ -31,8 +31,12 @@ EVENTS_PORT = 8080
 TRIGGERS_PORT = 8080
 TIMERS_PORT = 8080
 HTTP_MAIN_PORT = 8080
-
 DB_NAME = "devices.db"
+
+DB_TIMEOUT = 120 
+BROKER_MQTT_PORT = 1883
+BASE_FAXMO_PORT = 56000
+MQTT_KEEPALIVE = 120
 
 def ports():
     return {
