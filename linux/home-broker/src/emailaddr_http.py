@@ -4,11 +4,12 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 import aiosqlite
-import http_common
+import http_common as config
 
-DB_NAME =   http_common.DB_NAME
-OUR_PORT =  http_common.EMAIL_PORT
-http_vars = http_common.http_vars()
+DB_NAME =   config.DB_NAME
+OUR_PORT =  config.EMAIL_PORT
+NAV =       config.nav_section()
+STYLE =     config.STYLE
 
 @aiohttp_jinja2.template('emailaddr.html')
 async def handle_list_emails(request):
@@ -16,7 +17,7 @@ async def handle_list_emails(request):
     async with aiosqlite.connect(DB_NAME) as db:
         async with db.execute("SELECT emailaddr_name, email_address FROM emailaddr") as cursor:
             rows = await cursor.fetchall()
-            return {'emails': rows}|http_vars
+            return {'emails': rows, "style": STYLE} | NAV
 
 async def handle_add_email(request):
     """Add a new name and email address"""

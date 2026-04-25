@@ -36,6 +36,7 @@ EVENTS_PORT = 8080
 TRIGGERS_PORT = 8080
 TIMERS_PORT = 8080
 HTTP_MAIN_PORT = 8080
+
 DB_NAME = "devices.db"
 # end testing ports
 

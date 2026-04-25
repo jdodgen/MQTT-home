@@ -1,20 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style>{{ style }}</style>
-    <title>Email Manager</title>
+    <style>{{ style|safe }}</style>
+    <title>Cameras</title>
 </head>
-<body>
-    <h1>Simple Emailer</h1>
-    <nav>
-        <a href="http://{{ my_ip }}:{{ ports['config_port'] }}">Configuation</a>
-        <a href="http://{{ my_ip }}:{{ ports['events_port'] }}">Events</a>
-        <a href="http://{{ my_ip }}:{{ ports['cam_port']    }}">Cameras</a>
-        <a href="http://{{ my_ip }}:{{ ports['email_port']  }}">Emails</a>
-    </nav>
-    
+{{ nav_section|safe }}
 <div class="refill-area">
-    
 <body>
     <h2>Email Addresses</h2>
     <table border="1">
@@ -44,6 +35,5 @@
         <button type="submit">Add</button>
     </form>
     <br>
-    <a href="/">Back to Cameras</a>
 </body>
 </html>

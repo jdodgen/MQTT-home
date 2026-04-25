@@ -6,11 +6,13 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 import aiosqlite
-import http_common
+import http_common as config
 
-DB_NAME =   http_common.DB_NAME
-OUR_PORT =  http_common.EVENTS_PORT
-http_vars = http_common.http_vars()
+DB_NAME =   config.DB_NAME
+OUR_PORT =  config.EVENTS_PORT
+NAV =       config.nav_section()
+STYLE =     config.STYLE
+MY_IP = 	config.get_ip()
 
 #
 # --- EVENT HANDLERS ---
@@ -23,7 +25,8 @@ async def handle_list_events(request):
             return {
             'events': rows,
             'query': request.query,
-            }|http_vars
+            "style": STYLE,
+            }|NAV
 
 async def handle_add_event(request):
     data = await request.post()
@@ -144,7 +147,7 @@ async def handle_update_links(request):
 
 # here we go !
 # Store the IP once when the app starts
-MY_IP = http_common.get_ip()
+
     
 app = web.Application()
 
