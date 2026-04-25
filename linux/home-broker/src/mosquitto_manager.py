@@ -7,7 +7,7 @@
 #
 import os, signal
 import time
-import const
+#import const
 from  pgrep import pgrep
 import multiprocessing
 import http_common as config
@@ -38,7 +38,7 @@ def is_mosquitto_alive():
 
 def reload_config():
     with open(config.MOSQUITTO_FILE_PATH, "w") as mos_config:
-        n = mos_config.write(const.mosquitto_configuration)
+        n = mos_config.write(config.mosquitto_configuration())
     pid = is_mosquitto_alive()
     if not pid:
         return False
