@@ -5,36 +5,48 @@
     <title>Cameras</title>
 </head>
 {{ nav_section|safe }}
-
 <div class="refill-area">
+<body>
     <h2>Configure</h2>
     <form action="/update" method="post">
-		<h3>Broker</h3>
-		<label>Broker IP:</label>
-		<input type="text" maxlength=60 name="broker" value="{{ config.broker }}"><br>
-		<label>Use SSL:</label>
-		<input type="checkbox" name="ssl" {{ 'checked' if config.ssl else '' }}><br>
-		<label>User:</label>
-		<input type="text" name="user" maxlength=30 value="{{ config.user or '' }}"><br>
-		<label>Pass:</label>
-		<input type="text" name="password" maxlength=30 value="{{ config.password or '' }}"><br>
+        <h3>Broker</h3>
+        <label>Broker IP:</label>
+        <input type="text" maxlength=60 name="broker" value="{{ config.broker }}"><br>
+        <label>Use SSL:</label>
+        <input type="checkbox" name="ssl" {{ 'checked' if config.ssl else '' }}><br>
+        <label>User:</label>
+        <input type="text" name="user" maxlength=30 value="{{ config.user or '' }}"><br>
+        <label>Pass:</label>
+        <input type="text" name="password" maxlength=30 value="{{ config.password or '' }}"><br>
 
-		<hr>
-		<h3>Gmail Service Settings</h3>
-		<label>User:</label>
-		<input type="email" name="gmail_user" value="{{ config.gmail_user or '' }}"><br>
-		<label>Password:</label>
-		<input type="text" name="gmail_password" value="{{ config.gmail_password or '' }}"><br>
+        <hr>
+        <h3>Gmail Service Settings</h3>
+        <label>User:</label>
+        <input type="email" name="gmail_user" value="{{ config.gmail_user or '' }}"><br>
+        <label>Password:</label>
+        <input type="text" name="gmail_password" value="{{ config.gmail_password or '' }}"><br>
 
-		<hr>
-		<h3>PCN PowerChangeNotifier</h3>
-		<label>Alive topic:</label>
-		<input type="text" name="alive_publish_topic" value="{{ config.publish }}"><br>
-		<label>Alive interval:</label>
-		<input type="number" name="alive_interval" value="{{ config.alive_interval }}"><br>
-		<hr>
-		<button type="submit">Update Configuration</button>
+        <hr>
+        <h3>PCN PowerChangeNotifier</h3>
+        <label>Alive topic:</label>
+        <input type="text" name="alive_publish_topic" value="{{ config.publish }}"><br>
+        <label>Alive interval:</label>
+        <input type="number" name="alive_interval" value="{{ config.alive_interval }}"><br>
+
+        <hr>
+        <h3>Mosquitto</h3>
+        <label>Mosquitto sleep seconds:</label>
+        <input type="number" name="mosquitto_sleep_seconds" value="{{ config.mosquitto_sleep_seconds }}"><br>
+        <label>listener port:</label>
+        <input type="number" name="broker_mqtt_port" value="{{ config.broker_mqtt_port }}"><br>
+        
+        <hr>
+        <h3>Zigbee</h3>
+        <label>Zigbee refresh seconds:</label>
+        <input type="text" name="zigbee_refresh_seconds" value="{{ config.zigbee_refresh_seconds }}"><br>
+        <hr>
+        <button type="submit">Update Configuration</button>
     </form>
-</div>
 </body>
+</div>
 </html>

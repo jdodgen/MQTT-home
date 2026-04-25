@@ -37,7 +37,10 @@ async def update_config(data):
                  password = ?,
                  gmail_user = ?,
                  gmail_password = ?,
-                 publish = ? 
+                 publish = ?,
+                 zigbee_refresh_seconds = ?,
+                 mosquitto_sleep_seconds = ?,
+                 broker_mqtt_port = ?
                  WHERE id = 0"""
         # In aiosqlite, .execute() and .commit() must be awaited
         await db.execute(sql, (
@@ -48,7 +51,10 @@ async def update_config(data):
             data['password'],
             data['gmail_user'],
             data['gmail_password'],
-            data['alive_publish_topic']
+            data['alive_publish_topic'],
+            data['zigbee_refresh_seconds'],
+            data['mosquitto_sleep_seconds'],
+            data['broker_mqtt_port'],
         ))
         await db.commit()
 
