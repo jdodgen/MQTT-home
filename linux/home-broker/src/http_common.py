@@ -1,6 +1,8 @@
 # MIT licence copyright 2026 jim dodgen
 # common thing used by the http tools
 #
+import socket
+import sqlite3
 
 def get_ip():
     import socket
@@ -44,7 +46,7 @@ MQTT_KEEPALIVE = 120
 
 MOSQUITTO_FILE_PATH = "/etc/mosquitto/mosquitto.conf"
 ZIGBEE_REFRESH_SECONDS = 30
-MOSQUITTO_SLEEP_SECONDS =  = 1000 # change when checking for termination in future versions
+MOSQUITTO_SLEEP_SECONDS = 1000 # change when checking for termination in future versions
 ZIGBEE2MQTT_BRIDGE_DEVICES = "zigbee2mqtt/bridge/devices"
 MQTT_SERVICE_Q_TIMEOUT = 60*60*4   # seconds every four hours if it times out then zb/ip devices are refreshed and "home/MQTT_devices" is published
 HOME_MQTT_DEVICES = "home/MQTTdevices/configuration"  # Normalized json of ALL devices.  home-broker "publish reatain"s this for other apps it has all the zb and ip devices unified
@@ -78,6 +80,29 @@ th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 th { background-color: #f4f4f4; }
 .refill-area { background: #f9f9f9; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
 '''
+
+def get_db_config():
+    """Retrieves all configuration fields as a dictionary."""
+    try:
+        with sqlite3.connect(DB_NAME) as conn:
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM config WHERE id = 0")
+            row = cursor.fetchone()
+            # Convert the Row object into a standard dictionary
+            return dict(row) if row else None
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
+        return None
+        
+def mosquitto_configuration():
+    cfg = get_db_config()
+    return  """# created by mosquitto_manager.py
+# text in http_common.py listener from db
+allow_anonymous true
+listener """+str(cfg["broker_mqtt_port"])+"\nlog_dest none"
+
+#print(mosquitto_configuration())
 
 def nav_section():
     my_ip = get_ip()
