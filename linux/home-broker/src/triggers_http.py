@@ -12,7 +12,7 @@ import http_common as config
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.TRIGGERS_PORT
 NAV =       config.nav_section()
-STYLE = 	config.STYLE
+STYLE =     config.STYLE
 
 watch_dog_queue = None
 xprint = print # copy print
