@@ -35,17 +35,15 @@ async def handle_delete(request):
     """Deletes the camera, but still sends the data to the form as a 'last look'"""
     data = await request.post()
     c_name = data.get('camera_name')
-    
     async with aiosqlite.connect(DB_NAME) as db:
         # Get data before we kill the record
         async with db.execute("SELECT * FROM cameras WHERE camera_name = ?", (c_name,)) as cursor:
             row = await cursor.fetchone()
             await db.execute("DELETE FROM cameras WHERE camera_name = ?", (c_name,))
+            await db.execute("DELETE FROM cameras_in_events WHERE camera_name = ?", (c_name,))
             await db.commit()
-            
             if row:
                 return web.HTTPFound(f"/?camera_name={row[0]}&url={row[1]}&user={row[2]}&password={row[3]}&rotate={row[4]}")
-    
     raise web.HTTPFound('/')
 
 # --- APP SETUP ---
