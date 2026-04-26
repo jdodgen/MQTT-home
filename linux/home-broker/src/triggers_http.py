@@ -106,7 +106,7 @@ def task(watch_dog_queue_in):
     watch_dog_queue = watch_dog_queue_in
     web.run_app(app, port=OUR_PORT)
      
-def start_triggers_http(watch_dog_queue):
+def start_http(watch_dog_queue):
     p = multiprocessing.Process(target=task,  args=[watch_dog_queue])
     p.start()
     return p

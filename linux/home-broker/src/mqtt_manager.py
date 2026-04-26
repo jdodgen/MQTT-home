@@ -1,7 +1,10 @@
 import time
 import paho.mqtt.client as mqtt
 import ssl
-import cfg
+#import cfg
+import http_common as config
+cffg = config.get_db_config()
+print("cffg:", cffg)
 
 xprint = print # copy print
 my_name = "mqtt_manager"
@@ -41,8 +44,8 @@ class mqtt_manager:
     def __init__(self, email_q):
         self.email_q = email_q
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-        print(f"__init__ cfg.user[{cfg.user}], cfg.password [{cfg.password}]")
-        self.client.username_pw_set(cfg.user, cfg.password)
+        #print(f"__init__ cffg.user [  {cffg["user"]}  ], cffg.password [  {cffg["password"]}  ]")
+        self.client.username_pw_set(cffg["user"], cffg["password"])
         # Configure TLS/SSL settings
         # You can adjust cert_reqs based on your security requirements:
         # ssl.CERT_REQUIRED: Server must provide a valid certificate issued by a trusted CA.
@@ -53,13 +56,13 @@ class mqtt_manager:
         #self.client.tls_set(cert_reqs=ssl.CERT_OPTIONAL) 
         self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
         while True:
-            print(f"__init__ connecting to [{cfg.broker}]-[{cfg.default_port}]")
+            print(f"__init__ connecting to [{cffg['broker']}]-[{cffg['broker_mqtt_port']}]")
             try:
-                self.client.connect(cfg.broker,cfg.default_port)
+                self.client.connect(cffg['broker'],cffg['broker_mqtt_port'])
                 print ("__init__ connected")
                 break
             except:
-                print (f"__init__ could not connect to broker [{cfg.broker}],[{cfg.default_port}]")
+                print (f"__init__ could not connect to broker [{cffg['broker']}],[{cffg['broker_mqtt_port']}]")
                 time.sleep(5)
         print("__init__ setting callbacks")
         self.client.on_connect=self.on_connect
@@ -120,6 +123,7 @@ class mqtt_manager:
 
 # for testing
 if __name__ == "__main__":
+    print("cffg:", cffg)
     import multiprocessing
     q = multiprocessing.Queue(5)
     client = mqtt_manager(q)

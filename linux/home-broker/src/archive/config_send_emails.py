@@ -9,8 +9,7 @@ import time
 import http_common
 
 DB_NAME =   http_common.DB_NAME
-OUR_PORT =  http_common.CONFIG_PORT
-http_vars = http_common.http_vars()
+OUR_PORT =  http_common.CONFIG_PORT)
   
 cluster_path = "cluster_simple_emailer.toml"
 my_name = "config"

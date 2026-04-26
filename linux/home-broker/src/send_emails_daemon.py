@@ -22,7 +22,7 @@ from PIL import Image
 import io
 from queue import Empty
 from mqtt_manager import mqtt_manager
-import config_send_emails as config
+import http_common as config
 
 #client = None
 my_name = "send_emails"

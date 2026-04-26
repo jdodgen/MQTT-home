@@ -4,17 +4,7 @@
 import socket
 import sqlite3
 
-def get_ip():
-    import socket
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(('10.255.255.255', 1))
-        ip = s.getsockname()[0]
-    except Exception:
-        ip = '127.0.0.1'
-    finally:
-        s.close()
-    return ip
+
 # production ports
 # DB_NAME = "devices.db"
 # EMAIL_PORT = 8087
@@ -122,10 +112,29 @@ def nav_section():
     '''}
     #print(nav)
     return nav
+ 
+def get_ip():
+    import socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('10.255.255.255', 1))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip
 
-def http_vars():
-    return {
-    "my_ip": get_ip(), 
-    "ports": ports(), 
-    "style": STYLE,
-    }
+if __name__ == "__main__":
+    print("get_ip: ", get_ip())  
+    print("\n\nnav_section:", nav_section())
+    try:
+        cfg=get_db_config()
+    except Exception as e:
+        print("No database",e)
+    else:
+        print("\n\nget_db_config:",cfg)
+        print("\n\nmosquitto_configuration:",mosquitto_configuration())
+    
+    
+        

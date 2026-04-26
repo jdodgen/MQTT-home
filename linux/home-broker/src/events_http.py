@@ -1,5 +1,8 @@
 # MIT licence copyright 2026 jim dodgen
 # built with the assistence of Google Gemini
+# hard to get Gemini to do the tweeks  it gets lost.
+# eventualy you need to make some mods
+#
 import asyncio
 import aiohttp
 from aiohttp import web
@@ -10,10 +13,8 @@ import http_common as config
 
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.EVENTS_PORT
-NAV =       config.nav_section()
+NAV =       config.nav_section() # boot static, fork safe
 STYLE =     config.STYLE
-MY_IP = 	config.get_ip()
-
 #
 # --- EVENT HANDLERS ---
 #
@@ -124,8 +125,9 @@ async def handle_manage_view(request):
         'all_cameras':      all_cameras,
         'all_emails':       all_emails,
         'linked_cameras':   linked_cameras,
-        'linked_emails':    linked_emails
-    }|http_vars
+        'linked_emails':    linked_emails,
+        "style":STYLE
+    } | NAV
 
 async def handle_update_links(request):
     data = await request.post()
@@ -144,6 +146,7 @@ async def handle_update_links(request):
             await db.execute("INSERT INTO emailaddr_in_events VALUES (?, ?)", (event_name, e))
         await db.commit()
     raise web.HTTPFound('/events')
+
 
 # here we go !
 # Store the IP once when the app starts

@@ -7,7 +7,6 @@ import http_common as config
 
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.CAM_PORT
-http_vars = config.http_vars()
 
 # --- HANDLERS ---
 

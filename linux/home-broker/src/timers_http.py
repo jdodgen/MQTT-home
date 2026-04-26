@@ -13,7 +13,7 @@ import http_common as config
 
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.TIMERS_PORT
-NAV =       config.nav_section()
+NAV =       config.nav_section() # static
 STYLE =     config.STYLE
 MY_IP = config.get_ip()
 
@@ -130,7 +130,7 @@ app.add_routes([
 def task(watch_dog_queue_in):
     global watch_dog_queue
     watch_dog_queue = watch_dog_queue_in
-    web.run_app(app, port=8081)
+    web.run_app(app, port=OUR_PORT)
      
 def start_timers_http(watch_dog_queue):
     p = multiprocessing.Process(target=task,  args=[watch_dog_queue])
