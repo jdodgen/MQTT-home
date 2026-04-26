@@ -18,7 +18,7 @@ import sys
 ## i use shared source librararys
 mp_lib_offset="../../library/"  # micropython specific
 all_lib_offset="../../../library/" # both linux and micropython
-cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
+cluster_lib = str(Path.home())+"/Dropbox/wip/clusters"
 
 # to have  imports from libraries we need to do this:
 # Get the absolute path of the current script's directory
@@ -38,17 +38,17 @@ def load_cluster(cluster_file_name):
     else:
         print("testing from current directory")
         cluster_toml = "cluster-example.toml"  # test cluster
+    print("cluster:", cluster_toml)
     try:
         with open(cluster_toml, 'rb') as toml_file:
             cluster = tomllib.load(toml_file)
             print(cluster)
             return cluster
-               
     except FileNotFoundError:
         print("Error: ",cluster_toml," File not found")
         sys.exit()
     except tomllib.TOMLDecodeError as e:
-        print("Error: Invalid TOML format in {file_path}: {e}")
+        print(f"Error: Invalid TOML format in {toml_file}: {e}")
         sys.exit()
         
 def wifi_list_of_list(cluster):
