@@ -1,6 +1,4 @@
-'''MIT License
-
-Copyright (c) 2023,2024 Jim Dodgen
+'''MIT License Copyright (c) 2023,2024,2026 Jim Dodgen
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,21 +22,31 @@ import fauxmo_manager
 import mosquitto_manager
 import zigbee2mqtt_manager
 import mqtt_service_task
-import timers_http
+
+
 import timers_daemon
 import triggers_daemon
+import simple_emailer_daemon
+
+import main_http
+import timers_http
 import triggers_http
-import simple_emailer
-import simple_emailer_http
+import events_http
+import config_http
+import email_http
+import cameras_http
+
+
 import load_zigbee_data
-import const
+#import const
 import database
-import http_server
+
 import time
 import os
 
 from multiprocessing import Queue, active_children
 from queue import Empty
+import http_common as config
 #
 # conditional print
 import os 
@@ -51,7 +59,7 @@ def print(*args, **kwargs): # replace print
 #
 if __name__ == "__main__":
     # not working os.nice(-1)   # HTTP thread needs this
-    print("AlertAway home-broker starting: Version[%s]" % (const.version,))
+    print("AlertAway home-broker starting: Version[%s]" % (config.VERSION,))
     time.sleep(20) # a pause to read above
     mqtt_queue = Queue()
     watch_dog_queue = Queue()
@@ -107,11 +115,13 @@ if __name__ == "__main__":
         if not timers_daemon_task:
             timers_daemon_task = timers_daemon.start_timers_daemon()
             print("watchdog timers_daemon_task Starting:")
+            
         if not triggers_http_task:
             triggers_http_task = triggers_http.start_triggers_http(watch_dog_queue)
             print("watchdog triggers_http_task Starting:")
         if not triggers_daemon_task:
             triggers_daemon_task = triggers_daemon.start_daemon()
+            
         if not emailer_http_task:
             emailer_http_task = simple_emailer_http.start_triggers_http(watch_dog_queue)
             print("watchdog triggers_http_task Starting:")
@@ -121,7 +131,7 @@ if __name__ == "__main__":
         
         # now the watchdog queue processes a single message or times out 
         try:
-            item = watch_dog_queue.get(timeout=const.watch_dog_queue_timeout)
+            item = watch_dog_queue.get(timeout=config.WATCH_DOG_QUEUE_TIMEOUT)
         except Empty : # timed out
             continue # so loop
         except Exception as e: 

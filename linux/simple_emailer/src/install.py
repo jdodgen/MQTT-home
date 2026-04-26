@@ -30,7 +30,7 @@ else:
     home_dir = Path.home()
     print(f"Current effective user's home directory: {home_dir}")
 
-cluster_lib = f"{home_dir}/Dropbox/wip/pcn_clusters"
+cluster_lib = f"{home_dir}/Dropbox/wip/clusters"
 
 
 # to have  imports from libraries we need to do this:

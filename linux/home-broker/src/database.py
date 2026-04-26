@@ -1,12 +1,13 @@
 # database.py
 import sqlite3
 # from paho.mqtt.client import Client
-import const
+# import const
 # import os
 import json
 import logging
 import time
 from textwrap import wrap
+import http_common as const
 #
 # conditional print
 import os
@@ -19,8 +20,8 @@ def print(*args, **kwargs): # replace print
 #
 class database:
     def __init__(self, row_factory=False):
-        print(const.db_name)
-        self.con = sqlite3.connect(const.db_name, timeout=const.db_timeout)
+        print(const.DB_NAME)
+        self.con = sqlite3.connect(const.DB_NAME, timeout=const.DB_TIMEOUT)
         # print("working directory[%s]" % os.getcwd())
         if row_factory:
             self.con.row_factory=sqlite3.Row
@@ -327,7 +328,7 @@ class database:
         #try:
         cur = self.con.cursor()
         #except:
-        #   self.con = sqlite3.connect(const.db_name)
+        #   self.con = sqlite3.connect(const.DB_NAME)
         #   cur = self.con.cursor()
         return cur
 
@@ -472,7 +473,7 @@ class database:
             cur.close()
             print("current largest_wemo_port[%s]" % largest_wemo_port)
             if  largest_wemo_port == 0:
-                wemo_port = const.base_faxmo_port
+                wemo_port = const.BASE_FAXMO_PORT
             else:
                 wemo_port = int(largest_wemo_port) + 1
             cur = self.con.cursor()
@@ -741,7 +742,7 @@ class database:
             primary key (sub_topic,sub_payload,pub_topic,pub_payload)
         );
 
-        drop table if exists topics
+        drop table if exists events;
         CREATE TABLE events ( -- as in MQTT topics
             events_name,                 --
             mqtt_topic,                 --  EXAMPLE: "home/jimdod/GAR Garage door/power"
@@ -754,8 +755,8 @@ class database:
 
         drop table if exists cameras_in_events;
         CREATE TABLE cameras_in_events (
-            events_name,
-            camera_name,
+            events_name  REFERENCES event(events_name),
+            camera_name REFERENCES camera(camera_name),
             PRIMARY KEY (events_name, camera_name)
         );
 
@@ -771,8 +772,8 @@ class database:
 
         drop table if exists emailaddr_in_events;
         CREATE TABLE emailaddr_in_events (
-            events_name,
-            emailaddr_name,
+            events_name  REFERENCES event(events_name),
+            emailaddr_name REFERENCES emailaddr(emailaddr_name),
             PRIMARY KEY (events_name, emailaddr_name)
         );
         
@@ -793,7 +794,11 @@ class database:
             password TEXT DEFAULT NULL,
             gmail_password  TEXT DEFAULT NULL,
             gmail_user  TEXT DEFAULT NULL,
-            publish  TEXT DEFAULT "home/SEM simple_emailer/power"
+            publish  TEXT DEFAULT "home/alertaway/power",
+            zigbee_refresh_seconds INTEGER default 30,
+            mosquitto_sleep_seconds INTEGER default 1000,
+            broker_mqtt_port INTEGER default 1883,
+            mqtt_keepalive INTEGER default 120
         );
         INSERT INTO config (id) VALUES (0);  -- this is a singleton
         """

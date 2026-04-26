@@ -22,14 +22,14 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
-# Copyright 2022-2023 by James E Dodgen Jr.  All rights reserved.
 import subprocess
 import time
-import const
+# import const
 import database
 import multiprocessing
 from message import our_ip_address
 import os
+import http_common as config
 #
 # conditional print
 my_name = "fauxmo_manager"
@@ -96,7 +96,7 @@ def build_cfg():
     db = database.database()
     devices = db.get_fauxmo_devices()
     if len(devices) > 0:
-        fauxmo_cfg = head % (const.MQTTPlugin)
+        fauxmo_cfg = head % (config.MQTTPLUGIN)
         print("number of fauxmo devices[%s]" % (len(devices),))
         for dev in devices:
             port = dev[0].replace('"','\\"') if type(dev[0]) == str else dev[0]
@@ -107,7 +107,7 @@ def build_cfg():
                 off_payload = dev[4].replace('"','\\"')
             except:
                 off_payload = None
-            fauxmo_cfg = fauxmo_cfg + per_device_minimum % (port, name, topic,on_payload, topic, off_payload, our_ip_address(), const.broker_mqtt_port)
+            fauxmo_cfg = fauxmo_cfg + per_device_minimum % (port, name, topic,on_payload, topic, off_payload, our_ip_address(), config.BROKER_MQTT_PORT)
             fauxmo_cfg = fauxmo_cfg + use_fake_state  
             fauxmo_cfg = fauxmo_cfg + initial_state
             """
@@ -151,7 +151,7 @@ def task():
     while True:
         if get_fauxmo_cfg() != None:
             try:
-                os.execl("/usr/local/bin/fauxmo", "-c " + const.fauxmo_config_file_path, "-vv")
+                os.execl("/usr/local/bin/fauxmo", "-c " + config.FAUXMO_CONFIG_FILE_PATH, "-vv")
                 # for testing  /usr/local/bin/fauxmo -c /etc/fauxmo/config.json   "
             except:
                 pass
@@ -160,17 +160,17 @@ def task():
         else:
             pass
             print("No fauxmo devices")
-        time.sleep(const.fauxmo_sleep_seconds)  
+        time.sleep(config.FAUXMO_SLEEP_SECONDS)  
 
 def get_fauxmo_cfg():
     fauxmo_cfg = build_cfg()
     if fauxmo_cfg != None:
         # write the config file
         try:
-            os.mkdir(const.fauxmo_default_dir)
+            os.mkdir(config.FAUXMO_DEFAULT_DIR)
         except:
             pass
-        fauxmo_config = open(const.fauxmo_config_file_path, "w")
+        fauxmo_config = open(config.FAUXMO_CONFIG_FILE_PATH, "w")
         n = fauxmo_config.write(fauxmo_cfg)
         fauxmo_config.close() 
         print("config:",fauxmo_cfg)

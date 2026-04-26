@@ -8,7 +8,14 @@ import jinja2
 from aiohttp import web
 from datetime import datetime
 import database
-import const
+# import const
+import http_common as config
+
+DB_NAME =   config.DB_NAME
+OUR_PORT =  config.TIMERS_PORT
+NAV =       config.nav_section() # static
+STYLE =     config.STYLE
+MY_IP = config.get_ip()
 
 watch_dog_queue = None
 xprint = print # copy print
@@ -103,9 +110,10 @@ async def timer_manager(request):
     # Fetch existing timers for the bottom table
     # cursor = db.execute("SELECT rowid, * FROM timed_events")
     context['timed_alerts'] = db.get_all_timers() #cursor.fetchall()
-    context["IPaddr"] = const.IPaddr
+    context["IPaddr"] = MY_IP
+    context["style"] = STYLE
 
-    return aiohttp_jinja2.render_template('timers.html', request, context)
+    return aiohttp_jinja2.render_template('timers.html', request, context | config.nav_section())
 
 # --- APP ROUTING ---
 app = web.Application()
@@ -122,7 +130,7 @@ app.add_routes([
 def task(watch_dog_queue_in):
     global watch_dog_queue
     watch_dog_queue = watch_dog_queue_in
-    web.run_app(app, port=8081)
+    web.run_app(app, port=OUR_PORT)
      
 def start_timers_http(watch_dog_queue):
     p = multiprocessing.Process(target=task,  args=[watch_dog_queue])
@@ -130,4 +138,4 @@ def start_timers_http(watch_dog_queue):
     return p
 
 if __name__ == "__main__":
-    web.run_app(app, port=8081)
+    web.run_app(app, port=OUR_PORT)

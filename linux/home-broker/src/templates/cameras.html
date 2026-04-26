@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>{{ style|safe }}</style>
+    <title>Cameras</title>
+</head>
+{{ nav_section|safe }}
+<div class="refill-area">
+<body>
+    <h2>Managed Cameras</h2>
+    <table border="1">
+    <tr>
+        <th>Name</th><th>URL</th><th>User</th><th>Password</th><th>Rotate</th>
+        <th>Live Preview</th> <!-- Changed from "Live" to "Live Preview" -->
+        <th>Actions</th>
+    </tr>
+    {% for name, url, user, password, rotate in cameras %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ url }}</td>
+            <td>{{ user }}</td>
+            <td>{{ password }}</td>
+            <td>{{ rotate }}</td>
+        <td>
+            <!-- THUMBNAIL: Shows a small preview using the proxy -->
+            <img class="camera-thumb" 
+                 id="thumb-{{ name }}"
+                 src="/test?url={{ url|urlencode }}&user={{user|urlencode }}&password={{ password|urlencode }}" 
+                 alt="Preview" 
+                 style="width: 160px; height: 90px; object-fit: cover; cursor: pointer;"
+                 onclick="viewSnapshot('{{url }}', '{{ user }}', '{{ password }}')">
+            <br>
+            <button type="button" onclick="refreshThumb('{{ name }}')">🔄 Refresh</button>
+        </td>
+        <td>
+            <a href="/edit?camera_name={{ name }}">Edit</a> |
+            <form action="/delete" method="post" style="display:inline;">
+                <input type="hidden" name="camera_name" value="{{ name }}">
+                <button type="submit" style="color:red;">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+    <h3>Add New Camera</h3>
+    <form action="/add" method="post">
+        <label>Camera name</label>
+        <input name="camera_name" value="{{ edit_data.get('camera_name', '') }}"><br>
+        <!-- <input type="text" name="camera_name" placeholder="Camera Name" required><br> -->
+        <label>URL</label>
+        <input id="url_field" name="url" size=60 value="{{ edit_data.get('url', '') }}"><br>
+        <!-- <input type="text" name="url" placeholder="URL" required><br> -->
+        <label>User</label>
+        <input name="user" value="{{ edit_data.get('user', '') }}"><br>
+        <!-- <input type="text" name="user" placeholder="Username"><br> -->
+        <label>Password</label>
+        <input name="password" value="{{ edit_data.get('password', '') }}"><br>
+        <!-- <input type="password" name="password" placeholder="Password"><br> -->
+        <label>rotate</label>
+        <select id="rotate" name="rotate">
+            <option value="{{ edit_data.get('rotate', '') }}">{{ edit_data.get('rotate', '') }}</option>
+            <option value="0">0</option>
+            <option value="90">90</option>
+            <option value="180">180</option>
+            <option value="-90">-90</option>
+        </select><br>
+        <!-- <input name="rotate" value="{{ edit_data.get('rotate', '') }}"><br>
+         <input type="number" name="rotate" placeholder="Rotate (0, 90, 180)"><br> -->
+        <button type="submit">Add/Replace Camera</button>
+        <button type="button" 
+            onclick="viewSnapshot('{{ edit_data.get('url', '') }}', '{{ edit_data.get('user', '') }}', '{{ edit_data.get('password', '') }}')">
+            📸 View Full
+        </button>
+    </form>
+    <script>
+        // Forces a specific thumbnail to reload by appending a timestamp (to bypass browser cache)
+        function refreshThumb(camId) {
+            const img = document.getElementById('thumb-' + camId);
+            const baseUrl = img.src.split('&t=')[0]; // Remove old timestamp if exists
+            img.src = baseUrl + '&t=' + new Date().getTime();
+        }
+
+        function viewSnapshot(url, user, pass) {
+            // Create a clean URL with all three parameters
+            const params = new URLSearchParams();
+            params.append('url', url);
+            params.append('user', user);
+            params.append('password', pass);
+
+            const finalUrl = '/test?' + params.toString();
+            
+            // Open in a new window
+            window.open(finalUrl, '_blank', 'width=1280,height=720');
+        }
+
+    </script>
+    <script>
+        function testJpg() {
+            const url = document.getElementById('url_field').value;
+            if (url) {
+                window.open('/test?url=' + encodeURIComponent(url), '_blank');
+            } else {
+                alert('Please enter a camera URL first.');
+            }
+        }
+    </script>
+</body>
+</html>

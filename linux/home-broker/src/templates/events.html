@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>{{ style|safe }}</style>
+    <title>Events</title>
+</head>
+{{ nav_section|safe }}
+<div class="refill-area">
+<body>
+    <h2>Add / Edit Event</h2>
+    <form action="/events/add" method="post">
+        <input type="text" name="events_name" placeholder="Event Name" value="{{ query.get('refill_name', '') }}" required>
+        <input type="text" name="mqtt_topic" placeholder="Topic" value="{{ query.get('refill_topic', '') }}" required>
+        <input type="text" name="matching_payload" placeholder="Payload" value="{{ query.get('refill_payload', '') }}">
+        <br><br>
+        <input type="text" name="subject" placeholder="Email Subject" value="{{ query.get('refill_subj', '') }}" style="width: 100%;">
+        <br><br>
+        <textarea name="body" placeholder="Email Body" style="width: 100%; height: 60px;">{{ query.get('refill_body', '') }}</textarea>
+        <br><br>
+        <button type="submit" style="background: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer;">Save Event</button>
+    </form>
+</div>
+
+<table>
+    <tr><th>Name</th><th>Topic</th><th>Payload</th><th>Action</th></tr>
+    {% for name, topic, payload, change, subj, body in events %}
+    <tr>
+        <td>{{ name }}</td>
+        <td>{{ topic }}</td>
+        <td>{{ payload }}</td>
+        <td>
+            <form action="/events/delete" method="post" style="display:inline;">
+                <input type="hidden" name="events_name" value="{{ name }}">
+                <button type="submit">Delete & Edit</button>
+            </form>
+            <a href="/manage?events_name={{ name }}"><button>Link Assets</button></a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+</body>
+</div>
+</html>
+

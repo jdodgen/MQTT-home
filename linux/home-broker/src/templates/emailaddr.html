@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>{{ style|safe }}</style>
+    <title>Cameras</title>
+</head>
+{{ nav_section|safe }}
+<div class="refill-area">
+<body>
+    <h2>Email Addresses</h2>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Email Address</th>
+            <th>Action</th>
+        </tr>
+        {% for name, address in emails %}
+        <tr>
+            <td>{{ name }}</td>
+            <td>{{ address }}</td>
+            <td>
+                <form action="/emails/delete" method="post">
+                    <input type="hidden" name="emailaddr_name" value="{{ name }}">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Add Contact</h3>
+    <form action="/emails/add" method="post">
+        <input type="text" name="emailaddr_name" placeholder="e.g., jim" required>
+        <input type="email" name="email_address" placeholder="e.g., jim@foo.com" required>
+        <button type="submit">Add</button>
+    </form>
+    <br>
+</body>
+</html>

@@ -3,17 +3,24 @@ import jinja2
 import aiohttp_jinja2
 from aiohttp import web
 import database
-import const
+#import const
 import multiprocessing
 import re
 import queue
 import message
 import mqtt_hello
+import http_common as config
 
-db=None # built at runtime from database.database
-msg=None   # built at runtime from message.message
-q=None  #  messages queue
+MY_IP = config.get_ip() # replaced when forked
+DB_NAME =   config.DB_NAME
+OUR_PORT =  config.HTTP_MAIN_PORT
+NAV = config.nav_section() # replaced when forked
+STYLE = config.STYLE
 
+MAIN_Q=None  #  messages queue
+
+DB=None # built per process
+msg=None   # built per process from message.message
 # conditional print
 import os 
 my_name = "http_server"
@@ -29,28 +36,29 @@ fauxmo_task, watch_dog_queue = None, None
 
 # 1. Helper to replace your 'render' function
 async def render_response(request, error, update_ip=False, manIP_rowid=None):
-    global db
+    global DB
     # This replaces your 'render' function and uses the Jinja2 engine
-    # flush the message q 
+    # flush the message MAIN_Q 
     while True:
         try:
-            q.get_nowait()
+            MAIN_Q.get_nowait()
         except queue.Empty:
             break
     context = {
         "error_message": error,
         "do_update_IP": update_ip,
-        "man_ip": db.get_manIP_device(manIP_rowid),
-        "manIP_devices": db.cook_devices_features_for_html(source='manIP'),
-        "autoIP_devices": db.cook_devices_features_for_html(source='IP'),
-        "zigbee_devices": db.cook_devices_features_for_html(source='ZB'),
-        "get_devices_for_wemo": db.get_devices_for_wemo(),
-        "all_wemo": db.get_all_wemo(),
-        "manual_device_names": db.get_all_manual_device_names(),
-        "IPaddr": const.IPaddr
+        "man_ip": DB.get_manIP_device(manIP_rowid),
+        "manIP_devices": DB.cook_devices_features_for_html(source='manIP'),
+        "autoIP_devices": DB.cook_devices_features_for_html(source='IP'),
+        "zigbee_devices": DB.cook_devices_features_for_html(source='ZB'),
+        "get_devices_for_wemo": DB.get_devices_for_wemo(),
+        "all_wemo": DB.get_all_wemo(),
+        "manual_device_names": DB.get_all_manual_device_names(),
+        "IPaddr":config.get_ip(),
+        "style": STYLE
     }
     # This renders the template named 'index.html'
-    return aiohttp_jinja2.render_template('index.html', request, context)
+    return aiohttp_jinja2.render_template('index.html', request, context | NAV)
 
 # 2. Define Route Handlers
 async def render_index(request):
@@ -61,7 +69,7 @@ async def render_index(request):
 async def create_IP_device(request):
     error_msg=''
     if request.method == "POST":
-        global db
+        global DB
         data = await request.post()
         action = data.get("action")
         name = data["IP_frendly_name"]
@@ -70,7 +78,7 @@ async def create_IP_device(request):
         print("create_IP_device", name, desc)
         if name and desc and access:
             print("upsert_device")
-            db.upsert_device(desc, name, "manIP")
+            DB.upsert_device(desc, name, "manIP")
             data_list = {
                 "friendly_name": name, 
                 "property": data["IP_property"],
@@ -82,7 +90,7 @@ async def create_IP_device(request):
                 "false_value": data["IP_false"],
             }
             print("upsert_feature")
-            db.upsert_feature(data_list)
+            DB.upsert_feature(data_list)
         else:
             error_msg = "Both name description, and access needed"  
     return await render_response(request, error_msg)  
@@ -110,7 +118,7 @@ async def create_IP_device(request):
 
 async def z2m_page(request):
     print("z2m_page")
-    return aiohttp_jinja2.render_template('zigbee2mqtt.html', request, {"IPaddr": const.IPaddr})
+    return aiohttp_jinja2.render_template('zigbee2mqtt.html', request, {"IPaddr": MY_IP})
 
 async def whoareyou(request):
     myhost = os.uname()[1]
@@ -129,13 +137,13 @@ async def create_wemo(request):
             return web.Response(text=f"<pre>{cfg}</pre>", content_type='text/html')
         else:
             if "wemo_name" in data and "wemo_device" in data:
-                db.create_wemo(data["wemo_name"], data.get("wemo_port"), data["wemo_device"])
+                DB.create_wemo(data["wemo_name"], data.get("wemo_port"), data["wemo_device"])
             else:
                 error_msg = 'Both wemo name and device required'
     return await render_response(request, error_msg)
     
 async def remove_wemo(request):
-    global db
+    global DB
     error_msg = ''
     # aiohttp requires awaiting the form data
     if request.method == "POST":
@@ -148,13 +156,13 @@ async def remove_wemo(request):
             print("deleteing ", match.group(1))
             if match:
                 target_id = match.group(1)
-                db.delete_wemo(target_id)
+                DB.delete_wemo(target_id)
     return await render_response(request, error_msg)
     
 async def all_devices(request):
     error = ""
     if request.method == "POST":
-        global db
+        global DB
         rowid=None
         update_IP = False
         data = await request.post()
@@ -167,13 +175,13 @@ async def all_devices(request):
             send_mqtt_publish(parts[2], parts[1])
         elif parts[0] == "zbrefresh":
             # subscribe.simple(const.zigbee2mqtt_bridge_devices, hostname=message.our_ip_address())
-            msg.subscribe(const.zigbee2mqtt_bridge_devices)
+            msg.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES)
             error="ZigBee devices refreshing"
         elif parts[0] == "iprefresh":
             msg.publish(mqtt_hello.hello_request_topic, my_name) 
             error="Auto IP devices refreshed"
         elif parts[0] == 'delete':
-            db.delete_device(parts[1])
+            DB.delete_device(parts[1])
         elif parts[0] == "manIP":
             update_IP = True
             rowid = parts[1]
@@ -220,24 +228,29 @@ app.add_routes([
 
 def task(fauxmo, watch_dog_queue_in):
     global fauxmo_task
-    global db
+    global DB
     global watch_dog_queue
     global msg
-    global q
+    global MAIN_Q
 
-    db=database.database()
-    q = queue.Queue() 
-    msg = message.message(q, my_parent=my_name)
-    msg.subscribe(const.zigbee2mqtt_bridge_devices)
+    DB=database.database()
+    
+    MY_IP = config.get_ip() # replaced when forked
+    DB_NAME =   config.DB_NAME
+    OUR_PORT =  config.HTTP_MAIN_PORT
+    NAV = config.nav_section() # replaced when forked
+    MAIN_Q = queue.Queue() 
+    
+    msg = message.message(MAIN_Q, my_parent=my_name)
+    msg.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES)
     msg.publish(mqtt_hello.hello_request_topic, my_name)
     
     watch_dog_queue = watch_dog_queue_in
     fauxmo_task = fauxmo
     # os.nice(-1)
-    db=database.database()
     print("Starting http server...")
     try:
-        web.run_app(app, port=const.http_port)
+        web.run_app(app, port=OUR_PORT)
         print("http_server.serve_forever we should not get here")
     except Exception as e:
         print("Error during web.run_app:", e)
@@ -247,6 +260,7 @@ def task(fauxmo, watch_dog_queue_in):
 def start_http_task(fauxmo, watch_dog_queue):
     p = multiprocessing.Process(target=task, args=[fauxmo, watch_dog_queue])
     p.start()
+    
     #http_thread = threading.Thread(target=task, args=[fauxmo, watch_dog_queue])
     #http_thread.start()
     return p #http_thread
@@ -260,5 +274,5 @@ def stop_http_task(p):
     p.close()
     
 if __name__ == '__main__':
-    db=database.database()
-    web.run_app(app, port=const.http_port)
+    DB=database.database()
+    web.run_app(app, port=OUR_PORT)

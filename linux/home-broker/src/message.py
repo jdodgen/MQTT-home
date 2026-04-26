@@ -27,9 +27,13 @@ import paho.mqtt.publish as publish
 import paho.mqtt.subscribe as subscribe
 import sys
 import socket
+import http_common as config
 
-import const
+#import const
 import time
+
+OUR_IP = config.get_ip()
+
 #
 # conditional print
 import os 
@@ -46,16 +50,18 @@ def print(*args, **kwargs): # replace print
 #print("hello [%s]" % ("x",))
 
 def our_ip_address():
-    if const.windows_broker:
-        ip = const.windows_broker
-    else:
-        import fcntl
-        import struct
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("192.168.253.253", 50000))
-        ip = s.getsockname()[0]
-    print("ip address",ip)
-    return ip
+    return OUR_IP
+    
+    # if const.windows_broker:
+        # ip = const.windows_broker
+    # else:
+        # import fcntl
+        # import struct
+        # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # s.connect(("192.168.253.253", 50000))
+        # ip = s.getsockname()[0]
+    # print("ip address",ip)
+    # return ip
 
     # hostname = socket.gethostname()
     # print("my host name [%s]" % (hostname,))
@@ -75,7 +81,7 @@ class message():
         for x in range(10):
             try:
                 print("attempting mqtt connection ")
-                self.client.connect(ip, keepalive=const.mqtt_keepalive) 
+                self.client.connect(ip, keepalive=config.MQTT_KEEPALIVE) 
                 break
             except:
                 print("MQTT could not connect [%s]" % (ip,))
