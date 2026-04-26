@@ -236,9 +236,9 @@ def task(fauxmo, watch_dog_queue_in):
     DB=database.database()
     
     MY_IP = config.get_ip() # replaced when forked
-	DB_NAME =   config.DB_NAME
-	OUR_PORT =  config.HTTP_MAIN_PORT
-	NAV = config.nav_section() # replaced when forked
+    DB_NAME =   config.DB_NAME
+    OUR_PORT =  config.HTTP_MAIN_PORT
+    NAV = config.nav_section() # replaced when forked
     MAIN_Q = queue.Queue() 
     
     msg = message.message(MAIN_Q, my_parent=my_name)

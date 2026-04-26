@@ -1,5 +1,5 @@
 import json
-import const
+# import const
 import database
 
 def devices_to_json():
