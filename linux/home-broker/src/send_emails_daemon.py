@@ -196,12 +196,7 @@ def main():
                 emailer_q.put([found_match, images])
     print("exiting main??")
     
-def start_daemon():
-    p = multiprocessing.Process(target=main)
-    p.start()
-    return p
-    
-############ CLI startup ###############
+############ startup ###############
 if __name__ == "__main__":
     main()
     print("exiting, should not get here")

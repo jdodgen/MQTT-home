@@ -9,7 +9,7 @@ import os, signal
 import time
 #import const
 from  pgrep import pgrep
-import multiprocessing
+import subprocess
 import http_common as config
 #
 # conditional print
@@ -23,10 +23,6 @@ def print_always(*args, **kwargs): # replace print
     xprint("["+my_name+"]", *args, **kwargs) # the copied real print
 #
 #
-def start_mosquitto_task():
-    p = multiprocessing.Process(target=task)
-    p.start()
-    return p
 
 def is_mosquitto_alive():
     result = pgrep("mosquitto")
@@ -39,11 +35,12 @@ def is_mosquitto_alive():
 def reload_config():
     with open(config.MOSQUITTO_FILE_PATH, "w") as mos_config:
         n = mos_config.write(config.mosquitto_configuration())
-    pid = is_mosquitto_alive()
-    if not pid:
-        return False
-    print("mosquitto pid[%s]" % (pid,))
-    os.kill(pid, signal.SIGHUP)   # tells mosquitto to reload config
+   # pid = is_mosquitto_alive()
+    #if not pid:
+       # return False
+    #print(" pid[%s]" % (pid,))
+    subprocess.run(["sudo", "systemctl", "reload", "mosquitto"], check=True)
+    #os.kill(pid, signal.SIGHUP)   # tells mosquitto to reload config
     return True
 
 def task():
@@ -52,7 +49,7 @@ def task():
     # if a wake then we are now trying to start and stop mosquitto
     result = reload_config()
     if not result:
-        print("reload_config detected mosquitto is not running")
+        print("[mosquitto_manager] chmod reload_config detected mosquitto is not running")
     while True:
         # mosquitto happer when run as a service to this is just here to drop the config
         # I need a signal or something to get a re-read from mosquitto. for now just need a reboot
@@ -63,6 +60,5 @@ def task():
         time.sleep(config.MOSQUITTO_SLEEP_SECONDS)   # asleep as you see Zzzzzzzz
 
 if __name__ == "__main__":
-    #reload_config()
     task()
-    time.sleep(11111)
+    print("Should not get here")

@@ -847,6 +847,7 @@ class database:
 # test stuff  not running when imported
 if __name__ == "__main__":
     db=database()
+    db.initialize()
     # print(db.cook_devices_features_for_html())
     # print(db.delete_device(13))
     # rc = db.upsert_device("no addr test", "foobar", "IP")

@@ -1,0 +1,6 @@
+[Unit]
+Description=AlertAway Home Broker Master Stack
+Wants=mosquitto.service zigbee2mqtt.service alertaway-main.service alertaway-http.service alertaway-timers-http.service alertaway-timers-daemon.service alertaway-triggers-http.service alertaway-triggers-daemon.service alertaway-emailer-send_emails_daemon.service alertaway-emailer-email_http.service alertaway-emailer-events_http.service alertaway-mosquitto_manager.service alertaway-emailer-events_http.service alertaway-fauxmo_task.service alertaway-mqtt.service
+
+[Install]
+WantedBy=multi-user.target

@@ -90,7 +90,7 @@ if __name__ == "__main__":
             print("watchdog mosquitto_task Starting:")
 
         if not fauxmo_task or not fauxmo_task.is_alive():
-            fauxmo_task = fauxmo_manager.start_fauxmo_task()
+            fauxmo_task = fauxmo_task.start_fauxmo_task()
             print("watchdog fauxmo_task Starting:")
         
         if not mqtt_task or not mqtt_task.is_alive():
