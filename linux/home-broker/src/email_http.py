@@ -11,7 +11,7 @@ OUR_PORT =  config.EMAIL_PORT
 NAV =       config.nav_section()
 STYLE =     config.STYLE
 
-@aiohttp_jinja2.template('emailaddr.html')
+@aiohttp_jinja2.template('email.html')
 async def handle_list_emails(request):
     """Fetch and display all email records"""
     async with aiosqlite.connect(DB_NAME) as db:
