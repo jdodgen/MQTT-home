@@ -1,9 +1,9 @@
 # MIT licence copyright 2026 jim dodgen
-# common thing used by the http tools
+# common thing used by the alertaway tools
 #
+VERSION = "2.0"
 import socket
 import sqlite3
-
 
 # production ports
 # DB_NAME = "devices.db"
@@ -32,10 +32,10 @@ DB_NAME = "devices.db"
 # end testing ports
 
 DB_TIMEOUT = 120 
-BROKER_MQTT_PORT = 1883
 BASE_FAXMO_PORT = 56000
 MQTT_KEEPALIVE = 120
 
+PCN_INTERVAL = 30
 MOSQUITTO_FILE_PATH = "/etc/mosquitto/mosquitto.conf"
 ZIGBEE_REFRESH_SECONDS = 30
 MOSQUITTO_SLEEP_SECONDS = 1000 # change when checking for termination in future versions
@@ -88,13 +88,19 @@ def get_db_config():
         return None
         
 def mosquitto_configuration():
-    cfg = get_db_config()
-    return  """# created by mosquitto_manager.py
-# text in http_common.py listener from db
+    return """listener 1883
 allow_anonymous true
-listener """+str(cfg["broker_mqtt_port"])+"\nlog_dest none"
+"""
+    cfg = get_db_config()
+    
+    return  f"""# created by mosquitto_manager.py
+# text in http_common.py listener from db
+log_dest none
+listener {cfg["broker_mqtt_port"]} 0.0.0.0
+allow_anonymous true
+"""
 
-#print(mosquitto_configuration())
+## print(mosquitto_configuration())
 
 def nav_section():
     my_ip = get_ip()
@@ -125,7 +131,12 @@ def get_ip():
     finally:
         s.close()
     return ip
+    
+def get_broker_port():
+    cfg = get_db_config()
+    return cfg["broker_mqtt_port"]
 
+    
 if __name__ == "__main__":
     print("get_ip: ", get_ip())  
     print("\n\nnav_section:", nav_section())
@@ -136,6 +147,7 @@ if __name__ == "__main__":
     else:
         print("\n\nget_db_config:",cfg)
         print("\n\nmosquitto_configuration:",mosquitto_configuration())
+        print("broker_port", get_broker_port())
     
     
         

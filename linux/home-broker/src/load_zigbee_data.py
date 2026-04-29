@@ -1,10 +1,14 @@
+# MIT licence copyright 2026 Jim Dodgen
+#
 import message 
 import database
 import json
 import time
 import queue
 #import const
-import multiprocessing
+# import multiprocessing
+import http_common as config
+
 #
 # conditional print
 import os 
@@ -15,25 +19,25 @@ def print(*args, **kwargs): # replace print
     xprint("["+my_name+"]", *args, **kwargs) # the copied real print
 #
 #
-def start_ZigbeeDeviceRefresher():
-    p = multiprocessing.Process(target=ZigbeeDeviceRefresher)
-    p.start()
-    return p
+# def start_ZigbeeDeviceRefresher():
+    # p = multiprocessing.Process(target=ZigbeeDeviceRefresher)
+    # p.start()
+    # return p
 
-def stop_ZigbeeDeviceRefresher(p):
-    p.terminate()
-    while p.is_alive():
-        print("MQTT wont die")
-        time.sleep(0.1)
-    p.join()
-    p.close()
+# def stop_ZigbeeDeviceRefresher(p):
+    # p.terminate()
+    # while p.is_alive():
+        # print("MQTT wont die")
+        # time.sleep(0.1)
+    # p.join()
+    # p.close()
 
 class ZigbeeDeviceRefresher():
     def __init__(self):
         self.db = database.database()
         q = queue.Queue()  
         self.msg = message.message(q, my_parent=my_name)
-        self.msg.client.subscribe(const.zigbee2mqtt_bridge_devices, 0)
+        self.msg.client.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES, 0)
         while True:
             try:
                 item = q.get(timeout=20)

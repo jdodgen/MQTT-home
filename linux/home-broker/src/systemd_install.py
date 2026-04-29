@@ -12,19 +12,20 @@ systemd_path = "/etc/systemd/system"
 #
 # alertaway independent processes
 modules = [
-    ("alertaway-main",    "main.py", "Starting up", 10),
-    ("alertaway-http",    "main_http.py", "HTTP Server & UI", 10),
-    ("alertaway-timers-http",  "timers_httl.py", "Maintain timers", 1),
-    ("alertaway-timers-daemon",  "timers_daemon.py", "Monitoring Timers ", 10),
-    ("alertaway-triggers-http", "triggers_http.py", "Maintain triggers", 10),
-    ("alertaway-triggers-daemon", "triggers_daemon.py", "Trigger & Event Logic", 10),
-    ("alertaway-emailer-send_emails_daemon",  "send_emails_daemon.py", "Email Notifications", 10),
-    ("alertaway-emailer-email_http",  "email_http.py", "Maintain Emails", 10),
-    ("alertaway-emailer-events_http",  "events_http.py", "Maintain email events", 10),
-    ("alertaway-mosquitto_manager",  "mosquitto_manager.py", "Reconfigures Mosquitto", 10),
-    ("alertaway-emailer-events_http",  "events_http.py", "Maintain email events", 10),
-    ("alertaway-fauxmo_task",  "events_http.py", "Runs fauxmo/WeMo", 10),
-    ("alertaway-mqtt", "mqtt_service_task.py", "MQTT Integration", 10)
+    # ("alertaway-main",                "main.py", "Starting up", 10),
+    # ("alertaway-http",                "main_http.py", "HTTP Server & UI", 10),
+    # ("alertaway-timers-http",         "timers_httl.py", "Maintain timers", 1),
+    # ("alertaway-timers-daemon",       "timers_daemon.py", "Monitoring Timers ", 10),
+    # ("alertaway-triggers-http",       "triggers_http.py", "Maintain triggers", 10),
+    # ("alertaway-triggers-daemon",     "triggers_daemon.py", "Trigger & Event Logic", 10),
+    # ("alertaway-emailer-send_emails_daemon",  "send_emails_daemon.py", "Email Notifications", 10),
+    # ("alertaway-emailer-email_http",          "email_http.py", "Maintain Emails", 10),
+    # ("alertaway-emailer-events_http",         "events_http.py", "Maintain email events", 10),
+    ### demoted ("alertaway-Load-Zigbees",  "load_zigbee_data.py.py", "reloades DB ZigBees ", 60),
+    # ("alertaway-emailer-events_http",         "events_http.py", "Maintain email events", 10),
+    # ("alertaway-fauxmo_task",                 "events_http.py", "Runs fauxmo/WeMo", 10),
+    # ("alertaway-mqtt",                        "mqtt_service_task.py", "MQTT Integration", 10)
+    ("alertaway-load-zigbee-data",              "load_zigbee_data.py", "Load zigbee devices from z2m", 10)
 ]
 
 def generate_files():
