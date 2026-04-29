@@ -668,14 +668,17 @@ class database:
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Driveway','http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1','admin','alert.Away','');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Front door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Side door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
+
 INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES (NULL,'camera 1');
 INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('aaa','cam2');
 INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('bad thing','camera 2');
 INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('door open','Driveway');
-INSERT INTO "config" ("id","alive_interval","broker","ssl","user","password","gmail_password","gmail_user","publish","zigbee_refresh_seconds","mosquitto_sleep_seconds","broker_mqtt_port","mqtt_keepalive") VALUES (0,30,'home-broker.local',1,'','','','','home/alertaway/power',35,1000,1883,120);
+
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('bill','bill@foo.com');
+
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('bad thing','bill');
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door open','bill');
+
 INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('door open','home/door/state','open',0,'door is open','Me thinks a knave has left the hatch open');
 INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('bad thing','home/water/','leaking',0,'water leak from heater','turn the valve next to the door off.
 if you had ball_valve_controller you could use triggers to turn it off automatically');
