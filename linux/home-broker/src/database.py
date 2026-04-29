@@ -788,7 +788,7 @@ class database:
         CREATE TABLE config ( -- this is a singleton
             id INTEGER PRIMARY KEY CHECK (id = 0),
             alive_interval INTEGER DEFAULT 30,
-            broker TEXT DEFAULT 'home-broker.local',
+            broker TEXT DEFAULT '192.168.0.134',
             ssl   INTEGER DEFAULT FALSE,
             user  TEXT DEFAULT NULL,
             password TEXT DEFAULT NULL,

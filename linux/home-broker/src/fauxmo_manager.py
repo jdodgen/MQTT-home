@@ -27,9 +27,11 @@ import time
 # import const
 import database
 import multiprocessing
-from message import our_ip_address
+#from message import our_ip_address
 import os
 import http_common as config
+
+MY_IP = config.get_ip()
 #
 # conditional print
 my_name = "fauxmo_manager"
@@ -107,7 +109,7 @@ def build_cfg():
                 off_payload = dev[4].replace('"','\\"')
             except:
                 off_payload = None
-            fauxmo_cfg = fauxmo_cfg + per_device_minimum % (port, name, topic,on_payload, topic, off_payload, our_ip_address(), config.BROKER_MQTT_PORT)
+            fauxmo_cfg = fauxmo_cfg + per_device_minimum % (port, name, topic,on_payload, topic, off_payload, MY_IP, config.BROKER_MQTT_PORT)
             fauxmo_cfg = fauxmo_cfg + use_fake_state  
             fauxmo_cfg = fauxmo_cfg + initial_state
             """
@@ -129,22 +131,22 @@ def build_cfg():
     else:
         return None
     
-def start_fauxmo_task():
-    print_always("creating process")
-    p = multiprocessing.Process(target=task)
-    p.start()
-    print_always("is_alive =",p.is_alive())
-    return p
+# def start_fauxmo_task():
+    # print_always("creating process")
+    # p = multiprocessing.Process(target=task)
+    # p.start()
+    # print_always("is_alive =",p.is_alive())
+    # return p
 
-def stop_fauxmo_task(p):
-    print_always("terminating")
-    p.terminate()
-    time.sleep(1)
-    while p.is_alive():
-        print_always("fauxmo wont die")
-        time.sleep(0.1)
-    p.join()
-    p.close()
+# def stop_fauxmo_task(p):
+    # print_always("terminating")
+    # p.terminate()
+    # time.sleep(1)
+    # while p.is_alive():
+        # print_always("fauxmo wont die")
+        # time.sleep(0.1)
+    # p.join()
+    # p.close()
 
 def task():
     print_always("task starting")
