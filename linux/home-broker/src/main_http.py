@@ -17,7 +17,7 @@ OUR_PORT =  config.HTTP_MAIN_PORT
 NAV = config.nav_section() # replaced when forked
 STYLE = config.STYLE
 
-MAIN_Q=None  #  messages queue
+#MAIN_Q=None  #  messages queue
 
 DB=None # built per process
 msg=None   # built per process from message.message
@@ -39,11 +39,11 @@ async def render_response(request, error, update_ip=False, manIP_rowid=None):
     global DB
     # This replaces your 'render' function and uses the Jinja2 engine
     # flush the message MAIN_Q 
-    while True:
-        try:
-            MAIN_Q.get_nowait()
-        except queue.Empty:
-            break
+#    while True:
+        # try:
+# #            MAIN_Q.get_nowait()
+        # except queue.Empty:
+            # break
     context = {
         "error_message": error,
         "do_update_IP": update_ip,
@@ -231,7 +231,7 @@ def task(fauxmo, watch_dog_queue_in):
     global DB
     global watch_dog_queue
     global msg
-    global MAIN_Q
+#    global MAIN_Q
 
     DB=database.database()
     
@@ -239,9 +239,9 @@ def task(fauxmo, watch_dog_queue_in):
     DB_NAME =   config.DB_NAME
     OUR_PORT =  config.HTTP_MAIN_PORT
     NAV = config.nav_section() # replaced when forked
-    MAIN_Q = queue.Queue() 
+ #   MAIN_Q = queue.Queue() 
     
-    msg = message.message(MAIN_Q, my_parent=my_name)
+#    msg = message.message(MAIN_Q, my_parent=my_name)
     msg.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES)
     msg.publish(mqtt_hello.hello_request_topic, my_name)
     

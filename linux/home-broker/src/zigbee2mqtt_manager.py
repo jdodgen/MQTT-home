@@ -4,7 +4,12 @@ import subprocess
 import time
 import multiprocessing
 import os
-#
+
+RUN_z2m = '''
+cd /opt/zigbee2mqtt
+pnpm start
+'''
+
 # conditional print
 # update this with your trace
 # 

@@ -394,7 +394,6 @@ html = '''
     </tr>
   </table>
 </body>
-
 </html>
 '''
 

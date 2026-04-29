@@ -130,11 +130,11 @@ def main():
         # MAIN LOOP
         #
         try:
-            topic, payload_raw = mqtt_q.get(block=True, timeout=config.ALIVE_INTERVAL)
+            topic, payload_raw = mqtt_q.get(block=True, timeout=config.PCN_INTERVAL)
         except Empty:
             # send PCN alive now
             try:
-                client.publish_command(config.ALIVE_PUBLISH,"up")
+                client.publish_command(config.PCN_INTERVAL,"up")
                 last_publish = time.time()
             except Exception as e:
                 print(f"main publish up failed {e}")
@@ -142,9 +142,9 @@ def main():
                 print("main emailer process dead")
             continue
         now = time.time()
-        if last_publish+config.ALIVE_INTERVAL < now:
+        if last_publish+config.PCN_INTERVAL < now:
             # send PCN alive now
-            client.publish_command(config.ALIVE_PUBLISH,"up")
+            client.publish_command(config.PCN_INTERVAL,"up")
             last_publish = now
         payload = payload_raw.decode('utf-8')
         this_topic = config.TOPICS.get(topic, None)
@@ -196,12 +196,7 @@ def main():
                 emailer_q.put([found_match, images])
     print("exiting main??")
     
-def start_daemon():
-    p = multiprocessing.Process(target=main)
-    p.start()
-    return p
-    
-############ CLI startup ###############
+############ startup ###############
 if __name__ == "__main__":
     main()
     print("exiting, should not get here")

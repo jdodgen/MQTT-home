@@ -33,6 +33,7 @@ import http_common as config
 import time
 
 OUR_IP = config.get_ip()
+BROKER_PORT = config.get_broker_port()
 
 #
 # conditional print
@@ -48,9 +49,6 @@ def print(*args, **kwargs): # replace print
 #
 #my_parent = "xxx"
 #print("hello [%s]" % ("x",))
-
-def our_ip_address():
-    return OUR_IP
     
     # if const.windows_broker:
         # ip = const.windows_broker
@@ -77,14 +75,13 @@ class message():
         self.q = queue
         self.unacked_publish = set()
         self.client.user_data_set(self.unacked_publish)
-        ip = our_ip_address()
         for x in range(10):
             try:
                 print("attempting mqtt connection ")
-                self.client.connect(ip, keepalive=config.MQTT_KEEPALIVE) 
+                self.client.connect(OUR_IP, BROKER_PORT, keepalive=config.MQTT_KEEPALIVE) 
                 break
-            except:
-                print("MQTT could not connect [%s]" % (ip,))
+            except Exception as e:
+                print(f"MQTT Connection Error: {e}")
                 time.sleep(10)
 
             # the connect will try later
@@ -179,8 +176,8 @@ def publish_single(topic, payload, my_parent=None):
     global parent
     parent = my_parent
     print("publish_single: topic[%s] payload[%s] broker[%s]" % 
-          (topic, payload, our_ip_address(),))
-    rc = publish.single(topic, payload, hostname=our_ip_address()) 
+          (topic, payload, OUR_IP,))
+    rc = publish.single(topic, payload, hostname=OUR_IP) 
     print("publish_single returned[%s]" % rc)
 
 def resubscribe(client, userdata, message):
@@ -192,8 +189,8 @@ def simple_subscribe(topic, my_parent=None):
     global parent
     parent = my_parent
     print("simple_subscribe: topic[%s]  broker[%s]" % 
-          (topic, our_ip_address(),))
-    rc = subscribe.callback(resubscribe, topic, hostname=our_ip_address()) 
+          (topic, OUR_IP,))
+    rc = subscribe.callback(resubscribe, topic, hostname=OUR_IP) 
     print("simple_subscribe returned[%s]" % rc)
     
 

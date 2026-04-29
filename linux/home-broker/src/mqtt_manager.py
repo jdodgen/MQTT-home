@@ -8,7 +8,6 @@ print("cffg:", cffg)
 
 xprint = print # copy print
 my_name = "mqtt_manager"
-
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
@@ -54,7 +53,7 @@ class mqtt_manager:
          # Or a higher version like ssl.PROTOCOL_TLS
        # ssl.CERT_NONE: No server certificate verification.
         #self.client.tls_set(cert_reqs=ssl.CERT_OPTIONAL) 
-        self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
+        #self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
         while True:
             print(f"__init__ connecting to [{cffg['broker']}]-[{cffg['broker_mqtt_port']}]")
             try:

@@ -40,7 +40,7 @@ async def close_db(app):
 
 # --- THE MAIN HANDLER ---
 async def timer_manager(request):
-    global watch_dog_queue
+    watch_dog_queue
     db = request.app['db']
     context = {
         "timers_here": "here",
@@ -131,11 +131,6 @@ def task(watch_dog_queue_in):
     global watch_dog_queue
     watch_dog_queue = watch_dog_queue_in
     web.run_app(app, port=OUR_PORT)
-     
-def start_timers_http(watch_dog_queue):
-    p = multiprocessing.Process(target=task,  args=[watch_dog_queue])
-    p.start()
-    return p
 
 if __name__ == "__main__":
     web.run_app(app, port=OUR_PORT)
