@@ -656,7 +656,7 @@ class database:
         return all
     def test_data(self):
         inserts = """
-
+-- test set for simple_emailer 
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Driveway','http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1','admin','alert.Away','');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Front door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Side door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
@@ -677,6 +677,11 @@ INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door
 INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('door open','home/door/state','open',0,'door is open','Me thinks a knave has left the hatch open');
 INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('bad thing','home/water/status','leaking',0,'water leak from heater','turn the valve next to the door off.
 if you had ball_valve_controller you could use triggers to turn it off automatically');
+--- end of simple_emailer
+
+--- test set for timers
+--- test set for triggers
+
 """
         self.con.executescript(inserts)
         
