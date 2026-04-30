@@ -556,12 +556,9 @@ class database:
             false_value
 
         from mqtt_feature
-
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
-
         where (type = "binary" and source = "ZB" and property like "state%" and topic like "%set")
             or source = "IP"
-
         order by topic desc
         """)
         all = cur.fetchall()
@@ -579,14 +576,10 @@ class database:
             property,
             true_value,
             false_value
-
         from mqtt_feature
-
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
-
         where (type = "binary" and source = "ZB" and property like "state%" and topic like "%get")
             or source = "IP"
-
         order by topic desc
         """)
         all = cur.fetchall()
@@ -608,9 +601,7 @@ class database:
             stop_hour,
             stop_minute,
             stop_offset
-
             from timers
-
             order by topic
         """)
         all = cur.fetchall()
