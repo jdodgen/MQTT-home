@@ -21,6 +21,7 @@ import requests
 from PIL import Image
 import io
 from queue import Empty
+import config_send_emails
 from mqtt_manager import mqtt_manager
 import http_common as config
 

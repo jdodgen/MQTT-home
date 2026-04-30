@@ -133,7 +133,7 @@ async def main():
     
     # client = mqtt_manager.mqtt_manager()
     db = database.database(row_factory=True)
-    publish.single(cfg.id_topic, cfg.id_payload, hostname=message.our_ip_address())
+    #publish.single(cfg.id_topic, cfg.id_payload, hostname=message.our_ip_address())
     #message.publish_single(cfg.id_topic, cfg.id_payload, my_parent="main")
     await start_timers(db.get_timers_for_today())
     while True:
