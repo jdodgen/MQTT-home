@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # MIT license copyright 2024,25,26 Jim Dodgen
 # this configures and installs software
 # it replaces the cfg.py file each time it runs
@@ -16,8 +17,12 @@ import sys
 
 ###### modify these as needed ######
 ## i use shared source librararys
-mp_lib_offset="../../library/"  # micropython specific
-all_lib_offset="../../../library/" # both linux and micropython
+cwd=os.getcwd()
+print("cwd",cwd)
+mp_lib_offset="/home/jim/Documents/GitHub/MQTT-home/micropython/power_change_notifier/src/../../library/"  # micropython specific
+all_lib_offset="/home/jim/Documents/GitHub/MQTT-home/micropython/power_change_notifier/src/../../../library/" # both linux and micropython
+
+
 cluster_lib = str(Path.home())+"/Dropbox/wip/clusters"
 
 # to have  imports from libraries we need to do this:

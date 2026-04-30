@@ -1,0 +1,11 @@
+# copy this to your desktop (ubuntu) 
+# run (permit it first time)
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=My Python App
+Exec=/usr/bin/python3 /home/jim/Documents/GitHub/MQTT-home/micropython/power_change_notifier/src/install.py
+#Icon=/path/to/an_icon_image.png
+Terminal=true
+Categories=Utility;Application;
