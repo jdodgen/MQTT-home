@@ -1,52 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <!--<meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>APP</title> -->
-  <style>
-    body {
-      background-color: #d5f4e6;     
-    }
-    table.leftright{
-      border: 2px solid orange;
-      border-collapse: collapse;   
-    }
-    th.leftright{
-      text-align: center;
-    }
-    td.leftright{
-      text-align: center;
-    }
-    table.center{
-      border: 2px solid orange;
-      border-collapse: collapse;
-    }
-    th.center{
-      border: 2px solid orange;
-      border-collapse: collapse;
-      text-align: center;
-    }
-    td.center{
-      border: 2px solid orange;
-      border-collapse: collapse;
-      text-align: center;
-    }
-
-    table td,tr{
-      border: 2px solid blue;
-      border-collapse: collapse; 
-    } 
-    
-  </style>
+    <style>{{ style|safe }}</style>
+    <title>Events</title>
 </head>
-
+{{ nav_section|safe }}
+<div class="refill-area">
+<body>
+</head>
 <body>
   <table style="border: none;">
-    
   </table>
   <table>
-    <tr>
+   <!-- <tr>
       <th  style="text-align: left;">
         <a href="http://{{IPaddr}}/zigbee2mqtt">
           <h3>Maintain zigbee2mqtt Devices</h3>
@@ -59,6 +25,7 @@
         </a>
         <h3 style="color: red" ;>{{error_message}}</h3>
       </th>
+     </tr> -->
     <tr>
         <td style="border: none;"><h2>Device and WeMo/fauxmo Management</h2></td>
     </tr>

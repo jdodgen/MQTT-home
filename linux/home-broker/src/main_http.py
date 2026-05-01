@@ -3,13 +3,14 @@ import jinja2
 import aiohttp_jinja2
 from aiohttp import web
 import database
-#import const
-import multiprocessing
 import re
-import queue
 import message
 import mqtt_hello
+import restart_service
 import http_common as config
+
+NAV =       config.nav_section()
+STYLE =     config.STYLE
 
 MY_IP = config.get_ip() # replaced when forked
 DB_NAME =   config.DB_NAME
@@ -32,7 +33,7 @@ def print(*args, **kwargs): # replace print
 
 # Global placeholders from your snippet
 #shared, q, btc, db_values = [], True, None, None, None
-fauxmo_task, watch_dog_queue = None, None
+fauxmo_task = None
 
 # 1. Helper to replace your 'render' function
 async def render_response(request, error, update_ip=False, manIP_rowid=None):
@@ -54,7 +55,6 @@ async def render_response(request, error, update_ip=False, manIP_rowid=None):
         "get_devices_for_wemo": DB.get_devices_for_wemo(),
         "all_wemo": DB.get_all_wemo(),
         "manual_device_names": DB.get_all_manual_device_names(),
-        "IPaddr":config.get_ip(),
         "style": STYLE
     }
     # This renders the template named 'index.html'
@@ -131,7 +131,9 @@ async def create_wemo(request):
         data = await request.post()
         action = data.get("action")
         if action == "restart":
-             watch_dog_queue.put(["startfauxmotask", "start"])
+            # do a systemd restart to pick up the fresh config
+             restart_service.restart("alertaway-fauxmo-task")
+             # pre systemd watch_dog_queue.put(["startfauxmotask", "start"])
         elif action == "display":
             cfg = "fauxmo_cfg_placeholder" # Replace with your manager call
             return web.Response(text=f"<pre>{cfg}</pre>", content_type='text/html')
@@ -226,10 +228,9 @@ app.add_routes([
     web.post('/zigbee2mqtt', z2m_page),
 ])
 
-def task(fauxmo, watch_dog_queue_in):
+def task(fauxmo):
     global fauxmo_task
     global DB
-    global watch_dog_queue
     global msg
 #    global MAIN_Q
 
@@ -244,8 +245,6 @@ def task(fauxmo, watch_dog_queue_in):
 #    msg = message.message(MAIN_Q, my_parent=my_name)
     msg.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES)
     msg.publish(mqtt_hello.hello_request_topic, my_name)
-    
-    watch_dog_queue = watch_dog_queue_in
     fauxmo_task = fauxmo
     # os.nice(-1)
     print("Starting http server...")
@@ -254,24 +253,6 @@ def task(fauxmo, watch_dog_queue_in):
         print("http_server.serve_forever we should not get here")
     except Exception as e:
         print("Error during web.run_app:", e)
-
-        
-
-def start_http_task(fauxmo, watch_dog_queue):
-    p = multiprocessing.Process(target=task, args=[fauxmo, watch_dog_queue])
-    p.start()
-    
-    #http_thread = threading.Thread(target=task, args=[fauxmo, watch_dog_queue])
-    #http_thread.start()
-    return p #http_thread
-
-def stop_http_task(p):
-    p.terminate()
-    while p.is_alive():
-        print("http wont die")
-        time.sleep(0.1)
-    p.join()
-    p.close()
     
 if __name__ == '__main__':
     DB=database.database()
