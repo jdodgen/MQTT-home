@@ -671,7 +671,7 @@ INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('bill','bill@
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('don','don@foo.com');
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('Jim','jim@dodgen.us');
 
-INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('bad thing','bill');
+INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('bad thing','Jim');
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('bad thing','don');
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door open','bill');
 
