@@ -669,6 +669,7 @@ INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('door open
 
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('bill','bill@foo.com');
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('don','don@foo.com');
+INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('Jim','jim@dodgen.us');
 
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('bad thing','bill');
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('bad thing','don');
