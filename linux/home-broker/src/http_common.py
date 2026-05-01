@@ -107,14 +107,14 @@ def nav_section():
     nav =  {"nav_section": f'''
     <h1>AlertAway Toolbox</h1>
     <nav>
-        <a href="http://{ my_ip }:{ CONFIG_PORT }">Configuation</a>
-        <a href="http://{ my_ip }:{ HTTP_MAIN_PORT }">MQTT Devices</a>
+        <a href="http://{ my_ip }:{ HTTP_MAIN_PORT }">MQTT/IP Devices % WeMo</a>
         <a href="http://{ my_ip }:{ HTTP_MAIN_PORT }/zigbee2mqtt">zigbee2mqtt</a>
         <a href="http://{ my_ip }:{ EVENTS_PORT }">Events</a>
         <a href="http://{ my_ip }:{ TRIGGERS_PORT }">Triggers</a>
         <a href="http://{ my_ip }:{ TIMERS_PORT }">Timers</a>
         <a href="http://{ my_ip }:{ CAM_PORT }">Cameras</a>
         <a href="http://{ my_ip }:{ EMAIL_PORT }">Emails</a>
+        <a href="http://{ my_ip }:{ CONFIG_PORT }">Configuation</a>
     </nav>
     '''}
     #print(nav)
