@@ -9,6 +9,7 @@ from aiohttp import web
 from datetime import datetime
 import database
 # import const
+import restart_service
 import http_common as config
 
 DB_NAME =   config.DB_NAME
@@ -100,7 +101,8 @@ async def timer_manager(request):
                 db.con.execute("DELETE FROM timers WHERE rowid = ?", (target_id,))
                 db.con.commit()
         elif state == "Restart Timer Process":
-            watch_dog_queue.put(["restarttimertask", "restart"])
+            restart_service.restart("alertaway-timers-daemon")
+           #  watch_dog_queue.put(["restarttimertask", "restart"])
 
     # 2. Fetch Data for the UI (Always happens for GET and after POST)
     # Fetch available alerts for the <select> box

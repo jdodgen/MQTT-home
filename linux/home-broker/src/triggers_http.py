@@ -1,12 +1,12 @@
 # MIT licence copyright 2026 Jim Dodgen
-
+#
 import re
 import multiprocessing
 import aiohttp_jinja2
 import jinja2
 from aiohttp import web
 import database
-#import const
+import restart_service
 import http_common as config
 
 DB_NAME =   config.DB_NAME
@@ -77,7 +77,8 @@ async def trigger_manager(request):
                 db.con.execute("DELETE FROM triggers WHERE rowid = ?", (target_id,))
                 db.con.commit()
         elif action == "Restart trigger Process":
-            watch_dog_queue.put(["restarttriggertask", "restart"])
+            restart_service.restart("alertaway-triggers-daemon")
+            # watch_dog_queue.put(["restarttriggertask", "restart"])
 
     #cursor = db.execute("SELECT * FROM devices") # Adjust table name as needed
     context['pubs'] = db.get_publish_devices() 
