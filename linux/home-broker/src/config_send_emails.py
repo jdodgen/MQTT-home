@@ -1,8 +1,10 @@
 # simple_emailer inline confg builder
 # MIT license copyright 2024, 2025 Jim Dodgen
 # it loads a toml file creating CONSTANTS
-# this runs at import and leaves values access like "self.broker = cfg.BROKER"
+# this runs at import and leaves STATIC values
+# access like "self.broker = cfg.BROKER"
 import sys
+import signal
 import tomllib
 import sqlite3
 import time
@@ -39,6 +41,7 @@ def get_events():
         db.row_factory = sqlite3.Row
         cursor = db.execute("SELECT * FROM events")
         rows = cursor.fetchall()
+        print("get_events:", rows)
         return rows
         
 def get_cameras(events_name):
@@ -91,20 +94,39 @@ def get_emails(events_name):
 # pretty_name = "(EMAILER simple_emailer)"
 # cluster_id = "jimdod"
 # device_letter = "EMAILER"
-topics = {'home/jimdod/Front door/quad_chimes': 
-            {'AlL': 
-                 {'subject': 'Front door bell pressed', 'body': 'Three pictures here', 
-                 'cc_string': '<jim@dodgen.us>,<jan@dodgen.us>', 
-                 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 
-                 'user': 'admin', 'pw': 'alert.Away'}, 
-                                 {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 
-                                 'user': 'admin', 'pw': 'dr0wssap!'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4&type=0', 'user': 'admin', 'pw': 'dr0wssap!', 'rotate': -90}], 'to_list': ['jim@dodgen.us', 'jan@dodgen.us'], 'only_on_change_of_payload': False}}, 'home/jimdod/Pub/quad_chimes': {'AlL': {'subject': 'Button on bar pressed', 'body': 'See! it did work!!!', 'cc_string': '<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}], 'to_list': ['jim@dodgen.us'], 'only_on_change_of_payload': False}}, 'home/jimdod/GAR Garage door/power': {'down': {'subject': 'The Garage door is open', 'body': "by cracky I sence that the carrage house door is open. I hope the horses don't run out.", 'cc_string': '<jan@dodgen.us>,<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jan@dodgen.us', 'jim@dodgen.us'], 'only_on_change_of_payload': True}, 'up': {'subject': 'The garage door is closed', 'body': 'Horses be contained, all is well now, ta! ta! cheerio', 'cc_string': '<jim@dodgen.us>,<jan@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jim@dodgen.us', 'jan@dodgen.us'], 'only_on_change_of_payload': True}}}
+example_topics = {'home/jimdod/Front door/quad_chimes': 
+                            {'AlL': 
+                                     {  'subject': 'Front door bell pressed', 'body': 'Three pictures here', 
+                                        'cc_string': '<jim@dodgen.us>,<jan@dodgen.us>', 
+                                        'image_urls': [ {
+                                                        'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 
+                                                        'user': 'admin', 
+                                                        'pw': 'alertdtaway'
+                                                        }, 
+                                                        {
+                                                        'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 
+                                                        'user': 'admin', 
+                                                        'pw': 'passwd'
+                                                        }, 
+                                                        {
+                                                        'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4&type=0', 
+                                                        'user': 'admin', 
+                                                        'pw': 'dr0wssap!', 
+                                                        'rotate': -90
+                                                        }
+                                                      ], 
+                                                      'to_list': ['jim@dodgen.us', 'jan@dodgen.us'], 
+                                                      'only_on_change_of_payload': False}
+                          }, 
+               'home/jimdod/Pub/quad_chimes': {'AlL': {'subject': 'Button on bar pressed', 'body': 'See! it did work!!!', 'cc_string': '<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}], 'to_list': ['jim@dodgen.us'], 'only_on_change_of_payload': False}}, 'home/jimdod/GAR Garage door/power': {'down': {'subject': 'The Garage door is open', 'body': "by cracky I sence that the carrage house door is open. I hope the horses don't run out.", 'cc_string': '<jan@dodgen.us>,<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jan@dodgen.us', 'jim@dodgen.us'], 'only_on_change_of_payload': True}, 'up': {'subject': 'The garage door is closed', 'body': 'Horses be contained, all is well now, ta! ta! cheerio', 'cc_string': '<jim@dodgen.us>,<jan@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jim@dodgen.us', 'jan@dodgen.us'], 'only_on_change_of_payload': True}}}
 
 
 def load_db_topics():
     l = {}
-    event = get_events()
-    for t in event:
+    events = get_events()
+    if not events:
+        return None 
+    for t in events:
         mqtt_topic = t["mqtt_topic"]
         print("\ntopic",mqtt_topic,"\n")
         
@@ -117,10 +139,15 @@ def load_db_topics():
         subject =   t["subject"]
         body =      t["body"]
         image_urls = get_cameras(t["events_name"])
+        print("image_urls", image_urls)
         bunch_of_images = []
         for i in image_urls:
-            bunch_of_images.append({"url": i["url"], 'user': i['user'], 'pw': i["password"], 'rotate': i["rotate"]})
+            #print(">>>URL>>> ",i["url"] )
+            url = {"url": i["url"], 'user': i['user'], 'pw': i["password"], 'rotate': i["rotate"]}
+            print("url >>>>  ", url)
+            bunch_of_images.append(url)
         l["image_urls"] = bunch_of_images
+        print("llllllllllll", l)
         emails = get_emails(t["events_name"])
         email_string = ""
         for e in emails:
@@ -156,6 +183,7 @@ def load_db_topics():
                 # print("needed payload", payload)
             # subject = l[topic][need_payload]["subject"]
             # print("subject", subject)
+    
     return {mqtt_topic: 
             {matching_payload: l}}
     #return l
@@ -169,6 +197,9 @@ except Exception as e:
     
 # things for send_emails built at boot, now static
 TOPICS = load_db_topics()
+if not TOPICS:
+    print("Nothing to do, sleeping")
+    signal.pause()  # nothing to do so sleep forever waiting on a systemd restart and something to do 
 BROKER = config["broker"]
 SSL = config["ssl"]
 USER = config["user"]
@@ -177,8 +208,8 @@ GMAIL_PASSWORD = config["gmail_password"]
 GMAIL_USER = config["gmail_user"]
 PCN_TOPIC = config["publish"]
 
-print(f"BROKER [{BROKER}] SSL [{SSL}] USER [{USER}] PASSWORD [{PASSWORD}]\n\tGMAIL_PASSWORD [{GMAIL_PASSWORD}] GMAIL_USER  [{GMAIL_PASSWORD}] ALIVE_PUBLISH  [{ALIVE_PUBLISH}] ")
-print("TOPICS->", TOPICS)
+print(f"BROKER [{BROKER}] SSL [{SSL}] USER [{USER}] PASSWORD [{PASSWORD}]\n\tGMAIL_PASSWORD [{GMAIL_PASSWORD}] GMAIL_USER  [{GMAIL_PASSWORD}]")
+print("TOPICS >>>>>>>>>>>> ", TOPICS)
 
 DEFAULT_PORT = 8883
 ALIVE_INTERVAL = 30

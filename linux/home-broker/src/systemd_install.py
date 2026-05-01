@@ -5,7 +5,7 @@
 #
 import os
 TESTING = False
-PYTHON_FILES = "/opt/alertaway"  # location of the python code
+PYTHON_FILES = "/opt/alertaway"
 DATA_FILES = PYTHON_FILES
 #
 systemd_path = "/etc/systemd/system"
@@ -23,8 +23,8 @@ modules = [
     ("alertaway-emailer-events_http",         "events_http.py", "Maintain email events", 10),
     ("alertaway-fauxmo-task",                 "fauxmo_manager.py", "Runs fauxmo/WeMo", 10),
     ("alertaway-mqtt",                        "mqtt_service_task.py", "MQTT Integration", 10)
-    ("alertaway-load-zigbee-data",              "load_zigbee_data.py", "Load zigbee devices from z2m", 10),
-    ("alertaway-config-http",              "config_http.py", "Maintain configuration", 10),
+    ("alertaway-load-zigbee-data",            "load_zigbee_data.py", "Load zigbee devices from z2m", 10),
+    ("alertaway-config-http",                 "config_http.py", "Maintain configuration", 10),
 ]
 
 def generate_files():

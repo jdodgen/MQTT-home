@@ -1,10 +1,12 @@
 import time
 import paho.mqtt.client as mqtt
 import ssl
-#import cfg
+import config_send_emails
 import http_common as config
 cffg = config.get_db_config()
+
 print("cffg:", cffg)
+TOPICS =  config_send_emails.TOPICS
 
 xprint = print # copy print
 my_name = "mqtt_manager"
@@ -74,7 +76,7 @@ class mqtt_manager:
 
     def on_connect(self, client, userdata, flags, reason_code, properties):
         print("on_connect connected, doing subscribes")
-        for topic in cfg.topics.keys():
+        for topic in TOPICS.keys():
             print("on_connect subscribed:", topic)
             client.subscribe(topic)
 
