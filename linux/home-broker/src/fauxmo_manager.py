@@ -26,7 +26,7 @@ import subprocess
 import time
 # import const
 import database
-import multiprocessing
+# import multiprocessing
 #from message import our_ip_address
 import os
 import http_common as config

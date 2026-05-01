@@ -133,23 +133,13 @@ async def main():
     
     # client = mqtt_manager.mqtt_manager()
     db = database.database(row_factory=True)
-    publish.single(cfg.id_topic, cfg.id_payload, hostname=message.our_ip_address())
+    #publish.single(cfg.id_topic, cfg.id_payload, hostname=message.our_ip_address())
     #message.publish_single(cfg.id_topic, cfg.id_payload, my_parent="main")
     await start_timers(db.get_timers_for_today())
     while True:
         await sleep_until_one_second_after_midnight()
         await start_timers(db.get_timers_for_today())
         await asyncio.sleep(1)
-        
-def task():
-    asyncio.run(main())
-     
-def start_timers_daemon():
-    p = multiprocessing.Process(target=task)
-    p.start()
-    return p
-    
-    
 
 if __name__ == "__main__":
     # Run the main coroutine as the entry point of the asyncio program
