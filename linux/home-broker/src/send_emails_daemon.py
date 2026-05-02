@@ -136,7 +136,7 @@ def main():
         except Empty:
             # send PCN alive now
             try:
-                client.publish_command(config.PCN_INTERVAL,"up")
+                client.publish_command(PCN_TOPIC,"up")
                 last_publish = time.time()
             except Exception as e:
                 print(f"main publish up failed {e}")
