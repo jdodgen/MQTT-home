@@ -25,6 +25,7 @@ import config_send_emails
 from mqtt_manager import mqtt_manager
 import http_common as config
 
+PCN_TOPIC = "home/alertaway/sendemails/power"
 #client = None
 my_name = "send_emails"
 xprint = print # copy print
@@ -145,7 +146,7 @@ def main():
         now = time.time()
         if last_publish+config.PCN_INTERVAL < now:
             # send PCN alive now
-            client.publish_command(config.PCN_INTERVAL,"up")
+            client.publish_command(PCN_TOPIC,"up")
             last_publish = now
         payload = payload_raw.decode('utf-8')
         this_topic = config.TOPICS.get(topic, None)
