@@ -1,5 +1,5 @@
 # simple_emailer inline confg builder
-# MIT license copyright 2024, 2025 Jim Dodgen
+# MIT license copyright 2024, 2025, 2026 Jim Dodgen
 # it loads a toml file creating CONSTANTS
 # this runs at import and leaves STATIC values
 # access like "self.broker = cfg.BROKER"
@@ -8,13 +8,14 @@ import signal
 import tomllib
 import sqlite3
 import time
+from  pprint import pprint
 import http_common as config
 
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.get_db_config()["broker_mqtt_port"]
   
-cluster_path = "cluster_simple_emailer.toml"
-my_name = "config"
+#cluster_path = "cluster_simple_emailer.toml"
+my_name = "config_send_emails"
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
@@ -34,14 +35,13 @@ def get_config():
         cursor = db.execute("SELECT * FROM config WHERE id = 0")
         row = cursor.fetchone()
         #print("broker: ",row["broker"])
-        return row
+        return dict(row)
         
 def get_events():
     with sqlite3.connect(DB_NAME) as db:
         db.row_factory = sqlite3.Row
         cursor = db.execute("SELECT * FROM events")
         rows = cursor.fetchall()
-        print("get_events:", rows)
         return rows
         
 def get_cameras(events_name):
@@ -53,7 +53,6 @@ def get_cameras(events_name):
             WHERE cameras_in_events.events_name = ?
             ''', (events_name,))
         rows = cursor.fetchall()
-        print("cam rows: ",rows)
         return rows
   
 def get_emails(events_name):
@@ -95,7 +94,7 @@ def get_emails(events_name):
 # cluster_id = "jimdod"
 # device_letter = "EMAILER"
 example_topics = {'home/jimdod/Front door/quad_chimes': 
-                            {'AlL': 
+                            {None: 
                                      {  'subject': 'Front door bell pressed', 'body': 'Three pictures here', 
                                         'cc_string': '<jim@dodgen.us>,<jan@dodgen.us>', 
                                         'image_urls': [ {
@@ -115,78 +114,118 @@ example_topics = {'home/jimdod/Front door/quad_chimes':
                                                         'rotate': -90
                                                         }
                                                       ], 
-                                                      'to_list': ['jim@dodgen.us', 'jan@dodgen.us'], 
-                                                      'only_on_change_of_payload': False}
+                                            'to_list': ['jim@dodgen.us', 'jan@dodgen.us'], 
+                                            'only_on_change_of_payload': False
+                                   }
                           }, 
-               'home/jimdod/Pub/quad_chimes': {'AlL': {'subject': 'Button on bar pressed', 'body': 'See! it did work!!!', 'cc_string': '<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}], 'to_list': ['jim@dodgen.us'], 'only_on_change_of_payload': False}}, 'home/jimdod/GAR Garage door/power': {'down': {'subject': 'The Garage door is open', 'body': "by cracky I sence that the carrage house door is open. I hope the horses don't run out.", 'cc_string': '<jan@dodgen.us>,<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jan@dodgen.us', 'jim@dodgen.us'], 'only_on_change_of_payload': True}, 'up': {'subject': 'The garage door is closed', 'body': 'Horses be contained, all is well now, ta! ta! cheerio', 'cc_string': '<jim@dodgen.us>,<jan@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jim@dodgen.us', 'jan@dodgen.us'], 'only_on_change_of_payload': True}}}
+               'home/jimdod/Pub/quad_chimes': {None: {'subject': 'Button on bar pressed', 'body': 'See! it did work!!!', 'cc_string': '<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}], 'to_list': ['jim@dodgen.us'], 'only_on_change_of_payload': False}}, 'home/jimdod/GAR Garage door/power': {'down': {'subject': 'The Garage door is open', 'body': "by cracky I sence that the carrage house door is open. I hope the horses don't run out.", 'cc_string': '<jan@dodgen.us>,<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jan@dodgen.us', 'jim@dodgen.us'], 'only_on_change_of_payload': True}, 'up': {'subject': 'The garage door is closed', 'body': 'Horses be contained, all is well now, ta! ta! cheerio', 'cc_string': '<jim@dodgen.us>,<jan@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jim@dodgen.us', 'jan@dodgen.us'], 'only_on_change_of_payload': True}}}
 
-
-def load_db_topics():
-    l = {}
-    events = get_events()
-    if not events:
-        return None 
-    for t in events:
-        mqtt_topic = t["mqtt_topic"]
-        print("\ntopic",mqtt_topic,"\n")
-        
-        #mqtt_topic = cluster["topic"][topic]["mqtt_topic"]
-        if t["matching_payload"]:
-            matching_payload=  t["matching_payload"]
+def build_a_payload(event):
+        if event["matching_payload"]:
+            matching_payload=  event["matching_payload"]
         else:
-            matching_payload= "AlL"
-        only_on_change_of_payload = t["only_on_change_of_payload"]
-        subject =   t["subject"]
-        body =      t["body"]
-        image_urls = get_cameras(t["events_name"])
-        print("image_urls", image_urls)
-        bunch_of_images = []
+            matching_payload= None
+        list_of_images = []
+        image_urls = get_cameras(event["events_name"])
         for i in image_urls:
-            #print(">>>URL>>> ",i["url"] )
-            url = {"url": i["url"], 'user': i['user'], 'pw': i["password"], 'rotate': i["rotate"]}
-            print("url >>>>  ", url)
-            bunch_of_images.append(url)
-        l["image_urls"] = bunch_of_images
-        print("llllllllllll", l)
-        emails = get_emails(t["events_name"])
+            #print(f'/n]ngetting image [{i["camera_name"]}]')
+            d = {"url": i["url"], 'user': i['user'], 'pw': i["password"], 'rotate': i["rotate"]}
+            #print("url",d)
+            #print("\n\n")
+            list_of_images.append(d)
+        
+        #print(f"\nmatching_payload[{matching_payload}]\n")
+        only_on_change_of_payload = event["only_on_change_of_payload"]
+        subject =   event["subject"]
+        body =      event["body"]
+        emails = get_emails(event["events_name"])
         email_string = ""
         for e in emails:
             email_string += f"<{e['email_address']}>,"
         if not email_string:
             print("missing emails? ignoring")
-            continue
-        l["cc_string"] = email_string[:-1]
-        # image_urls = cluster["topic"][topic].get("image_urls", [])
-        # cc_string = ''
-        # if "to_list" in cluster["topic"][topic]:
-            # print("to_list", cluster["topic"][topic]["to_list"])
-            # for addr in cluster["topic"][topic]["to_list"]:
-                # cc_string += "<%s>," % (addr,)
-            # cc_string = cc_string.rstrip(",")
-        
-        print(mqtt_topic, matching_payload, subject, body, email_string, only_on_change_of_payload)
-        this_email = {"subject": subject, "body": body, "cc_string": email_string, 
-            "image_urls": image_urls, "to_list": email_string, 
+            return None
+        complete_event = {"subject": subject, "body": body, "cc_string": email_string, 
+            "image_urls": list_of_images, "to_list": email_string, 
             "only_on_change_of_payload": only_on_change_of_payload}
+        #pprint(complete_event)
+        return complete_event
+    
+
+def load_db_topics():
+    all_topics = {}
+    events = get_events()
+    if not events:
+        return None 
+    for t in events:
+        mqtt_topic = t["mqtt_topic"]
+        payload_event = build_a_payload(t)
+        if mqtt_topic not in all_topics:
+            all_topics[mqtt_topic] = {}
+        all_topics[mqtt_topic][t["matching_payload"]] = payload_event
+        #print("\ntopic",mqtt_topic,"\n")
         
-        if mqtt_topic not in l:
-            l[mqtt_topic] = {}
-        l[mqtt_topic][matching_payload] = this_email
-    #print(l)
+        #mqtt_topic = cluster["topic"][topic]["mqtt_topic"]
+        # if t["matching_payload"]:
+            # matching_payload=  t["matching_payload"]
+        # else:
+            # matching_payload= None
+        # print(f"\n\nload_db_topics topic[{mqtt_topic}]\nmatching_payload[{matching_payload}]\n\n")
+        # only_on_change_of_payload = t["only_on_change_of_payload"]
+        # subject =   t["subject"]
+        # body =      t["body"]
+        # image_urls = get_cameras(t["events_name"])
+        # list_of_images = []
+        # for i in image_urls:
+            # print(f"getting image [{camera_name}]")
+            # url = {"url": i["url"], 'user': i['user'], 'pw': i["password"], 'rotate': i["rotate"]}
+            # list_of_images.append(url)
+        # all_topics["image_urls"] = list_of_images
+        # emails = get_emails(t["events_name"])
+        # email_string = ""
+        # for e in emails:
+            # email_string += f"<{e['email_address']}>,"
+        # if not email_string:
+            # print("missing emails? ignoring")
+            # continue
+        # all_topics["cc_string"] = email_string[:-1]
+        # # image_urls = cluster["topic"][topic].get("image_urls", [])
+        # # cc_string = ''
+        # # if "to_list" in cluster["topic"][topic]:
+            # # print("to_list", cluster["topic"][topic]["to_list"])
+            # # for addr in cluster["topic"][topic]["to_list"]:
+                # # cc_string += "<%s>," % (addr,)
+            # # cc_string = cc_string.rstrip(",")
+        
+        # print(mqtt_topic, matching_payload, subject, body, email_string, only_on_change_of_payload)
+        # this_email = {"subject": subject, "body": body, "cc_string": email_string, 
+            # "image_urls": image_urls, "to_list": email_string, 
+            # "only_on_change_of_payload": only_on_change_of_payload}
+        
+        # if mqtt_topic not in all_topics:
+            # all_topics[mqtt_topic] = {}
+        # all_topics[mqtt_topic][matching_payload] = this_email
+    #print(all_topics)
     # data structure example for run.py
-    # for topic in l.keys():
+    # for topic in all_topics.keys():
         # print("topic", topic)
-        # for need_payload in l[topic]:
+        # for need_payload in all_topics[topic]:
             # print("match_on_payload", need_payload)
             # if need_payload == True:
-                # payload = l[topic][need_payload]["matching_payload"]
+                # payload = all_topics[topic][need_payload]["matching_payload"]
                 # print("needed payload", payload)
-            # subject = l[topic][need_payload]["subject"]
+            # subject = all_topics[topic][need_payload]["subject"]
             # print("subject", subject)
     
-    return {mqtt_topic: 
-            {matching_payload: l}}
-    #return l
+        #print(f"\n\nload_db_topics topic[{mqtt_topic}]\nmatching_payload[{matching_payload}]\n\n")
+    
+    # xprint("all_topics", all_topics)
+    # return {mqtt_topic: 
+            # {matching_payload: all_topics}}
+    #return all_topics
+    print("\n\n")
+    pprint(all_topics)
+    return all_topics 
 
 try:
     config = get_config()
@@ -208,8 +247,8 @@ GMAIL_PASSWORD = config["gmail_password"]
 GMAIL_USER = config["gmail_user"]
 PCN_TOPIC = config["publish"]
 
-print(f"BROKER [{BROKER}] SSL [{SSL}] USER [{USER}] PASSWORD [{PASSWORD}]\n\tGMAIL_PASSWORD [{GMAIL_PASSWORD}] GMAIL_USER  [{GMAIL_PASSWORD}]")
-print("TOPICS >>>>>>>>>>>> ", TOPICS)
+# print(f"BROKER [{BROKER}] SSL [{SSL}] USER [{USER}] PASSWORD [{PASSWORD}]\n\tGMAIL_PASSWORD [{GMAIL_PASSWORD}] GMAIL_USER  [{GMAIL_PASSWORD}]")
+# print("TOPICS >>>>>>>>>>>> ", TOPICS)
 
 DEFAULT_PORT = 8883
 ALIVE_INTERVAL = 30

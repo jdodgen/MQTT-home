@@ -173,8 +173,8 @@ def main():
                         toggle_list[topic] = payload
                 
                 #print("main msg found")
-            elif "AlL"  in this_topic.keys():  # this is gets all for mqtt topic ignoring payload
-                found_match = this_topic["AlL"]
+            elif None  in this_topic.keys():  # this is gets all for mqtt topic ignoring payload
+                found_match = this_topic[None]
                 #print("main AlL found")
             if found_match:
                 print(f"main found_match: [{topic}],[{payload}]")

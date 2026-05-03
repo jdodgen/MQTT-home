@@ -74,7 +74,7 @@ def load_topics(cluster):
     for topic in cluster["topic"]:
         print("\ntopic",topic,"\n")
         mqtt = cluster["topic"][topic]["mqtt_topic"]
-        matching_payload = cluster["topic"][topic].get("matching_payload", "AlL")
+        matching_payload = cluster["topic"][topic].get("matching_payload", None)
         only_on_change_of_payload = cluster["topic"][topic].get("only_on_change_of_payload", False)
         subject = cluster["topic"][topic]["subject"]
         body = cluster["topic"][topic]["body"]

@@ -10,7 +10,7 @@
     <h2>Add / Edit Event</h2>
     <form action="/events/add" method="post">
         <input type="text" name="events_name" placeholder="Event Name" value="{{ query.get('refill_name', '') }}" required>
-        <input type="text" name="mqtt_topic" placeholder="Topic" value="{{ query.get('refill_topic', '') }}" required>
+        <input type="text" name="mqtt_topic" placeholder="Topic" value="{{ query.get('refill_topic', '') }}">
         <input type="text" name="matching_payload" placeholder="Payload" value="{{ query.get('refill_payload', '') }}">
         <br><br>
         <input type="text" name="subject" placeholder="Email Subject" value="{{ query.get('refill_subj', '') }}" style="width: 100%;">
