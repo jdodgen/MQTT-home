@@ -149,7 +149,7 @@ def main():
             client.publish_command(PCN_TOPIC,"up")
             last_publish = now
         payload = payload_raw.decode('utf-8')
-        this_topic = config.TOPICS.get(topic, None)
+        this_topic = config_send_emails.TOPICS.get(topic, None)
         print("main from mqtt_q:message topic[%s], payload[%s] " % (topic, payload))
         if not this_topic:  # just checking 
             print(f"main got a missing subscribe {topic}")
@@ -160,6 +160,7 @@ def main():
             
             if payload in this_topic.keys():  
                 found_match = this_topic[payload] # see config.py for the data structure
+                print(">>found_match<<", found_match)
                 if found_match["only_on_change_of_payload"]:
                     #print(f"main match on change topic [{topic}][{payload}] toggle list [{toggle_list}]")
                     if topic in toggle_list:
