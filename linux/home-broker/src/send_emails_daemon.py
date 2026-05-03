@@ -55,6 +55,8 @@ def download_image_data(url_info):
             except requests.exceptions.RequestException as e:
                 print(f"download_image_data  requests.get  with user Error: [{e}]")
                 return None
+            except Exception as e:
+                print("request failed", e)
         else:
             try:
                 response = requests.get(url)
