@@ -3,6 +3,7 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 import aiosqlite
+import http_common as config
 
 async def get_config(db_path):
     # 'async with' handles opening and automatically closing the connection
@@ -49,7 +50,7 @@ async def update_config(db_path, data):
 @aiohttp_jinja2.template("config.html")
 async def handle_index(request):
     config_row = await get_config(request.app['db_path'])
-    return {"config": config_row}
+    return {"config": config_row, "style": config.STYLE} | config.nav_section()
 
 async def handle_update(request):
     # Retrieve form data from POST

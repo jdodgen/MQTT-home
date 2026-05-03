@@ -44,6 +44,12 @@
         <h3>Zigbee</h3>
         <label>Zigbee refresh seconds:</label>
         <input type="text" name="zigbee_refresh_seconds" value="{{ config.zigbee_refresh_seconds }}"><br>
+        
+        <hr>
+        <h3>Alive notification</h3>
+        <label>Topic to publish (needs to end in /power):</label>
+        <input type="text" name="publish" value="{{ config.publish }}"><br>
+        
         <hr>
         <button type="submit">Update Configuration</button>
     </form>
