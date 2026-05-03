@@ -48,6 +48,8 @@ FAUXMO_CONFIG_FILE_PATH = FAUXMO_DEFAULT_DIR+"/config.json"
 MQTTPLUGIN = "mqttplugin.py"
 FAUXMO_SLEEP_SECONDS = 240 # wake up every 4 minutes, Zzzzzz
 MOSQUITTO_FILE_PATH = "/etc/mosquitto/mosquitto.conf"
+HTTP_IMAGE_TIMEOUT = 10
+
 VERSON = "2.0"
 
 def ports():

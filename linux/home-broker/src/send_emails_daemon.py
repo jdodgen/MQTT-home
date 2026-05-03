@@ -21,7 +21,7 @@ import requests
 from PIL import Image
 import io
 from queue import Empty
-import config_send_emails
+import config_send_emails as cse
 from mqtt_manager import mqtt_manager
 import http_common as config
 
@@ -49,13 +49,11 @@ def download_image_data(url_info):
         pw = url_info.get("pw", None)
         rotate = url_info.get("rotate", 0)
         if user:
-            # print("download_image_data doing auth[%s][%s]" % (user, pw))
+            print("download_image_data doing auth[%s][%s]" % (user, pw))
             try:
-                print("download_image_data doing auth[%s][%s]" % (user, pw))
                 response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw), timeout=config.HTTP_IMAGE_TIMEOUT)
-                print("download_image_data requests.get returned")
             except requests.exceptions.RequestException as e:
-                print(f"download_image_data requests.get  with user Error: [{e}]")
+                print(f"download_image_data  requests.get  with user Error: [{e}]")
                 return None
         else:
             try:
@@ -95,7 +93,7 @@ def send_email_task(emailer_q): #, cluster_id_only=False):
         # print("send_email_task our id [%s]" % (ident,))
         msg = MIMEMultipart()
         msg['Subject'] = found_match["subject"] # +" "+ident
-        msg['From'] = config.GMAIL_USER
+        msg['From'] = cse.GMAIL_USER
         msg['To'] = found_match["cc_string"]
         msg['Cc'] = found_match["cc_string"]
         msg.attach(MIMEText(found_match["body"]))
@@ -108,7 +106,7 @@ def send_email_task(emailer_q): #, cluster_id_only=False):
             smtp = smtplib.SMTP('smtp.gmail.com', 587)
             smtp.ehlo()
             smtp.starttls()
-            smtp.login(config.GMAIL_USER, config.GMAIL_PASSWORD)
+            smtp.login(cse.GMAIL_USER, cse.GMAIL_PASSWORD)
             smtp.send_message(msg)
             smtp.quit()
         except:
@@ -149,7 +147,7 @@ def main():
             client.publish_command(PCN_TOPIC,"up")
             last_publish = now
         payload = payload_raw.decode('utf-8')
-        this_topic = config_send_emails.TOPICS.get(topic, None)
+        this_topic = cse.TOPICS.get(topic, None)
         print("main from mqtt_q:message topic[%s], payload[%s] " % (topic, payload))
         if not this_topic:  # just checking 
             print(f"main got a missing subscribe {topic}")

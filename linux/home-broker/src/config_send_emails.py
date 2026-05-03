@@ -128,7 +128,7 @@ def build_a_payload(event):
         list_of_images = []
         image_urls = get_cameras(event["events_name"])
         for i in image_urls:
-            #print(f'/n]ngetting image [{i["camera_name"]}]')
+            print(f'/n]ngetting image [{i["camera_name"]}]')
             d = {"url": i["url"], 'user': i['user'], 'pw': i["password"], 'rotate': i["rotate"]}
             #print("url",d)
             #print("\n\n")
@@ -145,8 +145,8 @@ def build_a_payload(event):
         if not email_string:
             print("missing emails? ignoring")
             return None
-        complete_event = {"subject": subject, "body": body, "cc_string": email_string, 
-            "image_urls": list_of_images, "to_list": email_string, 
+        complete_event = {"subject": subject, "body": body, "cc_string": email_string[:-1], 
+            "image_urls": list_of_images, "to_list": email_string[:-1], 
             "only_on_change_of_payload": only_on_change_of_payload}
         #pprint(complete_event)
         return complete_event
@@ -252,4 +252,3 @@ PCN_TOPIC = config["publish"]
 
 DEFAULT_PORT = 8883
 ALIVE_INTERVAL = 30
-HTTP_IMAGE_TIMEOUT = 15
