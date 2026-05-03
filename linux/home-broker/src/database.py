@@ -812,8 +812,8 @@ INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_cha
             PRIMARY KEY (emailaddr_name)
         );
 
-        drop table if exists config;
-        CREATE TABLE config ( -- this is a singleton
+        -- drop table if exists config;
+        CREATE TABLE IF NOT EXISTS config ( -- this is a singleton
             id INTEGER PRIMARY KEY CHECK (id = 0),
             alive_interval INTEGER DEFAULT 30,
             broker TEXT DEFAULT '192.168.0.134',
@@ -828,7 +828,7 @@ INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_cha
             broker_mqtt_port INTEGER default 1883,
             mqtt_keepalive INTEGER default 120
         );
-        INSERT INTO config (id) VALUES (0);  -- this is a singleton
+        INSERT or ignore INTO config (id) VALUES (0);  -- this is a singleton
         """
         self.con.executescript(create)  # drop and create the tables
 
