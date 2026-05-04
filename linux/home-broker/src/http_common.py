@@ -2,6 +2,7 @@
 # common thing used by the alertaway tools
 #
 VERSION = "2.0"
+import os
 import socket
 import sqlite3
 
@@ -15,6 +16,10 @@ EVENTS_PORT = 8084
 TRIGGERS_PORT = 8083
 TIMERS_PORT = 8082
 HTTP_MAIN_PORT = 8081
+if hasattr(os, 'getuid'):
+    if os.getuid() == 0:
+        HTTP_MAIN_PORT = 80
+
 Z2M_PORT = 8080 # default
 #
 # testing ports

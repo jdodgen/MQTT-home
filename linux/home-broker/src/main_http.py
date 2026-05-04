@@ -238,7 +238,6 @@ def task(fauxmo):
     
     MY_IP = config.get_ip() # replaced when forked
     DB_NAME =   config.DB_NAME
-    OUR_PORT =  config.HTTP_MAIN_PORT
     NAV = config.nav_section() # replaced when forked
  #   MAIN_Q = queue.Queue() 
     
