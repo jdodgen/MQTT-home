@@ -70,11 +70,12 @@ def download_image_data(url_info):
             response.close()
             #print("download_image_data image_data len", len(image_data));
             if rotate:
-                #print(f"download_image_data Rotate {rotate}")
+                angle = int(rotate) if str(rotate).isdigit() else 0
+                print(f"download_image_data Rotate {angle}")
                 try:
                     image_stream = io.BytesIO(image_data)
                     img = Image.open(image_stream)
-                    image_data_rotated = img.rotate(int(rotate), expand=True)
+                    image_data_rotated = img.rotate(angle, expand=True)
                     output_stream = io.BytesIO()
                     image_data_rotated.save(output_stream, format="jpeg")
                     #print("download_image_data returning rotate") 
