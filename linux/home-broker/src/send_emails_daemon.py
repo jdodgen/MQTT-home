@@ -44,38 +44,44 @@ def print(*args, **kwargs): # replace print
 def download_image_data(url_info):
     print(f"download_image_data [{url_info['url']}][{url_info.get('user', '')},{url_info.get('pw', '')}]")
     try:
-        url = url_info["url"]
+        url = url_info.get("url", None)
         user = url_info.get("user", None)
         pw = url_info.get("pw", None)
         rotate = url_info.get("rotate", 0)
-        if user:
-            print("download_image_data doing auth[%s][%s]" % (user, pw))
+        if user and pw:
+            print(f"download_image_data doing auth[{user}][{pw}]")
             try:
                 response = requests.get(url, auth=requests.auth.HTTPDigestAuth(user, pw), timeout=config.HTTP_IMAGE_TIMEOUT)
+                #print("download_image_data back from requests", response.status_code)
+                #print(response.history)
             except requests.exceptions.RequestException as e:
                 print(f"download_image_data  requests.get  with user Error: [{e}]")
                 return None
             except Exception as e:
-                print("request failed", e)
+                print("download_image_data request failed", e)
         else:
             try:
-                response = requests.get(url)
+                response = requests.get(url, timeout=config.HTTP_IMAGE_TIMEOUT)
             except Exception as e:
                 print(f"download_image_data requests.get  NO user Error: [{e}]")
                 return None
         if response.status_code == 200:
             image_data = response.content # Read the content as bytes
             response.close()
-            #print("image_data len", len(image_data));
+            #print("download_image_data image_data len", len(image_data));
             if rotate:
-                image_stream = io.BytesIO(image_data)
-                img = Image.open(image_stream)
-                image_data_rotated = img.rotate(rotate, expand=True)
-                output_stream = io.BytesIO()
-                image_data_rotated.save(output_stream, format="jpeg")
-                #print("download_image_data returning rotate") 
+                #print(f"download_image_data Rotate {rotate}")
+                try:
+                    image_stream = io.BytesIO(image_data)
+                    img = Image.open(image_stream)
+                    image_data_rotated = img.rotate(int(rotate), expand=True)
+                    output_stream = io.BytesIO()
+                    image_data_rotated.save(output_stream, format="jpeg")
+                    #print("download_image_data returning rotate") 
+                except Exception as e:
+                    print("download_image_data rotate failed ",e)
                 return output_stream.getvalue()
-            #print("download_image_data returning normal")
+            print("download_image_data returning normal")
             return image_data
         else:
             print(f"download_image_data Failed to download image. Status code:[{response.status_code}]")
@@ -160,7 +166,7 @@ def main():
             
             if payload in this_topic.keys():  
                 found_match = this_topic[payload] # see config.py for the data structure
-                print(">>found_match<<", found_match)
+                #print(">>found_match<<", found_match)
                 if found_match["only_on_change_of_payload"]:
                     #print(f"main match on change topic [{topic}][{payload}] toggle list [{toggle_list}]")
                     if topic in toggle_list:
