@@ -69,8 +69,8 @@ def download_image_data(url_info):
             image_data = response.content # Read the content as bytes
             response.close()
             #print("download_image_data image_data len", len(image_data));
-            if rotate:
-                angle = int(rotate) if str(rotate).isdigit() else 0
+            angle = int(rotate) if str(rotate).isdigit() else 0
+            if angle:
                 print(f"download_image_data Rotate {angle}")
                 try:
                     image_stream = io.BytesIO(image_data)
