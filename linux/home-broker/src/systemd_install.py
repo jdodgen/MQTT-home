@@ -18,7 +18,7 @@ modules = [
     ("alertaway-timers-daemon",       "timers_daemon.py", "Monitoring Timers ", 10),
     ("alertaway-triggers-http",       "triggers_http.py", "Maintain triggers", 10),
     ("alertaway-triggers-daemon",     "triggers_daemon.py", "Trigger & Event Logic", 10),
-    # ("alertaway-emailer-send_emails_daemon",  "send_emails_daemon.py", "Email Notifications", 10),
+    ("alertaway-emailer-send_emails_daemon",  "send_emails_daemon.py", "Email Notifications", 10),
     ("alertaway-emailer-email_http",          "email_http.py", "Maintain Emails", 10),
     ("alertaway-emailer-events_http",         "events_http.py", "Maintain email events", 10),
     ("alertaway-fauxmo-task",                 "fauxmo_manager.py", "Runs fauxmo/WeMo", 10),
