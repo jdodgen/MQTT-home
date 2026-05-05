@@ -75,17 +75,17 @@ async def create_IP_device(request):
         action = data.get("action")
         name = data["IP_frendly_name"]
         desc = data["IP_description"]
-        access = data["IP_access"]  #sub or pub
+        access = None #data["IP_access"]  #sub or pub
         print("create_IP_device", name, desc)
-        if name and desc and access:
+        if name and desc: # and access:
             print("upsert_device")
             DB.upsert_device(desc, name, "manIP")
             data_list = {
                 "friendly_name": name, 
-                "property": data["IP_property"],
-                "description": data["IP_feature"],
+                "property": None, #data["IP_property"],
+                "description": desc, #data["IP_feature"],
                 "type": "binary",
-                "access": data["IP_access"],
+                "access": None, #data["IP_access"],
                 "topic": data["IP_topic"],
                 "true_value": data["IP_true"],
                 "false_value": data["IP_false"],

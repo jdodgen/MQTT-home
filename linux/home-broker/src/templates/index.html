@@ -125,10 +125,10 @@
                 <select id="wemo_device" name="wemo_device" size="5">
                   {% for b in get_devices_for_wemo %}
                   <option value="{{b[0]}}">
-                 "{{b[1]}}"({{b[2]}})
-                  Property({{b[3]}})Desc[{{b[4]}}]
-                  topic[[{{b[5]}}]
-                  payloads[{{b[6]}}]&nbsp[{{b[7]}}] </option>
+                 "{{b[1]}}"&nbsp;&nbsp; <!-- ({{b[2]}})
+                  Property({{b[3]}})&nbsp;&nbsp;[{{b[4]}}] -->
+                  [{{b[5]}}]&nbsp;&nbsp;
+                  [{{b[6]}}]-[{{b[7]}}] </option>
                   {% endfor %}
                 </select>
               </th>
@@ -167,7 +167,7 @@
                 Description
               </th>
               <th>
-                feature
+                feature/topic
               </th>
               <th>
                 on payload
@@ -209,28 +209,29 @@
               <th><label for="IP_description">Description:</label>
                 <input type="text" id="IP_description" name="IP_description"><br>
               </th>
-            
+            </tr>
+            <!-- <tr>
               <th><label for="IP_property">Property:</label>
                 <input type="text" id="IP_property" name="IP_property"><br>
               </th>
               <th><label for="IP_feature">Feature:</label>
                 <input type="text" id="IP_feature" name="IP_feature"><br>
               </th>
-              </tr>
-              <tr>
-                <th>
+             </tr> -->
+             <tr>
+                <!-- <th>
                     <select name="IP_access" size="2">
                         <option value="sub"> Subscribe</option>
                         <option value="pub" selected> Publish</option>
                     </select>
-              </th>
+              </th> -->
               <th><label for="IP_topic">topic:</label>
                 <input type="text" id="IP_topic" name="IP_topic" size=30><br>
               </th>
-              <th><label for="IP_true">True:</label>
+              <th><label for="IP_true">Payload True/Value:</label>
                 <input type="text" id="IP_true" name="IP_true"><br>
               </th>
-              <th><label for="IP_false">False:</label>
+              <th><label for="IP_false">Payload False:</label>
                 <input type="text" id="IP_false" name="IP_false"><br>
               </th>
             </tr>
