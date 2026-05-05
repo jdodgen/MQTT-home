@@ -5,6 +5,7 @@ import jinja2
 import aiosqlite
 import http_common as config
 
+
 async def get_config(db_path):
     # 'async with' handles opening and automatically closing the connection
     async with aiosqlite.connect(db_path) as db:
@@ -72,7 +73,7 @@ async def init_app():
     return app
 
 def main():
-    web.run_app(init_app(), port=8082)
+    web.run_app(init_app(), port=config.CONFIG_PORT)
 
 def start_daemon():
     p = multiprocessing.Process(target=main)
