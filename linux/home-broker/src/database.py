@@ -731,14 +731,15 @@ INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_cha
         drop table if exists mqtt_feature;
         create table mqtt_feature (   mqtt_feature_id integer auto increment,
             friendly_name NOT NULL,
-            property NOT NULL,  -- unique within a device same as zigbee name
+            property,  -- unique within a device same as zigbee name
             description,
-            type NOT NULL, -- like "binary", lots of others things like battery etc.
-            access NOT NULL,   -- sub or pub
+            type , -- like "binary", lots of others things like battery etc.
+            access,   -- sub or pub if known
             topic NOT NULL,
             true_value,    -- usually the "on" value or result from a pub only device
             false_value,   -- off value
-            PRIMARY KEY (friendly_name, property, type, topic, access)
+            PRIMARY KEY (friendly_name, topic,  true_value)
+            --PRIMARY KEY (friendly_name, property, type, topic, access)
             --PRIMARY KEY (friendly_name, property, type, topic, access,  true_value, false_value)
         );
         drop table if exists timers;
