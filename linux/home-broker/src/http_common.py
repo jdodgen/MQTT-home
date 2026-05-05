@@ -141,9 +141,9 @@ def get_ip():
         s.close()
     return ip
     
-def get_broker_port():
-    cfg = get_db_config()
-    return cfg["broker_mqtt_port"]
+#def get_broker_port():
+#    cfg = get_db_config()
+#    return cfg["broker_mqtt_port"]
 
     
 if __name__ == "__main__":
