@@ -33,7 +33,7 @@ import database
 #from message import our_ip_address
 import http_common as config
 
-MY_IP = config.get_ip()
+BROKER_IP = config.get_db_config()["broker"]
 #
 # conditional print
 my_name = "fauxmo_manager"
@@ -103,6 +103,7 @@ def build_cfg() -> str:
         fauxmo_cfg = head % (config.MQTTPLUGIN)
         print("number of fauxmo devices[%s]" % (len(devices),))
         for dev in devices:
+            print(f"dev[{dev}]")
             port = dev[0].replace('"','\\"') if type(dev[0]) == str else dev[0]
             name = dev[1].replace('"','\\"')
             topic = dev[2].replace('"','\\"')
@@ -111,21 +112,21 @@ def build_cfg() -> str:
                 off_payload = dev[4].replace('"','\\"')
             except:
                 off_payload = None
-            fauxmo_cfg = fauxmo_cfg + per_device_minimum % (port, name, topic,on_payload, topic, off_payload, MY_IP, config.get_db_config()["broker_mqtt_port"])
+            fauxmo_cfg = fauxmo_cfg + per_device_minimum % (port, name, topic,on_payload, topic, off_payload, BROKER_IP, config.get_db_config()["broker_mqtt_port"])
             fauxmo_cfg = fauxmo_cfg + use_fake_state  
             fauxmo_cfg = fauxmo_cfg + initial_state
             """
             # in the future this MAY be added to fauxmo mqtt addon
             if dev[8] != "None" and dev[8] != "":
-                fauxmo_cfg = fauxmo_cfg +	state_cmd % (dev[8],)
+                fauxmo_cfg = fauxmo_cfg +   state_cmd % (dev[8],)
             if dev[9] != "None" and dev[9] != "":
-                fauxmo_cfg = fauxmo_cfg +	client_id % (dev[9],)
+                fauxmo_cfg = fauxmo_cfg +   client_id % (dev[9],)
             if dev[10] != "None" and dev[10] != "":
-                fauxmo_cfg = fauxmo_cfg +	login % (dev[10],dev[11])
+                fauxmo_cfg = fauxmo_cfg +   login % (dev[10],dev[11])
             if dev[12] != "None" and dev[12] != "":
-                fauxmo_cfg = fauxmo_cfg +	qos_cmd % (dev[12],)
+                fauxmo_cfg = fauxmo_cfg +   qos_cmd % (dev[12],)
             if dev[13] != "None" and dev[13] != "":
-                fauxmo_cfg = fauxmo_cfg +	retain_cmd % (dev[13],) """
+                fauxmo_cfg = fauxmo_cfg +   retain_cmd % (dev[13],) """
             fauxmo_cfg = fauxmo_cfg[:-1] + end
         fauxmo_cfg = fauxmo_cfg[:-1] + tail
         print(fauxmo_cfg)
