@@ -32,9 +32,10 @@ import http_common as config
 #import const
 import time
 
-OUR_IP = config.get_ip()
-BROKER_PORT = config.get_broker_port()
-
+cfg = config.get_db_config()
+BROKER_IP   = cfg["broker"]
+BROKER_PORT = cfg["broker_mqtt_port"]
+cfg = None
 #
 # conditional print
 import os 
@@ -78,7 +79,7 @@ class message():
         for x in range(10):
             try:
                 print("attempting mqtt connection ")
-                self.client.connect(OUR_IP, BROKER_PORT, keepalive=config.MQTT_KEEPALIVE) 
+                self.client.connect(BROKER_IP, BROKER_PORT, keepalive=config.MQTT_KEEPALIVE) 
                 break
             except Exception as e:
                 print(f"MQTT Connection Error: {e}")
@@ -169,29 +170,29 @@ class message():
          print("subscribe[%s]" % (topic,))
          return True
          
-    def cook(self, s):
+    def cook(self, s) -> bytes:
          return bytes(s, 'utf-8')
     
 def publish_single(topic, payload, my_parent=None):
     global parent
     parent = my_parent
     print("publish_single: topic[%s] payload[%s] broker[%s]" % 
-          (topic, payload, OUR_IP,))
-    rc = publish.single(topic, payload, hostname=OUR_IP) 
+          (topic, payload, BROKER_IP,))
+    rc = publish.single(topic, payload, hostname=BROKER_IP) 
     print("publish_single returned[%s]" % rc)
 
-def resubscribe(client, userdata, message):
-    xprint("resubscribe for %s" % (message.topic,))
-    client.unsubscribe(message.topic)
-    client.subscribe(message.topic)
+# def resubscribe(client, userdata, message):
+    # xprint("resubscribe for %s" % (message.topic,))
+    # client.unsubscribe(message.topic)
+    # client.subscribe(message.topic)
 
-def simple_subscribe(topic, my_parent=None):
-    global parent
-    parent = my_parent
-    print("simple_subscribe: topic[%s]  broker[%s]" % 
-          (topic, OUR_IP,))
-    rc = subscribe.callback(resubscribe, topic, hostname=OUR_IP) 
-    print("simple_subscribe returned[%s]" % rc)
+# def simple_subscribe(topic, my_parent=None):
+    # global parent
+    # parent = my_parent
+    # print("simple_subscribe: topic[%s]  broker[%s]" % 
+          # (topic, BROKER_IP,))
+    # rc = subscribe.callback(resubscribe, topic, hostname=BROKER_IP) 
+    # print("simple_subscribe returned[%s]" % rc)
     
 
 ### test area ###
