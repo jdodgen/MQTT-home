@@ -22,13 +22,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
+import os
 import subprocess
 import time
+# import fauxmo.cli
+# print("cli path", fauxmo.cli.__file__)
 # import const
 import database
 # import multiprocessing
 #from message import our_ip_address
-import os
 import http_common as config
 
 MY_IP = config.get_ip()
@@ -94,7 +96,7 @@ end = """
                 },"""
 
 
-def build_cfg():
+def build_cfg() -> str:
     db = database.database()
     devices = db.get_fauxmo_devices()
     if len(devices) > 0:
@@ -109,7 +111,7 @@ def build_cfg():
                 off_payload = dev[4].replace('"','\\"')
             except:
                 off_payload = None
-            fauxmo_cfg = fauxmo_cfg + per_device_minimum % (port, name, topic,on_payload, topic, off_payload, MY_IP, config.BROKER_MQTT_PORT)
+            fauxmo_cfg = fauxmo_cfg + per_device_minimum % (port, name, topic,on_payload, topic, off_payload, MY_IP, config.get_db_config()["broker_mqtt_port"])
             fauxmo_cfg = fauxmo_cfg + use_fake_state  
             fauxmo_cfg = fauxmo_cfg + initial_state
             """
@@ -153,6 +155,11 @@ def task():
     while True:
         if get_fauxmo_cfg() != None:
             try:
+                # process = subprocess.Popen([
+                        # "/usr/local/bin/fauxmo", 
+                        # "-c", config.FAUXMO_CONFIG_FILE_PATH, 
+                        # "-vv"
+                        # ])
                 os.execl("/usr/local/bin/fauxmo", "-c " + config.FAUXMO_CONFIG_FILE_PATH, "-vv")
                 # for testing  /usr/local/bin/fauxmo -c /etc/fauxmo/config.json   "
             except:
@@ -164,7 +171,7 @@ def task():
             print("No fauxmo devices")
         time.sleep(config.FAUXMO_SLEEP_SECONDS)  
 
-def get_fauxmo_cfg():
+def get_fauxmo_cfg() -> str:
     fauxmo_cfg = build_cfg()
     if fauxmo_cfg != None:
         # write the config file

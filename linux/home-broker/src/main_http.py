@@ -7,6 +7,7 @@ import re
 import message
 import mqtt_hello
 import restart_service
+from fauxmo_manager import build_cfg
 import http_common as config
 
 NAV =       config.nav_section()
@@ -135,9 +136,10 @@ async def create_wemo(request):
              restart_service.restart("alertaway-fauxmo-task")
              # pre systemd watch_dog_queue.put(["startfauxmotask", "start"])
         elif action == "display":
-            cfg = "fauxmo_cfg_placeholder" # Replace with your manager call
+            cfg = build_cfg()  #"fauxmo_cfg_placeholder" # Replace with your manager call
             return web.Response(text=f"<pre>{cfg}</pre>", content_type='text/html')
         else:
+            print(f"wemo[{data}]")
             if "wemo_name" in data and "wemo_device" in data:
                 DB.create_wemo(data["wemo_name"], data.get("wemo_port"), data["wemo_device"])
             else:
