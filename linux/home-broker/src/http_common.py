@@ -48,8 +48,10 @@ ZIGBEE2MQTT_BRIDGE_DEVICES = "zigbee2mqtt/bridge/devices"
 MQTT_SERVICE_Q_TIMEOUT = 60*60*4   # seconds every four hours if it times out then zb/ip devices are refreshed and "home/MQTT_devices" is published
 HOME_MQTT_DEVICES = "home/MQTTdevices/configuration"  # Normalized json of ALL devices.  home-broker "publish reatain"s this for other apps it has all the zb and ip devices unified
 WATCH_DOG_QUEUE_TIMEOUT = 20
-FAUXMO_DEFAULT_DIR = "/etc/fauxmo"  
+
+FAUXMO_DEFAULT_DIR = "." #"/etc/fauxmo"  
 FAUXMO_CONFIG_FILE_PATH = FAUXMO_DEFAULT_DIR+"/config.json"
+
 MQTTPLUGIN = "mqttplugin.py"
 FAUXMO_SLEEP_SECONDS = 240 # wake up every 4 minutes, Zzzzzz
 MOSQUITTO_FILE_PATH = "/etc/mosquitto/mosquitto.conf"
