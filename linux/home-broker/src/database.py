@@ -511,7 +511,7 @@ class database:
                 wemo_name,
                 wemo_port,
                 mqtt_device.friendly_name,
-                mqtt_feature.property,
+                mqtt_device.description,
                 mqtt_feature.topic,
                 mqtt_feature.true_value,
                 mqtt_feature.false_value
@@ -558,7 +558,7 @@ class database:
         from mqtt_feature
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
         where (type = "binary" and source = "ZB" and property like "state%" and topic like "%set")
-            or source = "IP"
+            or source = "IP" or source = "manIP"
         order by topic desc
         """)
         all = cur.fetchall()
@@ -579,7 +579,7 @@ class database:
         from mqtt_feature
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
         where (type = "binary" and source = "ZB" and property like "state%" and topic like "%get")
-            or source = "IP"
+            or source = "IP" or source = "manIP"
         order by topic desc
         """)
         all = cur.fetchall()
@@ -656,12 +656,25 @@ class database:
         return all
     def test_data(self):
         inserts = """
+INSERT INTO "mqtt_device" ("friendly_name","description","source","date") VALUES ('small thing','it does something','manIP','1777957024');
+INSERT INTO "mqtt_device" ("friendly_name","description","source","date") VALUES ('big thing','its a nice thing','manIP','1777957098');
+
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") VALUES (NULL,'small thing',NULL,'it does something','binary',NULL,'home/small_thing/state','1','0');
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") VALUES (NULL,'big thing',NULL,'its a nice thing','binary',NULL,'home/big_thing/state','yes','no');
+
+INSERT INTO "wemo" ("wemo_name","wemo_port","friendly_name","property","topic","qos","retain") VALUES ('bedroom light','55555','small thing',NULL,'home/small_thing/state',0,0);
+
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Driveway','http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1','admin','alert.Away','');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Front door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Side door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
+
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('bill','bill@foo.com');
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('don','don@foo.com');
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('Jim','jim@dodgen.us');
+
+INSERT INTO "timers" ("topic","true_value","false_value","days","start_type","start_hour","start_minute","start_offset","stop_type","stop_hour","stop_minute","stop_offset","time_to_stop","time_to_start","seconds_from_midnight","state") VALUES ('home/small_thing/state','1','0','0,1,2,3,4,5,6','Sunrise',0,0,'0','Sunrise',0,0,'30',NULL,NULL,NULL,NULL);
+
+INSERT INTO "triggers" ("sub_topic","sub_payload","pub_topic","pub_payload") VALUES ('home/small_thing/state','1','home/big_thing/state','yes');
 
 -- test set for simple_emailer 
 INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('bad thing','Side door');
@@ -670,6 +683,7 @@ INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('door open
 INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('door open','Driveway');
 INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('door bell','Front door');
 INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('door closed','Side door');
+
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('bad thing','Jim');
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('bad thing','don');
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door open','bill');
@@ -677,17 +691,12 @@ INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door closed','Jim');
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door closed','bill');
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door closed','don');
+
 INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('door open','home/door/state','open',0,'door is open','Me thinks a knave has left the hatch open');
 INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('bad thing','home/water/status','leaking',0,'water leak from heater','turn the valve next to the door off.
 if you had ball_valve_controller you could use triggers to turn it off automatically');
 INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('door bell','home/doorbell/button','',0,'door bell pressed','What do you see');
 INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('door closed','home/door/state','closed',0,'closed now','yes it is');
-
---- end of simple_emailer
-
---- test set for timers
---- test set for triggers
-
 """
         self.con.executescript(inserts)
         
