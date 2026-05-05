@@ -82,7 +82,7 @@ async def create_IP_device(request):
             DB.upsert_device(desc, name, "manIP")
             data_list = {
                 "friendly_name": name, 
-                "property": None, #data["IP_property"],
+                "property": "manual", #data["IP_property"],
                 "description": desc, #data["IP_feature"],
                 "type": "binary",
                 "access": None, #data["IP_access"],
