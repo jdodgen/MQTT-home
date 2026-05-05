@@ -70,7 +70,7 @@ class database:
             mqtt_feature.false_value
             from mqtt_feature
             join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
-            where mqtt_feature.access = "sub" and (type = 'binary' or type = 'momentary')
+            -- where mqtt_feature.access = "sub" and (type = 'binary' or type = 'momentary')
             order by mqtt_feature.friendly_name, mqtt_feature.property desc
         """)
         all = cur.fetchall()
@@ -93,7 +93,7 @@ class database:
         left join mqtt_feature on wemo.friendly_name = mqtt_feature.friendly_name
             and mqtt_feature.property = wemo.property
             and mqtt_feature.topic = wemo.topic
-        where mqtt_feature.access = "sub"
+        -- where mqtt_feature.access = "sub"
         """)
         all = cur.fetchall()
         cur.close()
@@ -520,7 +520,7 @@ class database:
             left join mqtt_feature on mqtt_device.friendly_name = mqtt_feature.friendly_name
                     and mqtt_feature.property = wemo.property
                     and mqtt_feature.topic = wemo.topic
-            where mqtt_feature.access = "sub"
+            --where mqtt_feature.access = "sub"
             order by wemo_name;
         """)
         all = cur.fetchall()
