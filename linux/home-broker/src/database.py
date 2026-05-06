@@ -656,13 +656,13 @@ class database:
         return all
     def test_data(self):
         inserts = """
-INSERT INTO "mqtt_device" ("friendly_name","description","source","date") VALUES ('small thing','it does something','manIP','1777957024');
-INSERT INTO "mqtt_device" ("friendly_name","description","source","date") VALUES ('big thing','its a nice thing','manIP','1777957098');
+INSERT INTO "mqtt_device" ("friendly_name","description","source","date") VALUES ('big thing','its a nice thing','manIP','1778015702');
+INSERT INTO "mqtt_device" ("friendly_name","description","source","date") VALUES ('small thing','small huh','manIP','1778015745');
 
-INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") VALUES (NULL,'small thing',NULL,'it does something','binary',NULL,'home/small_thing/state','1','0');
-INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") VALUES (NULL,'big thing',NULL,'its a nice thing','binary',NULL,'home/big_thing/state','yes','no');
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") VALUES (NULL,'big thing','manual','its a nice thing','binary',NULL,'home/big_thing/state','yes','no');
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") VALUES (NULL,'small thing','manual','small huh','binary',NULL,'home/small_thing/state','1','0');
 
-INSERT INTO "wemo" ("wemo_name","wemo_port","friendly_name","property","topic","qos","retain") VALUES ('bedroom light','55555','small thing',NULL,'home/small_thing/state',0,0);
+INSERT INTO "wemo" ("wemo_name","wemo_port","friendly_name","property","topic","qos","retain") VALUES ('foobar','55555','small thing','manual','home/small_thing/state',0,0);
 
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Driveway','http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1','admin','alert.Away','');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Front door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
