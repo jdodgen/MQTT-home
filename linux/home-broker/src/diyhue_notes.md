@@ -469,3 +469,53 @@ Would you like the exact command to test the connection from your terminal once 
 [10] [https://www.steves-internet-guide.com](http://www.steves-internet-guide.com/mqtt-username-password-example/)
 
 
+
+
+
+MY LE POTATOES HAVE eMMC's I want to boot off of the MicroSD but push all the IO  to the eMMc easy with my database but how do I get the system stuff like log files moved?
+
+
+
+
+To direct your system logs and IO from the MicroSD card to the eMMC on your Le Potato, the most effective method is to mount the eMMC partition over /var/log (or the entire /var directory) using the fstab configuration file. [1, 2] 
+## 1. Relocate System Logs (/var/log)
+Since /var/log is the primary location for system and service logs, moving it to the eMMC will offload most recurring write operations.
+
+   1. Identify and Format the eMMC Partition:
+   Find your eMMC device (usually /dev/mmcblk0) and create an ext4 partition.
+~~~
+   sudo mkfs.ext4 /dev/mmcblk0p1  # Replace p1 with your specific partition
+~~~
+   2. Mount and Sync Data:
+   Temporarily mount the eMMC to copy your existing logs so the system doesn't lose current data or folder structures.
+~~~
+   sudo mkdir /mnt/temp_emmc
+   sudo mount /dev/mmcblk0p1 /mnt/temp_emmc
+   sudo rsync -avxHAX /var/log/ /mnt/temp_emmc/  # Preserves permissions and structure
+~~~
+   3. Update fstab for Permanent Redirection:
+   Get the UUID of the eMMC partition using blkid and add it to your /etc/fstab.
+~~~ 
+   UUID=your-uuid-here  /var/log  ext4  defaults,noatime  0  2
+~~~
+   Note: Adding noatime reduces wear by not recording file access times. [1, 3, 4, 5, 6] 
+
+## 2. Move All Variable Data (/var)
+If you want to move all dynamic IO (not just logs, but also your SQL database and caches), you can mount the eMMC at /var instead of just /var/log. This ensures all "Frequently Changing Junk" lives on the faster eMMC while the SD card remains read-only for the core OS. [2, 7] 
+## 3. Consider Log2RAM (Optional)
+For a "hybrid" approach, you can use a utility like [Log2RAM](https://github.com/azlux/log2ram). It writes logs to a RAM disk and only syncs them to your eMMC once a day or during shutdown. This significantly extends the life of your storage and keeps IO speed high. [8] 
+## 4. Boot Priority Notice
+On Le Potato, the hardware typically prioritizes eMMC boot over MicroSD. Since you want to boot from MicroSD, ensure your eMMC does not contain a bootloader (U-Boot), or use the boot.ini file on your SD card to force the boot order to mmc1 (SD) then mmc0 (eMMC). [9, 10, 11] 
+Are you planning to move just the logs and database, or would you prefer to move the entire root filesystem to the eMMC to take full advantage of its speed?
+
+[1] [https://askubuntu.com](https://askubuntu.com/questions/39536/how-can-i-store-var-on-a-separate-partition)
+[2] [https://unix.stackexchange.com](https://unix.stackexchange.com/questions/293786/how-to-move-var-log-to-another-drive)
+[3] [https://www.reddit.com](https://www.reddit.com/r/linuxquestions/comments/usktsl/moving_varlog_to_separate_disk/)
+[4] [https://linuxconfig.org](https://linuxconfig.org/how-to-move-var-directory-to-another-partition)
+[5] [https://e2e.ti.com](https://e2e.ti.com/cfs-file/__key/communityserver-discussions-components-files/791/8030.Flash-Linux-to-eMMC.pdf)
+[6] [https://support.icompaas.com](https://support.icompaas.com/support/solutions/articles/62000234980-ensure-var-log-directory-is-mounted-on-a-separate-partition)
+[7] [https://unix.stackexchange.com](https://unix.stackexchange.com/questions/131311/moving-var-home-to-separate-partition)
+[8] [https://www.youtube.com](https://www.youtube.com/watch?v=VNrf_j3zcVM&t=1)
+[9] [https://hub.libre.computer](https://hub.libre.computer/t/erase-emmc-and-start-over-or-boot-from-sd-card/3305)
+[10] [https://www.facebook.com](https://www.facebook.com/groups/librecomputer/posts/1135784510629659/)
+[11] [https://hub.libre.computer](https://hub.libre.computer/t/how-to-change-boot-order-on-libre-computer-boards/4057)
