@@ -39,7 +39,9 @@ def reload_config():
     #if not pid:
        # return False
     #print(" pid[%s]" % (pid,))
-    subprocess.run(["sudo", "systemctl", "restart", "mosquitto"], check=True)
+    import restart_service
+    restart_service.restart("mosquitto")
+    #subprocess.run(["sudo", "systemctl", "restart", "mosquitto"], check=True)
     #os.kill(pid, signal.SIGHUP)   # tells mosquitto to reload config
     return True
 
