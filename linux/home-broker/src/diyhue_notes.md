@@ -13,7 +13,7 @@ esp32_hue_json '''{
   "schema": "json"
 } '''
 ~~~
-ANY TOPIC RILES?
+IS "esp32/{device_id}/state" A PLACEHOLDER CAN I HAVE ANY TOPIC?
 
 Exactly. "esp32/{device_id}/state" is just a placeholder; you can use any topic structure you've 
 already built over the last 15 years.
