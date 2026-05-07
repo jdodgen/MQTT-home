@@ -33,6 +33,8 @@ import database
 #from message import our_ip_address
 import http_common as config
 
+# sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 52000-52600
+
 BROKER_IP = config.get_db_config()["broker"]
 #
 # conditional print
