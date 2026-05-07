@@ -2,7 +2,7 @@
 '''
 MIT License
 
-Copyright (c) 2023,2024 Jim Dodgen
+Copyright (c) 2026 Jim Dodgen
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@ import os
 import subprocess
 import time
 import database
-# import multiprocessing
 #from message import our_ip_address
 import http_common as config
 
@@ -44,6 +43,7 @@ def print_always(*args, **kwargs): # replace print
 def send_discovery_payloads() -> str:
     db = database.database()
     devices = db.get_fauxmo_devices()
+    db.close()
     if len(devices) > 0:
         fauxmo_cfg = head % (config.MQTTPLUGIN)
         print("number of fauxmo devices[%s]" % (len(devices),))
@@ -88,7 +88,6 @@ def task():
             pass
             print("No fauxmo devices")
         time.sleep(config.FAUXMO_SLEEP_SECONDS)  
-
 
 if __name__ == "__main__":
    
