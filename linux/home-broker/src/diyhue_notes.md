@@ -11,7 +11,7 @@ esp32_hue_json '''{
   "command_topic": "esp32/kitchen/set",
   "brightness": true,
   "schema": "json"
-}
+} '''
 ~~~
 ANY TOPIC RILES?
 
