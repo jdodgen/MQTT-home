@@ -249,14 +249,17 @@ You’ll likely end up with three core services on the Le Potato:
    >1. zigbee2mqtt.service: Manages the hardware dongle.
    >2. diyhue.service: Manages the Alexa/Hue API.
    >3. alertaway-manager.service: Your custom Python script that bridges the DB to MQTT and handles any complex logic (like the tankless heater timing).
->ALERTAWAY HAS AN ADDITIONAL       
+>ALERTAWAY HAS AN ADDITIONAL 12 SERVICES     
 
 ## 4. MicroPython Compatibility
 Since your ESP32s run MicroPython, they are already perfectly suited for the "Alertaway" philosophy. They just subscribe to the topics your Python manager defines.
 A quick tip for the rewrite:
-When configuring the new Zigbee dongle in Z2M, make sure to set the network_key to something custom (don't use the default) in your configuration.yaml. Since you're going open-source and starting fresh, it’s a great security "best practice" to include in your documentation.
+When configuring the new Zigbee dongle in Z2M, make sure to set the network_key to something custom (don't use the default) in your configuration.yaml.    
+
+Since you're going open-source and starting fresh, it’s a great security "best practice" to include in your documentation.   
 Since you are putting this on a dedicated Linux instance, do you plan to use Nginx as a reverse proxy to give yourself a "Unified Dashboard," or do you prefer accessing each tool (Z2M, diyHue) by its specific port?
 
+NO
 
 
 
@@ -268,12 +271,14 @@ very specific topic format. This is what allows your devices to "announce" thems
 automatically appear in Alexa. [1, 2] 
 ## 1. The Topic Format
 
-The topic itself acts as the "address" for the configuration. It follows this structure:
+>The topic itself acts as the "address" for the configuration. It follows this structure:
+```
 <discovery_prefix>/<component>/<object_id>/config [3, 4] 
-
-* discovery_prefix: Default is homeassistant.
-* component: The type of device, e.g., light, switch, or binary_sensor.
-* object_id: A unique, URL-safe ID for the device (e.g., kitchen_valve). [2, 3, 4, 5, 6] 
+```
+>* discovery_prefix: Default is homeassistant.
+>* component: The type of device, e.g., light, switch, or binary_sensor.
+  >> FROM A DIFFERENT DISCUSSION For a simple on/off relay in diyHue, the light component is actually the best choice, even if the device isn't technically a bulb
+>* object_id: A unique, URL-safe ID for the device (e.g., kitchen_valve). [2, 3, 4, 5, 6] 
 
 Example Topic: homeassistant/switch/alertaway_valve/config [3, 4] 
 ------------------------------
