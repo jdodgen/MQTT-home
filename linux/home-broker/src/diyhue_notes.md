@@ -234,7 +234,8 @@ Since you mentioned using the Z2M Frontend (port 8080) and diyHue (port 80), you
 
 >* Port 80: diyHue (Alexa Interface & API)   
 >* Port 8080: Zigbee2MQTT Frontend (Management)   
->* Port 1883: Mosquitto (If hosted here, though you mentioned it's on the RPi)   
+>* Port 1883: Mosquitto (If hosted here, though you mentioned it's on the RPi)
+>* PORTS 8081 - 8089 RESERVED FOR ALERTAWAY   
 * Unique Ports: You can retire the 52xxx range unless you keep a few legacy Fauxmo devices.   
 
 ## 2. SQLite3 for Persistence
@@ -261,10 +262,7 @@ Since you are putting this on a dedicated Linux instance, do you plan to use Ngi
 
 NO
 
-
-
-
-
+DESCRIBE THE DISCOVERY PAYLOAD
 
 The discovery payload for diyHue (and Home Assistant) must follow a specific JSON structure published to a 
 very specific topic format. This is what allows your devices to "announce" themselves to your Le Potato and
@@ -282,9 +280,9 @@ automatically appear in Alexa. [1, 2]
 
 Example Topic: homeassistant/switch/alertaway_valve/config [3, 4] 
 ------------------------------
-## 2. The JSON Payload Format
-The payload is a serialized JSON dictionary that mirrors a standard MQTT configuration. [7, 8] 
-## Standard Switch (For your Valve or Heaters)
+>## 2. The JSON Payload Format
+>The payload is a serialized JSON dictionary that mirrors a standard MQTT configuration. [7, 8] 
+>## Standard Switch (For your Valve or Heaters)
 ~~~
 {
   "name": "Main Valve",
@@ -302,8 +300,8 @@ The payload is a serialized JSON dictionary that mirrors a standard MQTT configu
 }
 ~~~
 
-* unique_id: Critical. This must never change, as it's how Alexa/diyHue identifies the device long-term.
-* device: This block groups multiple entities (like a status sensor and a switch) into a single "device" in the UI. [9, 10, 11, 12, 13] 
+>* unique_id: Critical. This must never change, as it's how Alexa/diyHue identifies the device long-term.
+>* device: This block groups multiple entities (like a status sensor and a switch) into a single "device" in the UI. [9, 10, 11, 12, 13] 
 
 ## Dimmable Light (For your Zigbee or ESP32 Lights)
 If you want dimming support, use the json schema: [14, 15] 
@@ -325,7 +323,9 @@ If you want dimming support, use the json schema: [14, 15]
    3. Publish with Retain: You must publish this message with the retain flag set to true. This ensures that if the RPi broker or Le Potato restarts, the discovery message is still there for diyHue to read immediately upon reconnection. [4, 16] 
 
 # Example of publishing from your Alertaway script
+~~~
 client.publish(topic, payload, retain=True)
+~~~
 
 Would you like a sample Python loop that pulls these fields directly from a basic SQLite table?
 
