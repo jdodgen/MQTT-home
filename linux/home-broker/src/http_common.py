@@ -3,6 +3,7 @@
 #
 VERSION = "2.0"
 import os
+import uuid
 import socket
 import sqlite3
 
@@ -145,6 +146,15 @@ def get_ip():
 #    cfg = get_db_config()
 #    return cfg["broker_mqtt_port"]
 
+def get uuid():
+    # Get the hardware address
+    mac_int = uuid.getnode()
+    # Convert to uppercase hex and ensure it's padded correctly
+    # This gives you something like 'AABBCCDDEEFF'
+    uid = f"{mac_int:012X}"
+    return uid
+
+print(f"Your static Bridge ID: {bridge_id}")
     
 if __name__ == "__main__":
     print("get_ip: ", get_ip())  

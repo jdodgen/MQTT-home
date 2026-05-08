@@ -864,6 +864,15 @@ ensure_dependencies()
 If your manager is running as a systemd service (likely as root or a user with NOPASSWD sudo), it will have the permissions to install that global package. Just make sure your systemd unit doesn't have ProtectSystem=full or ReadonlyPaths=/usr/ if you want the manager to be able to auto-install missing dependencies.
 Are you planning to have the manager also auto-update diyHue from GitHub, or are you pinning it to a specific version for stability?
 
+~~~
+import uuid
 
+# Get the hardware address
+mac_int = uuid.getnode()
 
+# Convert to uppercase hex and ensure it's padded correctly
+# This gives you something like 'AABBCCDDEEFF'
+bridge_id = f"{mac_int:012X}"
 
+print(f"Your static Bridge ID: {bridge_id}")
+~~~
