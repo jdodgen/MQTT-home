@@ -52,7 +52,7 @@ def send_ssdp_alive(new_ip, bridge_uuid):
         f"USN: uuid:{bridge_uuid}::upnp:rootdevice\r\n"
         "\r\n"
     )
-
+    print(msg)
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     sock.sendto(msg.encode('utf-8'), (SSDP_ADDR, SSDP_PORT))
 
@@ -62,6 +62,7 @@ if __name__ == "__main__":
     #
     db = database.database() #just to get tables created if needed
     db.close()
+    print("database initilized if needed")
     #
     curr_ip = ""
     while True:
@@ -69,6 +70,6 @@ if __name__ == "__main__":
         if curr_ip != ip:
             curr_ip = ip
             send_ssdp_alive(ip, config.get_uuid())
-        timer.sleep(10)  # testing 10 , a little longer in production
+        time.sleep(config.WATCHDOG_TIMER)  # testing 10 , a little longer in production
         
         
