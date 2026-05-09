@@ -146,7 +146,7 @@ def get_ip():
 #    cfg = get_db_config()
 #    return cfg["broker_mqtt_port"]
 
-def get uuid():
+def get_uuid():
     # Get the hardware address
     mac_int = uuid.getnode()
     # Convert to uppercase hex and ensure it's padded correctly
@@ -154,10 +154,11 @@ def get uuid():
     uid = f"{mac_int:012X}"
     return uid
 
-print(f"Your static Bridge ID: {bridge_id}")
+#print(f"Your static Bridge ID: {bridge_id}")
     
 if __name__ == "__main__":
     print("get_ip: ", get_ip())  
+    print("get_uuid: ", get_uuid())  
     print("\n\nnav_section:", nav_section())
     try:
         cfg=get_db_config()

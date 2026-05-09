@@ -63,12 +63,12 @@ if __name__ == "__main__":
     db = database.database() #just to get tables created if needed
     db.close()
     #
-    curr_ip = config.get_ip()  # IP at start
+    curr_ip = ""
     while True:
         ip = config.get_ip()
         if curr_ip != ip:
             curr_ip = ip
-            send_ssdp_alive(ip, config.get_uuid()):
+            send_ssdp_alive(ip, config.get_uuid())
         timer.sleep(10)  # testing 10 , a little longer in production
         
         
