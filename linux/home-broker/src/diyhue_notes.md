@@ -917,9 +917,9 @@ Do you need the specific JSON structure to manually add your valve to the config
 [9] https://diyhue.org
 [10] [https://github.com](https://github.com/diyhue/diyHue/issues/376)
 
-==========================
-END OF INSTALL INFO
-=========================
+## ==========================
+## END OF INSTALL INFO
+## =========================
 
 HUE DISCOVERY 
 To have diyHue discover only the specific devices you want by publishing a discovery payload, you should follow the Home Assistant MQTT Discovery standard. [1, 2] 
