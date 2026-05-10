@@ -1,5 +1,6 @@
 # this is a cut and paste from a gemini conversation
-## using diyhue which is a Philips Hue emulator inplace of the current fauxmo which imulates WeMo
+### using diyhue which is a Philips Hue emulator 
+### inplace of the current fauxmo which emulates WeMo
 
 SAMPLE DISCOVERY PAYLOAD
 ~~~
