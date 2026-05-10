@@ -474,14 +474,7 @@ Would you like the exact command to test the connection from your terminal once 
 [9] [https://circuitpython-homie.readthedocs.io](https://circuitpython-homie.readthedocs.io/en/stable/tutorials/mosquitto.html)
 [10] [https://www.steves-internet-guide.com](http://www.steves-internet-guide.com/mqtt-username-password-example/)
 
-
-
-
-
-MY LE POTATOES HAVE eMMC's I want to boot off of the MicroSD but push all the IO  to the eMMc easy with my database but how do I get the system stuff like log files moved?
-
-
-
+## MY LE POTATOES HAVE eMMC's I want to boot off of the MicroSD but push all the IO  to the eMMc easy with my database but how do I get the system stuff like log files moved?
 
 To direct your system logs and IO from the MicroSD card to the eMMC on your Le Potato, the most effective method is to mount the eMMC partition over /var/log (or the entire /var directory) using the fstab configuration file. [1, 2] 
 ## 1. Relocate System Logs (/var/log)
@@ -527,9 +520,7 @@ Are you planning to move just the logs and database, or would you prefer to move
 [11] [https://hub.libre.computer](https://hub.libre.computer/t/how-to-change-boot-order-on-libre-computer-boards/4057)
 
 
-MY LE POTATOES HAVE eMMC's I want to boot off of the MicroSD but push all the IO  to the eMMc easy with my database but how do I get the system stuff like log files moved?
-
-
+## MY LE POTATOES HAVE eMMC's I want to boot off of the MicroSD but push all the IO  to the eMMc easy with my database but how do I get the system stuff like log files moved?
 
 To direct your system logs and IO from the MicroSD card to the eMMC on your Le Potato, the most effective method is to mount the eMMC partition over /var/log (or the entire /var directory) using the fstab configuration file. [1, 2] 
 ## 1. Relocate System Logs (/var/log)
@@ -580,7 +571,7 @@ That makes perfect sense—having the manager handle the "announcement" right be
 Since you're using os.execl, the manager effectively "becomes" diyHue, so firing that SSDP packet just before the swap is the perfect hook.
 HThat’s a smart move. Storing it in a config table gives you a "single source of truth" and prevents the identity from drifting if you ever move the manager to new hardware.
 
-
+USING A DATABASE
 
 Since you're setting this up in your database, here is the most robust way to structure that identity:
 ## 1. The "Golden" Pair
@@ -641,7 +632,7 @@ def generate_hue_mac():
 print(generate_hue_mac())
 ~~~
 
-
+SQLITE3
 
 
 SQLite is perfect for this. It’s lightweight, stays local to your manager, and handles the "first-run" logic beautifully.
@@ -675,9 +666,9 @@ def initialize_bridge_identity(db_path="manager.db"):
     
     conn.close()
     return mac
-~~~
+
 # Your manager flowbridge_mac = initialize_bridge_identity()bridge_id = bridge_mac.replace(":", "").upper().replace("88", "88FFFE", 1)
-~~~
+
 print(f"Manager using MAC: {bridge_mac} | ID: {bridge_id}")
 ~~~
 ## Why this is the "Best Practice" for a Manager:
@@ -688,7 +679,7 @@ print(f"Manager using MAC: {bridge_mac} | ID: {bridge_id}")
 Are you also storing the IP Address in that table to keep it static, or are you letting the manager detect it dynamically from the interface each time?
 
 
-
+MAYBE
 
 
 That is the most robust way to do it. By comparing the Stored IP (DB) against the Live IP (System), your manager can act as an "Event Trigger" rather than just a dumb launcher.
@@ -732,7 +723,7 @@ One final detail: When you drop the JSON for diyHue,
 are you also injecting the "ip" field into the config, or are you letting diyHue try to bind to 0.0.0.0?
 
 
-
+INJECTING
 
 
 
@@ -752,7 +743,7 @@ Since you've got the identity and network healing locked down, are you planning 
 
 
 
-
+NO, MQTT
 
 
 Integrating Zigbee2MQTT (Z2M) with your manager is a slightly different beast than deCONZ, but it’s actually more powerful because it uses the MQTT broker as the middleman.
@@ -786,11 +777,7 @@ Z2M uses "Friendly Names" (like Kitchen_Light). diyHue will adopt these names.
 
 Are you running the MQTT Broker (like Mosquitto) on the same machine as the manager, or is it on a separate server?
 
-
-
-
-
-
+ON SAME MACHINE
 
 That is the most flexible way to build it. Since your manager is already doing the "Healer" check for its own IP, you can add a simple Pre-Flight Check for the MQTT broker.
 If the manager sees that the MQTT broker is set to 127.0.0.1 (same machine), it can verify the service is up before launching diyHue.
@@ -832,14 +819,6 @@ One thing to watch out for: diyHue needs the paho-mqtt library installed in its 
 
 
 
-
-
-
-
-
-
-
-
 Running everything in the global Python environment makes your manager's life much easier—it doesn't have to hunt for specific site-packages or binary paths.
 However, since you're using Z2M, there is one "gotcha" with the global environment: dependencies. diyHue won't even attempt to connect to your MQTT broker unless paho-mqtt is present.
 ## The Manager "Prerequisite" Check
@@ -876,3 +855,251 @@ bridge_id = f"{mac_int:012X}"
 
 print(f"Your static Bridge ID: {bridge_id}")
 ~~~
+
+## =====================
+## how do I install and configure diyhue to simply install the code not as systemd
+## service also communicate with a mqtt broker.  also not automaticly add devices.
+## =====================
+
+To install and configure diyHue without using a systemd service, following a manual code-only approach, follow these steps:
+## 1. Manual Code Installation
+Instead of the automatic script, clone the repository and run the Python script directly. This allows you to manage it manually (e.g., via screen or a simple background process) rather than as a background system service. [1, 2] 
+
+   1. Clone the Repo:
+   ~~~
+   git clone https://github.com/diyhue/diyHue.git
+   cd diyHue/BridgeEmulator
+   ~~~
+   2. Install Dependencies: Ensure you have Python 3 and the required libraries installed:
+   ~~~
+   pip3 install ws4py requests astral paho-mqtt
+   sudo apt install nmap  # Required for light discovery
+  ~~~ 
+   3. Run Manually: Execute the main script with root privileges to allow it to bind to port 80:
+   ~~~
+   sudo python3 HueEmulator.py
+   ~~~
+   [2, 3] 
+
+## 2. Configure MQTT Broker [4] 
+To connect diyHue to your broker, you must edit the config.json file. This file is typically created in the directory where you run the emulator after the first start. [5] 
+
+   1. Stop the emulator if it is running.
+   2. Edit config.json: Locate the mqtt section and fill in your broker details:
+   ~~~
+   "mqtt": {
+       "enabled": true,
+       "mqttServer": "YOUR_BROKER_IP",
+       "mqttPort": 1883,
+       "mqttUser": "your_username",
+       "mqttPassword": "your_password",
+       "discoveryPrefix": "homeassistant"
+   }
+   ~~~
+   [5] 
+
+## 3. Disable Automatic Device Addition [6] 
+By default, diyHue uses MQTT Discovery to automatically find and add devices that publish a discovery payload (commonly used by Zigbee2MQTT or Tasmota). To stop this: [7] 
+
+* Turn off Discovery: Change the discoveryPrefix in your config.json to a nonsense string that your devices don't use, or simply ensure your MQTT devices have discovery disabled in their own local settings.
+* Manual Scanning: diyHue typically won't "permanently" add devices until you trigger a scan via the Hue app or the web UI at http://{IP}/scan. To prevent unwanted additions, avoid using these scan functions. [6, 8, 9, 10] 
+
+Do you need the specific JSON structure to manually add your valve to the config.json now that auto-discovery is off?
+
+[1] [https://github.com](https://github.com/mariusmotea/diyHue/wiki/Host-Install)
+[2] [https://hackaday.io](https://hackaday.io/project/21111/instructions)
+[3] [https://github.com](https://github.com/diyhue/diyhue)
+[4] [https://www.youtube.com](https://www.youtube.com/watch?v=8ol5pO7ZZhk&t=78)
+[5] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
+[6] [https://www.youtube.com](https://www.youtube.com/watch?v=VHiCtZqllU8&t=378)
+[7] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
+[8] [https://johnmu.com](https://johnmu.com/setting-up-mqtt-with-auto-discovery-on_17/)
+[9] https://diyhue.org
+[10] [https://github.com](https://github.com/diyhue/diyHue/issues/376)
+
+==========================
+END OF INSTALL INFO
+=========================
+
+HUE DISCOVERY 
+To have diyHue discover only the specific devices you want by publishing a discovery payload, you should follow the Home Assistant MQTT Discovery standard. [1, 2] 
+When you publish a JSON configuration to a specific topic, diyHue (acting as a "listener" for discovery messages) will automatically create that light in its virtual bridge. [2, 3] 
+## 1. The Discovery Topic Structure
+You must publish your configuration to a topic that follows this format:
+~~~
+homeassistant/light/[device_id]/config [1, 4] 
+~~~
+* homeassistant: This is the default discoveryPrefix. Ensure it matches what you set in your config.json.
+* light: diyHue primarily listens for the light component.
+* [device_id]: A unique ID for your device (e.g., valve_001). [3, 5, 6, 7] 
+
+## 2. The Discovery Payload
+For your "Main Valve," you will publish a JSON payload that tells diyHue how to talk to it. Since diyHue expects a light, use the light domain: [3] 
+Topic: homeassistant/light/valve_001/config
+Payload:
+~~~
+{
+  "name": "Main Valve",
+  "unique_id": "valve_001",
+  "state_topic": "home/main_valve/state",
+  "command_topic": "home/main_valve/toggle",
+  "payload_on": "on",
+  "payload_off": "off",
+  "device": {
+    "identifiers": ["valve_001"],
+    "name": "Main Valve",
+    "model": "MQTT Valve",
+    "manufacturer": "DIY"
+  }
+}
+~~~
+
+* unique_id: Critical for diyHue to track the device correctly.
+* device block: Helps the Hue app group and identify the "hardware". [5, 8, 9] 
+
+## 3. Setting diyHue to "Listen"
+Since you are running the code manually and want to control discovery:
+
+   1. Enable MQTT in your config.json but keep the discoveryPrefix set to homeassistant (or your chosen string).
+   2. Publish with "Retain": When you publish your discovery payload, set the Retain flag to true. This ensures that if diyHue restarts, it sees the message immediately upon reconnecting to the broker and "re-discovers" the light.
+   3. Trigger a Scan: In the Hue app or at http://{IP}/scan, trigger a search. diyHue will then look at those discovery topics and add any new devices it finds to its internal light list. [10, 11, 12, 13, 14] 
+
+Would you like an example of a Python snippet or a shell command to publish this discovery message to your broker?
+
+[1] [https://mpolinowski.github.io](https://mpolinowski.github.io/docs/Automation_and_Robotics/Home_Automation/2022-07-10-home-assistant-mqtt-autodiscovery-part-i/2022-07-10/)
+[2] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
+[3] [https://github.com](https://github.com/diyhue/diyHue/issues/310)
+[4] [https://www.youtube.com](https://www.youtube.com/watch?v=VHiCtZqllU8)
+[5] [https://www.youtube.com](https://www.youtube.com/watch?v=VHiCtZqllU8&t=559)
+[6] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
+[7] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
+[8] [https://community.home-assistant.io](https://community.home-assistant.io/t/mqtt-discovery-for-a-multiple-switch-device/922470)
+[9] [https://community.home-assistant.io](https://community.home-assistant.io/t/mqtt-discovery-setup/740394)
+[10] [https://github.com](https://github.com/diyhue/diyHue/issues/376)
+[11] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
+[12] [https://www.youtube.com](https://www.youtube.com/watch?v=0X5skZ7KD3g)
+[13] [https://www.youtube.com](https://www.youtube.com/watch?v=0X5skZ7KD3g)
+[14] [https://diyhue.discourse.group](https://diyhue.discourse.group/t/diyhue-with-ha-and-z2mqtt/748)
+
+
+
+
+To get a simple on/off switch working with diyHue, you need to publish one configuration message to the discovery topic. Once that is done, the actual "on" or "off" commands happen on the functional topics.
+## 1. The Discovery Message (Setup)
+Run this command (or send this JSON) once. This tells diyHue the device exists and what words to use for "on" and "off."
+Topic: homeassistant/light/switch_01/config
+Payload:
+~~~
+{
+  "name": "Kitchen Light",
+  "unique_id": "sw_01",
+  "command_topic": "home/switch_01/set",
+  "state_topic": "home/switch_01/state",
+  "payload_on": "ON",
+  "payload_off": "OFF"
+}
+~~~
+------------------------------
+## 2. The Operational Messages (Daily Use)
+After you trigger a "Search for lights" in the Hue app, diyHue will watch the topics defined above.
+
+* When you tap "ON" in the Hue App:
+diyHue publishes the payload ON to the topic home/switch_01/set.
+* When your device turns on (Status):
+Your device should publish ON to home/switch_01/state. diyHue sees this and updates the light's icon in your app so it doesn't look "stuck."
+
+------------------------------
+## Quick Test via CLI
+If you have mosquitto_clients installed, you can test the setup with these two commands:
+
+   1. Register the device:
+   
+   mosquitto_pub -h localhost -r -t "homeassistant/light/switch_01/config" -m '{"name":"Kitchen Light","unique_id":"sw_01","command_topic":"home/switch_01/set","state_topic":"home/switch_01/state","payload_on":"ON","payload_off":"OFF"}'
+   
+   2. Simulate the device being "ON":
+   ~~~
+   mosquitto_pub -h localhost -t "home/switch_01/state" -m "ON"
+   ~~~
+   
+Note: If you change payload_on to "1" and payload_off to "0", diyHue will send 1 or 0 to your device instead.
+Does your hardware expect text (ON/OFF) or numbers (1/0) for its commands?
+
+I USE Z2M NAMING CONVENTION
+
+That’s a smart move. Using the Zigbee2MQTT Friendly Name as both your MQTT topic path and your unique_id is the gold standard for organization.
+Since you’re doing this, here is the most efficient way to structure your discovery to keep everything synced:
+## Best Practice for Friendly Names
+If your Z2M Friendly Name is kitchen_island_light, your discovery setup should look like this:
+
+* Topic: homeassistant/light/kitchen_island_light/config
+* Unique ID: kitchen_island_light
+* Topics: home/kitchen_island_light/set and home/kitchen_island_light/state
+
+## Why this works perfectly for diyHue:
+
+   1. Human Readable: If you see an error in the diyHue logs, the ID tells you exactly which physical light is acting up.
+   2. IP Device Consistency: By using the same naming convention for your IP devices (like ESP32s or Shellies), they will sit alongside your Zigbee devices in the broker with the same hierarchy.
+   3. No Collisions: As long as you don't name a Zigbee device and an IP device the exact same thing in your house, you’ll never have a unique_id conflict.
+
+## A Quick Tip on Spaces
+Zigbee2MQTT allows spaces in Friendly Names, but MQTT topics and unique_ids can sometimes get "wonky" with them. If your Friendly Name is Kitchen Island, it's safer to use kitchen_island (lowercase with underscores) for the discovery fields.
+Since you're syncing with Z2M, do you want the discovery payloads to include brightness/dimming for those devices, or are you sticking to strictly On/Off?
+
+THIS PROJECT IS BINARY
+
+Perfect. Keeping it binary (strictly On/Off) makes your discovery payloads much leaner and less prone to errors. Since you are using Zigbee2MQTT friendly names, here is your "template" for a rock-solid, binary-only discovery message:
+## The Binary Discovery Template
+Topic: ###homeassistant/light/[friendly_name]/config
+Payload:
+~~~
+{
+  "name": "Friendly Name",
+  "unique_id": "[friendly_name]",
+  "state_topic": "zigbee2mqtt/[friendly_name]/state",
+  "command_topic": "zigbee2mqtt/[friendly_name]/set",
+  "payload_on": "ON",
+  "payload_off": "OFF"
+}
+~~~
+## Why this is ideal for your setup:
+
+* State Alignment: By default, Z2M publishes ON or OFF (uppercase) to the state topic. Matching that in payload_on/off ensures diyHue reflects the real status immediately.
+* Minimalist: Since you aren't adding brightness: true or color fields, diyHue will present this to the Hue Bridge as a "On/Off plug-in unit" or a "Non-dimmable light". This prevents the Hue app from showing a brightness slider that wouldn't work anyway.
+* Consistency: This same JSON structure works for your IP-based devices—just change the state_topic and command_topic to match your IP device's MQTT path.
+
+One final check: Since Z2M usually publishes a JSON object (like {"state": "ON"}) instead of a simple string, do you need the value_template to extract the state, or have you configured Z2M to output attribute strings?
+
+BRIGHTNESS AS A VARIABLE
+
+If you plan to use brightness for any variable value (like a valve percentage, fan speed, or even a literal dimmer), you just need to add two key lines to your discovery payload.
+In the Hue ecosystem, "Brightness" is a value from 0 to 254. To keep things simple, you can tell diyHue to use a standard 0 to 100 scale instead by adding a brightness_scale.
+## The "Variable" Binary + Dimmer Template
+Topic: homeassistant/light/[friendly_name]/config
+Payload:
+~~~
+{
+  "name": "Variable Device",
+  "unique_id": "[friendly_name]",
+  "state_topic": "home/[friendly_name]/state",
+  "command_topic": "home/[friendly_name]/set",
+  "payload_on": "ON",
+  "payload_off": "OFF",
+  "brightness_state_topic": "home/[friendly_name]/brightness",
+  "brightness_command_topic": "home/[friendly_name]/brightness/set",
+  "brightness_scale": 100
+}
+~~~
+## How this works for "Anything Variable":
+
+   1. Binary Control: You still have the ON/OFF toggle for the main switch.
+   2. The Slider: In the Hue app, you will now see a brightness slider.
+   3. The Value: When you move the slider to 75%, diyHue will publish the number 75 to your brightness_command_topic.
+   * If it's a Valve: 75 means 75% open.
+      * If it's a Fan: 75 means 75% speed.
+      * If it's a Light: 75 means 75% brightness.
+   
+## Important Note for diyHue
+Once you add the brightness fields to the discovery payload, diyHue will change the device type from a "Simple On/Off Plug" to a "Dimmable Light." If you change your mind later and want to go back to strictly binary, you must delete the device from the Hue app and re-publish the discovery payload without the brightness lines.
+Would you like to know how to use a "Template" to handle devices that send everything (on/off and brightness) in a single JSON message?
+
+
