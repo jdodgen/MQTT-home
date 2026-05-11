@@ -1,6 +1,7 @@
 # MIT Licence copyright 2026 Jim dodgen
 # install Mosquitto #this had some breakage 
 TESTING=True
+# cut and paste these a few at a time
 def install_script():
     '''
   600  sudo apt-add-repository ppa:mosquitto-dev/mosquitto-ppa
