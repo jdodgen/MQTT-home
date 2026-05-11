@@ -70,11 +70,6 @@ def task():
     while True:
         if send_discovery_payloads() != None:
             try:
-                # process = subprocess.Popen([
-                        # "/usr/local/bin/fauxmo", 
-                        # "-c", config.FAUXMO_CONFIG_FILE_PATH, 
-                        # "-vv"
-                        # ])
                 os.execl("/usr/local/bin/fauxmo", "-c " + config.FAUXMO_CONFIG_FILE_PATH, "-vv")
                 # for testing  /usr/local/bin/fauxmo -c /etc/fauxmo/config.json   "
             except:
