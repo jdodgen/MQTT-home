@@ -15,7 +15,8 @@ def install_script():
 
     # Install latest nodejs from snap store
     # The --classic argument is required here as Node.js needs full access to your system in order to be useful.
-    # You can also use the --channel=XX argument to install a legacy version where XX is the version you want to install (we need 14+).
+    # You can also use the --channel=XX argument to 
+    # install a legacy version where XX is the version you want to install (we need 14+).
     
     sudo snap install node --classic
     
@@ -49,6 +50,7 @@ def install_script():
     
     node --version  # Should output LTS versions V20.x or newer
 
+	# zigbee2mqtt install now
     # Create a directory for zigbee2mqtt and set your user as owner of it
     
     sudo mkdir /opt/zigbee2mqtt
