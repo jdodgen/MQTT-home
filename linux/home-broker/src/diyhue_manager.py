@@ -1,8 +1,6 @@
 # diyhue_manager.py
 '''
-MIT License
-
-Copyright (c) 2026 Jim Dodgen
+MIT License Copyright (c) 2026 Jim Dodgen
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +24,6 @@ import os
 import subprocess
 import time
 import database
-#from message import our_ip_address
 import http_common as config
 
 BROKER_IP = config.get_db_config()["broker"]
