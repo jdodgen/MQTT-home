@@ -863,7 +863,9 @@ print(f"Your static Bridge ID: {bridge_id}")
 
 To install and configure diyHue without using a systemd service, following a manual code-only approach, follow these steps:
 ## 1. Manual Code Installation
-Instead of the automatic script, clone the repository and run the Python script directly. This allows you to manage it manually (e.g., via screen or a simple background process) rather than as a background system service. [1, 2] 
+Instead of the automatic script, clone the repository and run the Python script directly. 
+This allows you to manage it manually (e.g., via screen or a simple background process) 
+rather than as a background system service. [1, 2] 
 
    1. Clone the Repo:
    ~~~
@@ -1102,4 +1104,90 @@ Payload:
 Once you add the brightness fields to the discovery payload, diyHue will change the device type from a "Simple On/Off Plug" to a "Dimmable Light." If you change your mind later and want to go back to strictly binary, you must delete the device from the Hue app and re-publish the discovery payload without the brightness lines.
 Would you like to know how to use a "Template" to handle devices that send everything (on/off and brightness) in a single JSON message?
 
+
+DOES DISCOVER TOPIC HAVE TO BE NONSENCE?
+
+Using alertaway is perfectly fine!
+The reason I suggested a "nonsense" string is simply because most people use standard defaults (like homeassistant). If you use a generic one, diyHue might accidentally "discover" every smart light your neighbor has or every random MQTT device on your network.
+By using alertaway, you are doing something even better than "nonsense"—you are creating a private namespace.
+## Why alertaway is a great choice:
+
+   1. Isolation: diyHue will ignore any discovery messages sent to the standard homeassistant/ topic. It will only listen to alertaway/.
+   2. No Clutter: Only the devices you specifically tell to announce themselves on alertaway/light/... will show up in your Hue app.
+   3. Cleanliness: Your normal MQTT status/command messages (the "operational" data) stay on their own topics, while alertaway is reserved strictly for the "handshake" that sets up the device.
+
+## How to implement it:
+
+   1. In config.json:
+   
+   "mqtt": {
+       "enabled": true,
+       "discoveryPrefix": "alertaway",
+       ...
+   }
+   
+   2. In your Discovery Payload:
+   You must now publish your discovery JSON to:
+   alertaway/light/[friendly_name]/config
+
+Are you planning to have your IP devices publish this discovery message automatically on boot, or will you send it manually via a script?
+
+That is the ideal workflow. Since your service handles the "handshake" (discovery) before diyHue starts, you’ve built a very stable, deterministic system.
+Here are a few technical checks to ensure that transition is seamless:
+## 1. Use the Retain Flag
+Since your service runs before diyHue, you must publish those discovery payloads with the retain flag set to true.
+
+* Why: If they aren't retained, the broker "forgets" the message as soon as your service finishes. When diyHue starts 2 seconds later, the "mailbox" is empty, and it won't see your devices.
+* Result: With retain: true, diyHue sees those messages the millisecond it connects to the broker.
+
+## 2. The "Discovery" vs. "Bridge" Timing
+Even if the payloads are retained, diyHue only processes discovery during specific windows:
+
+* On Start: It usually parses retained discovery messages immediately upon connection.
+* On Scan: If a device doesn't appear, triggering a "Search for lights" in the Hue app forces diyHue to re-scan those MQTT topics.
+
+## 3. Topic Structure Check
+Since you are using alertaway, ensure your service is publishing to:
+alertaway/light/[unique_id]/config
+## 4. Ensure diyHue is "Ready"
+Since you are running diyHue manually (not as a service), make sure your manager script gives the broker a split-second to process the discovery table before the Python script initializes the MQTT client.
+Example Logic for your Manager:
+
+   1. Loop: Publish alertaway/light/valve_1/config (Retained).
+   2. Loop: Publish alertaway/light/switch_1/config (Retained).
+   3. Wait: sleep 1 (Just to let the broker breathe).
+   4. Execute: cd /path/to/diyHue/BridgeEmulator && sudo python3 HueEmulator.py
+
+Are you planning to have your service also publish the "State" (ON/OFF) of these devices so diyHue knows their status immediately on boot?
+
+MOSTLY I NEED TO FAKE OR ASSUME IT WORKED
+
+To "fake" the state of a device that does NOT send feedback via MQTT, 
+    you can use Optimistic Mode or a loopback configuration. 
+    Since the device won't report its state back, 
+    diyHue needs to assume the command was successful and update its internal state immediately.
+    
+## 1. Enable "Optimistic Mode"
+    In MQTT-based home automation, "Optimistic Mode" forces the system to assume a device 
+    has reached the target state as soon as a command is sent. 
+        * How it works: If you don't define a state_topic, many MQTT integrations default to this mode.
+        * For diyHue: Ensure your device's MQTT configuration does not have a separate state_topic defined, 
+         *or explicitly set "optimistic": true if your configuration schema allows it.
+
+## 2. The Loopback Trick (Matching Topics)
+    If diyHue requires a state_topic to display correctly, 
+    you can set the state_topic to be exactly the same as the command_topic.
+        * When diyHue sends a command to your/device/set, it effectively "hears" its own command 
+            as a state update if the topics are identical.
+        * Caution: This only works if the payload format for 
+            the "set" command and the "state" report are identical (e.g., both just send {"state": "ON"}).
+
+## 3. Use an External Script (Virtual Feedback)
+    You can run a small script (e.g., in Node-RED or Python) that listens 
+    for the command you send and immediately publishes a fake status back to the expected state topic.
+        * Logic: Listen to your/device/set $\rightarrow$ Wait 100ms 
+            $\rightarrow$ Publish the same payload to your/device/state.
+        * This ensures the Hue app and diyHue see a confirmed "On" or "Off" state without the actual physical device ever saying a word. [9, 10, 11] 
+
+Are you configuring this directly in the diyHue config.json or through a discovery service like [Zigbee2MQTT](https://www.zigbee2mqtt.io/)? [12] 
 
