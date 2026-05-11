@@ -3,6 +3,7 @@
 ### inplace of the current fauxmo which emulates WeMo
 
 SAMPLE DISCOVERY PAYLOAD
+
 ~~~
 esp32_hue_json '''{
   "name": "Kitchen ESP",
@@ -13,6 +14,7 @@ esp32_hue_json '''{
   "schema": "json"
 } '''
 ~~~
+
 IS "esp32/{device_id}/state" A PLACEHOLDER CAN I HAVE ANY TOPIC?
 
 Exactly. "esp32/{device_id}/state" is just a placeholder; you can use any topic structure you've 
@@ -32,6 +34,7 @@ They just keep doing what they've always done—listening to their specific MQTT
 If your current ESP32 devices don't use JSON but just expect raw strings like ON or OFF, 
 just remove the "schema": "json" line from the discovery payload.
 Example for your specific "Main Valve" topic:
+
 ~~~
 {
   "name": "Main Valve",
@@ -42,6 +45,7 @@ Example for your specific "Main Valve" topic:
   "payload_off": "off"
 }
 ~~~
+
 ## Pro Tip for your "affordable" Zigbee devices:
 BAD ADVICE SEE BELOW In your Zigbee2MQTT configuration.yaml, just set homeassistant: true. 
 Zigbee2MQTT will then automatically send out these discovery payloads for every Zigbee device you own, 
@@ -66,12 +70,14 @@ only for the specific Zigbee devices you want Alexa to see.
 
 ## 2. The Zigbee2MQTT "Exclusion" List
 If you do want to use the built-in Zigbee2MQTT discovery but want to hide certain things, you can add an availability or homeassistant block to individual devices in your configuration.yaml:
+
 ~~~
 devices:
   '0x00158d0001':
     friendly_name: 'Secret Sensor'
     homeassistant: null  # This hides it from discovery
 ~~~
+
 ## 3. The diyHue "Decline" Move
 In the diyHue web interface (usually http://<potato-ip>/), there is a section for "New Lights." 
 When diyHue sees a discovery message on the network, it doesn't always 
@@ -94,6 +100,7 @@ EVERTHING WILL NEED TO BE LOADED
 
 Since you're starting fresh, are you planning to use the Zigbee2MQTT Frontend (usually on port 8080) 
 to manage your pairing?
+
 ~~~
 AI can make mistakes, so double-check responses 9 sitesAll settings | 
 Zigbee2MQTTApr 5, 2026 — channel * Type: number. * Default: 11. * Minimum: 11. * Maximum: 26. 
@@ -151,6 +158,7 @@ REINITILIZE IF IP HAS CHANGED
 
 >## The SSDP "Alive" Payload
 >To "self-heal" the connection, your Python script should broadcast a UDP packet to 239.255.255.250 on port 1900. The packet must look like this:
+
 ~~~
 NOTIFY * HTTP/1.1
 HOST: 239.255.255.250:1900
@@ -161,6 +169,7 @@ NT: upnp:rootdevice
 USN: uuid:[YOUR-BRIDGE-UUID]::upnp:rootdevice
 ~~~
 
+
 ## Why this fixes it without a "Discovery" command:
 
    1. The Trigger: Your script detects the IP has changed.
@@ -170,6 +179,7 @@ USN: uuid:[YOUR-BRIDGE-UUID]::upnp:rootdevice
 
 >## Python Implementation Strategy
 >Since you’re already using Python for your manager script, you can add a simple "Beacon" function.
+
 ~~~
 import socket
 def send_ssdp_alive(new_ip, bridge_uuid):
@@ -191,6 +201,7 @@ def send_ssdp_alive(new_ip, bridge_uuid):
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     sock.sendto(msg.encode('utf-8'), (SSDP_ADDR, SSDP_PORT))
 ~~~
+
 >## Crucial Integration Detail
 >For this to work, the UUID in your Python script must match the UUID that diyHue generated. You can find this in the diyHue config.json under bridgeid.   
 Would you like the code to automatically pull that UUID from the diyHue config file so your "Self-Healer" is always in sync?
@@ -211,6 +222,7 @@ Because diyHue is bi-directional via MQTT, it creates a great feedback loop for 
 
 ## Connecting the Le Potato to the RPi Broker
 When you set up diyHue on the Le Potato, you'll just need to configure the MQTT section of the config.json (or the web UI) with the RPi's static IP:
+
 ~~~
 "mqtt": {
     "host": "192.168.0.XXX", // Your RPi's IP
@@ -219,6 +231,7 @@ When you set up diyHue on the Le Potato, you'll just need to configure the MQTT 
     "password": "your_password"
 }
 ~~~
+
 ## Pro Tip: The "Watchdog"
 Since your project is 15 years in the making, you probably value reliability. You can actually have the Le Potato monitor the RPi. If the Potato loses its connection to the RPi's broker, you could have a "Heartbeat" device in diyHue turn "Off" or "Red" in the Alexa app to warn you that your "Main Brain" is offline.
 Are you planning to give the Le Potato and the RPi their own dedicated names in your network (like potato.local and recirc.local) to make finding them easier?
@@ -270,9 +283,11 @@ automatically appear in Alexa. [1, 2]
 ## 1. The Topic Format
 
 >The topic itself acts as the "address" for the configuration. It follows this structure:
+
 ```
 <discovery_prefix>/<component>/<object_id>/config [3, 4] 
 ```
+
 >* discovery_prefix: Default is homeassistant.
 >* component: The type of device, e.g., light, switch, or binary_sensor.
   >> FROM A DIFFERENT DISCUSSION For a simple on/off relay in diyHue, the light component is actually the best choice, even if the device isn't technically a bulb
@@ -283,6 +298,7 @@ Example Topic: homeassistant/switch/alertaway_valve/config [3, 4]
 >## 2. The JSON Payload Format
 >The payload is a serialized JSON dictionary that mirrors a standard MQTT configuration. [7, 8] 
 >## Standard Switch (For your Valve or Heaters)
+
 ~~~
 {
   "name": "Main Valve",
@@ -304,7 +320,8 @@ Example Topic: homeassistant/switch/alertaway_valve/config [3, 4]
 >* device: This block groups multiple entities (like a status sensor and a switch) into a single "device" in the UI. [9, 10, 11, 12, 13] 
 
 ## Dimmable Light (For your Zigbee or ESP32 Lights)
-If you want dimming support, use the json schema: [14, 15] 
+If you want dimming support, use the json schema:
+
 ~~~
 {
   "name": "Kitchen Light",
@@ -315,6 +332,7 @@ If you want dimming support, use the json schema: [14, 15]
   "brightness": true
 }
 ~~~
+
 ------------------------------   
 ## 3. Implementation Steps for your SQLite Script
 
@@ -323,29 +341,13 @@ If you want dimming support, use the json schema: [14, 15]
    3. Publish with Retain: You must publish this message with the retain flag set to true. This ensures that if the RPi broker or Le Potato restarts, the discovery message is still there for diyHue to read immediately upon reconnection. [4, 16] 
 
 # Example of publishing from your Alertaway script
+
 ~~~
+
 client.publish(topic, payload, retain=True)
 ~~~
 
 Would you like a sample Python loop that pulls these fields directly from a basic SQLite table?
-
-[1] [https://www.youtube.com](https://www.youtube.com/watch?v=VHiCtZqllU8)
-[2] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
-[3] [https://mpolinowski.github.io](https://mpolinowski.github.io/docs/Automation_and_Robotics/Home_Automation/2022-07-10-home-assistant-mqtt-autodiscovery-part-i/2022-07-10/)
-[4] [https://mpolinowski.github.io](https://mpolinowski.github.io/docs/Automation_and_Robotics/Home_Automation/2022-07-10-home-assistant-mqtt-autodiscovery-part-i/2022-07-10/)
-[5] [https://community.home-assistant.io](https://community.home-assistant.io/t/how-to-format-the-json-in-mqtt-discovery/606515#:~:text=homeassistant/light/server/light/config%20%7B%20%22name%22:%20%22Light%22%2C%20%22unique_id%22:%20%22serverlight%22%2C%20%22object_id%22:,%22company%22%2C%20%22model%22:%20%22controller%22%2C%20%22suggested_area%22:%20%22Server%22%20%7D%20%7D)
-[6] [https://mpolinowski.github.io](https://mpolinowski.github.io/docs/Automation_and_Robotics/Home_Automation/2022-07-10-home-assistant-mqtt-autodiscovery-part-i/2022-07-10/)
-[7] [https://www.youtube.com](https://www.youtube.com/watch?v=VHiCtZqllU8)
-[8] [https://mpolinowski.github.io](https://mpolinowski.github.io/docs/Automation_and_Robotics/Home_Automation/2022-07-10-home-assistant-mqtt-autodiscovery-part-i/2022-07-10/)
-[9] [https://community.home-assistant.io](https://community.home-assistant.io/t/mqtt-discovery-for-a-multiple-switch-device/922470)
-[10] [https://gist.github.com](https://gist.github.com/Resinchem/ecd86dfb52bd699c79acfa80cd348d7b)
-[11] [https://www.facebook.com](https://www.facebook.com/groups/HomeAssistant/posts/3847744052163603/)
-[12] [https://www.facebook.com](https://www.facebook.com/groups/HomeAssistant/posts/3847744052163603/)
-[13] [https://community.openhab.org](https://community.openhab.org/t/mqtt-device-discovery-payload/167213#:~:text=The%20config%20message%20itself%20looks%20as%20follows:,value_json.OutdoorTempCurrent%20%7D%7D%22%20%7D%2C%20%7D%2C%20%22stat_t%22:%20%22OVUM%2DAC312P/state%22%20%7D)
-[14] [https://www.home-assistant.io](https://www.home-assistant.io/integrations/light.mqtt/)
-[15] [https://community.home-assistant.io](https://community.home-assistant.io/t/mqtt-light-discovery-json-schema-pass-current-brightness-when-light-toggled-on/325114)
-[16] [https://community.home-assistant.io](https://community.home-assistant.io/t/creating-a-device-with-multiple-sensor-entities-via-mqtt-discovery/584372)
-
 
 What do I need for a simple install of diyhue that waits for the  json that my code publishes.?
 
@@ -353,10 +355,12 @@ What do I need for a simple install of diyhue that waits for the  json that my c
 For a minimal diyHue install on your Le Potato that exclusively waits for your custom MQTT discovery payloads, you only need the core emulator and a one-time configuration change. [1] 
 ## 1. Simple Installation (Direct Service)
 The easiest way to install it as a standalone service on your Le Potato is using the official automated script: [2] 
+
 ~~~
 curl -fsSL https://get.diyhue.org -o install.sh
 sudo bash install.sh
 ~~~
+
 Choose the Master branch and your network interface when prompted. This will automatically create a hue-emulator.service in systemd for you. [2, 3] 
 ## 2. Configure for MQTT Discovery [1] 
 After the first run, you must edit the generated config.json (usually found in /opt/hue-emulator/ or /home/pi/.diyhue/) to point to your RPi broker: [1, 4] 
@@ -374,6 +378,7 @@ After the first run, you must edit the generated config.json (usually found in /
        "mqttPassword": "your_password"
    }
 ~~~
+
    4. Start the service: sudo systemctl start hue-emulator.service
 
 ## 3. Core Requirements
@@ -386,16 +391,6 @@ After the first run, you must edit the generated config.json (usually found in /
 Once the service is running and connected to your RPi broker, it will sit idle. The moment your Python code publishes a retained JSON payload to the homeassistant/light/+/config topic, diyHue will "hear" it and register the device internally. To make them appear in Alexa, you then simply trigger a "Search for lights" in the Alexa app or the diyHue web UI. [1, 9, 10] 
 Since you're managing this as a dedicated service, would you like to see a systemd health-check script to ensure your RPi broker and Le Potato bridge are always talking?
 
-[1] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
-[2] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/getting_started.html)
-[3] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/getting_started.html)
-[4] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/homeassistant.html)
-[5] [https://community.home-assistant.io](https://community.home-assistant.io/t/guide-using-the-hue-app-with-home-assistant-via-diyhue/296684)
-[6] [https://efcomputer.net.au](https://efcomputer.net.au/blog/diyhue-light-using-esp8266/)
-[7] [https://github.com](https://github.com/diyhue/Lights/issues/108)
-[8] [https://community.home-assistant.io](https://community.home-assistant.io/t/guide-using-the-hue-app-with-home-assistant-via-diyhue/296684/6)
-[9] [https://www.youtube.com](https://www.youtube.com/watch?v=VHiCtZqllU8)
-[10] [https://www.instructables.com](https://www.instructables.com/DIY-Complete-Philips-Hue-Home-Automation/)
 
 
 two questions: "homeassistant" can this be changed?  diyhue using the MAC that means this could use dhcp abd have the ip address change unlike fauxmo
@@ -419,18 +414,6 @@ While diyHue uses your Le Potato’s MAC address as the "seed" to generate a per
 In Fauxmo, every single virtual device has its own "session." If the IP changes, every device breaks. In diyHue, the entire bridge is one entity. If you do have an IP change, you only have to "re-link" or "discover" the bridge once, and all 50+ devices attached to it are instantly fixed. [6] 
 Summary Recommendation: Use a DHCP reservation on your router so alertaway.local always stays on the same IP. This combines the convenience of DHCP with the rock-solid reliability that Alexa requires. [9, 10] 
 Would you like the specific lines to add to your Python code to check for an IP change and alert you via your ESP32's piezo buzzer?
-
-[1] [https://community.home-assistant.io](https://community.home-assistant.io/t/mqtt-discovery-problems/439434)
-[2] [https://diyhue.discourse.group](https://diyhue.discourse.group/t/diyhue-and-alexa/749/4)
-[3] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
-[4] [https://johnmu.com](https://johnmu.com/setting-up-mqtt-with-auto-discovery-on_17/)
-[5] [https://www.home-assistant.io](https://www.home-assistant.io/integrations/emulated_hue/)
-[6] [https://www.reddit.com](https://www.reddit.com/r/homeassistant/comments/1m7be6c/which_devices_should_i_assign_static_ips_to/)
-[7] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/getting_started.html)
-[8] [https://www.reddit.com](https://www.reddit.com/r/amazonecho/comments/1dfacq7/any_advantage_to_making_wifi_bulbs_static_ip/)
-[9] [https://www.reddit.com](https://www.reddit.com/r/homeautomation/comments/6ngfmf/do_i_need_to_be_setting_static_ipsdhcp/)
-[10] [https://www.reddit.com](https://www.reddit.com/r/HomeKit/comments/an51gw/should_i_give_static_ips_to_all_my_hk_devices/)
-
 
 how to add user/pass to mosquitto 
 
@@ -457,22 +440,14 @@ listener 1883 0.0.0.0
 
 ## 3. Restart Mosquitto [4] 
 For the changes to take effect, you must restart the service: [3, 8] 
+
 ~~~
 sudo systemctl restart mosquitto
 ~~~
+
 Note: If you are using Mosquitto version 2.0 or newer, you must define a listener and set allow_anonymous false to allow devices from other IP addresses to connect, even if you are using a password. [9, 10] 
 Would you like the exact command to test the connection from your terminal once you've set this up?
 
-[1] [https://mosquitto.org](https://mosquitto.org/documentation/authentication-methods/)
-[2] [https://www.steves-internet-guide.com](http://www.steves-internet-guide.com/mqtt-username-password-example/)
-[3] [https://www.cedalo.com](https://www.cedalo.com/blog/mqtt-broker-raspberry-pi-installation-guide)
-[4] [https://www.gravio.com](https://www.gravio.com/en-blog/tutorial-how-to-set-up-a-mosquitto-mqtt-broker-securely----using-client-certificates)
-[5] [https://www.mankier.com](https://www.mankier.com/1/mosquitto_passwd)
-[6] [https://manpages.ubuntu.com](https://manpages.ubuntu.com/manpages/jammy/man5/mosquitto.conf.5.html)
-[7] [https://mosquitto.org](https://mosquitto.org/man/mosquitto_passwd-1.html)
-[8] [https://www.gravio.com](https://www.gravio.com/en-blog/tutorial-how-to-set-up-a-mosquitto-mqtt-broker-securely----using-client-certificates)
-[9] [https://circuitpython-homie.readthedocs.io](https://circuitpython-homie.readthedocs.io/en/stable/tutorials/mosquitto.html)
-[10] [https://www.steves-internet-guide.com](http://www.steves-internet-guide.com/mqtt-username-password-example/)
 
 ## MY LE POTATOES HAVE eMMC's I want to boot off of the MicroSD but push all the IO  to the eMMc easy with my database but how do I get the system stuff like log files moved?
 
@@ -482,21 +457,27 @@ Since /var/log is the primary location for system and service logs, moving it to
 
    1. Identify and Format the eMMC Partition:
    Find your eMMC device (usually /dev/mmcblk0) and create an ext4 partition.
+   
 ~~~
    sudo mkfs.ext4 /dev/mmcblk0p1  # Replace p1 with your specific partition
 ~~~
+
    2. Mount and Sync Data:
    Temporarily mount the eMMC to copy your existing logs so the system doesn't lose current data or folder structures.
+   
 ~~~
    sudo mkdir /mnt/temp_emmc
    sudo mount /dev/mmcblk0p1 /mnt/temp_emmc
    sudo rsync -avxHAX /var/log/ /mnt/temp_emmc/  # Preserves permissions and structure
 ~~~
+
    3. Update fstab for Permanent Redirection:
    Get the UUID of the eMMC partition using blkid and add it to your /etc/fstab.
+   
 ~~~ 
    UUID=your-uuid-here  /var/log  ext4  defaults,noatime  0  2
 ~~~
+
    Note: Adding noatime reduces wear by not recording file access times. [1, 3, 4, 5, 6] 
 
 ## 2. Move All Variable Data (/var)
@@ -507,18 +488,6 @@ For a "hybrid" approach, you can use a utility like [Log2RAM](https://github.com
 On Le Potato, the hardware typically prioritizes eMMC boot over MicroSD. Since you want to boot from MicroSD, ensure your eMMC does not contain a bootloader (U-Boot), or use the boot.ini file on your SD card to force the boot order to mmc1 (SD) then mmc0 (eMMC). [9, 10, 11] 
 Are you planning to move just the logs and database, or would you prefer to move the entire root filesystem to the eMMC to take full advantage of its speed?
 
-[1] [https://askubuntu.com](https://askubuntu.com/questions/39536/how-can-i-store-var-on-a-separate-partition)
-[2] [https://unix.stackexchange.com](https://unix.stackexchange.com/questions/293786/how-to-move-var-log-to-another-drive)
-[3] [https://www.reddit.com](https://www.reddit.com/r/linuxquestions/comments/usktsl/moving_varlog_to_separate_disk/)
-[4] [https://linuxconfig.org](https://linuxconfig.org/how-to-move-var-directory-to-another-partition)
-[5] [https://e2e.ti.com](https://e2e.ti.com/cfs-file/__key/communityserver-discussions-components-files/791/8030.Flash-Linux-to-eMMC.pdf)
-[6] [https://support.icompaas.com](https://support.icompaas.com/support/solutions/articles/62000234980-ensure-var-log-directory-is-mounted-on-a-separate-partition)
-[7] [https://unix.stackexchange.com](https://unix.stackexchange.com/questions/131311/moving-var-home-to-separate-partition)
-[8] [https://www.youtube.com](https://www.youtube.com/watch?v=VNrf_j3zcVM&t=1)
-[9] [https://hub.libre.computer](https://hub.libre.computer/t/erase-emmc-and-start-over-or-boot-from-sd-card/3305)
-[10] [https://www.facebook.com](https://www.facebook.com/groups/librecomputer/posts/1135784510629659/)
-[11] [https://hub.libre.computer](https://hub.libre.computer/t/how-to-change-boot-order-on-libre-computer-boards/4057)
-
 
 ## MY LE POTATOES HAVE eMMC's I want to boot off of the MicroSD but push all the IO  to the eMMc easy with my database but how do I get the system stuff like log files moved?
 
@@ -528,11 +497,14 @@ Since /var/log is the primary location for system and service logs, moving it to
 
    1. Identify and Format the eMMC Partition:
    Find your eMMC device (usually /dev/mmcblk0) and create an ext4 partition.
+   
 ~~~
    sudo mkfs.ext4 /dev/mmcblk0p1  # Replace p1 with your specific partition
 ~~~
+
    2. Mount and Sync Data:
    Temporarily mount the eMMC to copy your existing logs so the system doesn't lose current data or folder structures.
+   
 ~~~
    sudo mkdir /mnt/temp_emmc
    sudo mount /dev/mmcblk0p1 /mnt/temp_emmc
@@ -540,9 +512,12 @@ Since /var/log is the primary location for system and service logs, moving it to
 ~~~
    3. Update fstab for Permanent Redirection:
    Get the UUID of the eMMC partition using blkid and add it to your /etc/fstab.
+   
 ~~~ 
+
    UUID=your-uuid-here  /var/log  ext4  defaults,noatime  0  2
 ~~~
+
    Note: Adding noatime reduces wear by not recording file access times. [1, 3, 4, 5, 6] 
 
 ## 2. Move All Variable Data (/var)
@@ -552,19 +527,6 @@ For a "hybrid" approach, you can use a utility like [Log2RAM](https://github.com
 ## 4. Boot Priority Notice
 On Le Potato, the hardware typically prioritizes eMMC boot over MicroSD. Since you want to boot from MicroSD, ensure your eMMC does not contain a bootloader (U-Boot), or use the boot.ini file on your SD card to force the boot order to mmc1 (SD) then mmc0 (eMMC). [9, 10, 11] 
 Are you planning to move just the logs and database, or would you prefer to move the entire root filesystem to the eMMC to take full advantage of its speed?
-
-[1] [https://askubuntu.com](https://askubuntu.com/questions/39536/how-can-i-store-var-on-a-separate-partition)
-[2] [https://unix.stackexchange.com](https://unix.stackexchange.com/questions/293786/how-to-move-var-log-to-another-drive)
-[3] [https://www.reddit.com](https://www.reddit.com/r/linuxquestions/comments/usktsl/moving_varlog_to_separate_disk/)
-[4] [https://linuxconfig.org](https://linuxconfig.org/how-to-move-var-directory-to-another-partition)
-[5] [https://e2e.ti.com](https://e2e.ti.com/cfs-file/__key/communityserver-discussions-components-files/791/8030.Flash-Linux-to-eMMC.pdf)
-[6] [https://support.icompaas.com](https://support.icompaas.com/support/solutions/articles/62000234980-ensure-var-log-directory-is-mounted-on-a-separate-partition)
-[7] [https://unix.stackexchange.com](https://unix.stackexchange.com/questions/131311/moving-var-home-to-separate-partition)
-[8] [https://www.youtube.com](https://www.youtube.com/watch?v=VNrf_j3zcVM&t=1)
-[9] [https://hub.libre.computer](https://hub.libre.computer/t/erase-emmc-and-start-over-or-boot-from-sd-card/3305)
-[10] [https://www.facebook.com](https://www.facebook.com/groups/librecomputer/posts/1135784510629659/)
-[11] [https://hub.libre.computer](https://hub.libre.computer/t/how-to-change-boot-order-on-libre-computer-boards/4057)
-
 
 
 That makes perfect sense—having the manager handle the "announcement" right before it handoffs control to the diyHue process. It ensures the network is primed and Alexa is looking at the right IP before the bridge even finishes booting.
@@ -576,16 +538,19 @@ USING A DATABASE
 Since you're setting this up in your database, here is the most robust way to structure that identity:
 ## 1. The "Golden" Pair
 Store both the MAC and the UUID as a linked pair. To keep things clean, use the standard Hue mapping:
+
 ~~~
 * MAC: 00:17:88:11:22:33
 * BridgeID: 001788FFFE112233 (The MAC with FFFE stuffed in the middle).
 ~~~
+
 ## 2. Implementation in your Manager
 When your manager prepares to drop the JSON, it should pull those values and inject them like this:
 
 # Assuming 'db_row' is what you fetched from your config tablemac_address = db_row['mac_address'] # e.g., "00:17:88:11:22:33"bridge_id = mac_address.replace(":", "").upper().replace("88", "88FFFE", 1)
 
 # Inject into the diyHue config 
+
 ~~~
 structureconfig_json = {
     "mac": mac_address,
@@ -593,6 +558,7 @@ structureconfig_json = {
     # ... other config fields ...
 }
 ~~~
+
 ## 3. Why the "Config Table" approach wins
 If you ever run multiple diyHue instances on the same network (e.g., one for upstairs, one for downstairs), you can just spin up a second manager with a different row in your config table. This prevents MAC conflicts that would otherwise kick one of the bridges off the network.
 Pro-Tip: Make sure your manager also checks if the host's actual network interface can be "spoofed" to that MAC, or if you're relying on diyHue to just report that MAC in its API (which is usually enough for Alexa).
@@ -601,6 +567,7 @@ Do you want a quick helper function to generate a valid random Philips OUI MAC t
 
 Here is a quick Python function to generate a random MAC address using the official Philips Hue prefix (00:17:88).
 You can use this to "seed" your config table if a MAC doesn't exist yet:
+
 ~~~
 import random
 def generate_hue_mac():
@@ -613,12 +580,14 @@ def generate_hue_mac():
 # Example usage for your config tablenew_mac = generate_hue_mac()
 print(f"Generated MAC: {new_mac}")
 ~~~
+
 ## Why this works for your setup:
 
 * Discovery: Using 00:17:88 ensures that discovery tools (like the Hue App or Alexa) recognize the device as a legitimate bridge immediately.
 * Consistency: By generating this once and saving it to your table, you ensure the Bridge ID and IP reservation (if your router is set up for it) never change.
 
 How are you handling the database side—are you using a simple SQLite file for the manager, or something like Redis/Postgres?
+
 ~~~
 import random
 def generate_hue_mac():
@@ -638,6 +607,7 @@ SQLITE3
 SQLite is perfect for this. It’s lightweight, stays local to your manager, and handles the "first-run" logic beautifully.
 Since you're using it to seed and store your bridge identity, you can use a COALESCE or a simple INSERT OR IGNORE to make sure you only generate that MAC once.
 Here is how you can integrate the generation logic into a quick SQLite setup for your manager:
+
 ~~~
 import sqlite3
 def initialize_bridge_identity(db_path="manager.db"):
@@ -671,6 +641,7 @@ def initialize_bridge_identity(db_path="manager.db"):
 
 print(f"Manager using MAC: {bridge_mac} | ID: {bridge_id}")
 ~~~
+
 ## Why this is the "Best Practice" for a Manager:
 
 * Atomic Identity: Even if you delete your config.json or rebuild the diyHue container, your manager will read from the .db and regenerate the exact same JSON. Alexa will never know anything changed.
@@ -690,6 +661,7 @@ If the IPs don't match, your manager can perform the "Healer" routine:
    3. Fire the SSDP Notify packet to tell Alexa to look at the new location.
 
 Here is a clean pattern for that change detection:
+
 ~~~
 import socket
 def get_live_ip():
@@ -718,6 +690,7 @@ if live_ip != stored_ip:
     
     # 3. (Optional) Any other healing like updating firewall rules or DNS
 ~~~
+
 This makes your system incredibly resilient to DHCP lease changes or router reboots.
 One final detail: When you drop the JSON for diyHue, 
 are you also injecting the "ip" field into the config, or are you letting diyHue try to bind to 0.0.0.0?
@@ -729,6 +702,7 @@ INJECTING
 
 Smart move. Injecting the specific IP into the config.json prevents diyHue from guessing the wrong interface, especially if you have Docker networks, VPNs, or virtual bridges (like br0) running on the same host.
 Since you are injecting the IP, MAC, and BridgeID, your manager effectively has total control over the identity. To keep diyHue happy, just make sure your JSON injection targets these specific keys:
+
 ~~~
 config_to_drop = {
     "ip": live_ip,
@@ -738,6 +712,7 @@ config_to_drop = {
     # ... rest of your template ...
 }
 ~~~
+
 One small tip: diyHue sometimes expects the bridgeid in the config to be uppercase and the mac to be lowercase (or vice versa depending on the version). If you notice the official Hue app acting up, double-check that casing.
 Since you've got the identity and network healing locked down, are you planning to have the manager monitor the diyHue process after the os.execl (by using os.fork instead), or is it a "fire and forget" launch?
 
@@ -752,6 +727,7 @@ Here is how your manager can handle the Z2M + diyHue handshake:
 ## 1. The MQTT Link in config.json
 For diyHue to see your Zigbee devices, your manager needs to inject the MQTT broker's details into the config it drops. In your SQLite table, you should store the mqtt_server IP.
 Your manager should drop this into the JSON:
+
 ~~~
 "mqtt": {
     "enabled": true,
@@ -761,6 +737,7 @@ Your manager should drop this into the JSON:
     "password": "mqtt_password"
 }
 ~~~
+
 ## 2. The "Z2M Bridge" Logic
 diyHue has a specific "branch" or internal script for Z2M. It listens to the topic zigbee2mqtt/ and translates the JSON payloads (brightness, color, state) into Hue-compatible data.
 Best Practice for your Manager:
@@ -784,6 +761,7 @@ If the manager sees that the MQTT broker is set to 127.0.0.1 (same machine), it 
 Here is a clean pattern to add to your manager’s boot sequence:
 ## 1. The MQTT Pre-Flight Check
 Add this to ensure diyHue doesn't start "blind" without its lights:
+
 ~~~
 import socketimport time
 def is_mqtt_ready(server, port=1883):
@@ -801,8 +779,10 @@ def is_mqtt_ready(server, port=1883):
             break
         time.sleep(2)
 ~~~
+
 ## 2. Injecting the Z2M Config
 When you drop your JSON, ensure you are mapping your DB options into the mqtt block diyHue expects. If you use Z2M, make sure the topic in diyHue matches your Z2M base topic (usually zigbee2mqtt):
+
 ~~~
 "mqtt": {
     "enabled": True,
@@ -813,6 +793,7 @@ When you drop your JSON, ensure you are mapping your DB options into the mqtt bl
     "password": ""
 }
 ~~~
+
 ## 3. The "Self-Healing" MQTT Bonus
 Since your manager detects IP changes, if the MQTT server is on a different machine and its IP changes, you can have your manager update the config.json and restart the process automatically. This keeps the Zigbee-to-Hue bridge from breaking when your network environment shifts.
 One thing to watch out for: diyHue needs the paho-mqtt library installed in its environment to talk to Z2M. Since you are using os.execl, are you running the manager and diyHue in the same Python virtual environment, or are they using the global system Python?
@@ -823,6 +804,7 @@ Running everything in the global Python environment makes your manager's life mu
 However, since you're using Z2M, there is one "gotcha" with the global environment: dependencies. diyHue won't even attempt to connect to your MQTT broker unless paho-mqtt is present.
 ## The Manager "Prerequisite" Check
 Since your manager is already doing the heavy lifting before os.execl, it’s a great idea to have it verify that the environment is actually ready to run diyHue. You can add a quick check to see if the necessary library is installed:
+
 ~~~
 import importlib.utilimport sysimport subprocess
 def ensure_dependencies():
@@ -834,6 +816,7 @@ def ensure_dependencies():
 # Run this before os.execl
 ensure_dependencies()
 ~~~
+
 ## Why this fits your "Self-Healer" philosophy:
 
    1. OS Resilience: If you ever reinstall your OS or move to a new machine, your manager will automatically "repair" the Python environment on the first run.
@@ -868,27 +851,31 @@ This allows you to manage it manually (e.g., via screen or a simple background p
 rather than as a background system service. [1, 2] 
 
    1. Clone the Repo:
-   ~~~
+   
+~~~
    git clone https://github.com/diyhue/diyHue.git
    cd diyHue/BridgeEmulator
-   ~~~
+~~~
+
    2. Install Dependencies: Ensure you have Python 3 and the required libraries installed:
-   ~~~
+~~~
    pip3 install ws4py requests astral paho-mqtt
    sudo apt install nmap  # Required for light discovery
-  ~~~ 
+~~~
+ 
    3. Run Manually: Execute the main script with root privileges to allow it to bind to port 80:
-   ~~~
+   
+~~~
    sudo python3 HueEmulator.py
-   ~~~
-   [2, 3] 
+~~~
 
 ## 2. Configure MQTT Broker [4] 
 To connect diyHue to your broker, you must edit the config.json file. This file is typically created in the directory where you run the emulator after the first start. [5] 
 
    1. Stop the emulator if it is running.
    2. Edit config.json: Locate the mqtt section and fill in your broker details:
-   ~~~
+   
+~~~
    "mqtt": {
        "enabled": true,
        "mqttServer": "YOUR_BROKER_IP",
@@ -897,8 +884,7 @@ To connect diyHue to your broker, you must edit the config.json file. This file 
        "mqttPassword": "your_password",
        "discoveryPrefix": "homeassistant"
    }
-   ~~~
-   [5] 
+~~~
 
 ## 3. Disable Automatic Device Addition [6] 
 By default, diyHue uses MQTT Discovery to automatically find and add devices that publish a discovery payload (commonly used by Zigbee2MQTT or Tasmota). To stop this: [7] 
@@ -907,17 +893,6 @@ By default, diyHue uses MQTT Discovery to automatically find and add devices tha
 * Manual Scanning: diyHue typically won't "permanently" add devices until you trigger a scan via the Hue app or the web UI at http://{IP}/scan. To prevent unwanted additions, avoid using these scan functions. [6, 8, 9, 10] 
 
 Do you need the specific JSON structure to manually add your valve to the config.json now that auto-discovery is off?
-
-[1] [https://github.com](https://github.com/mariusmotea/diyHue/wiki/Host-Install)
-[2] [https://hackaday.io](https://hackaday.io/project/21111/instructions)
-[3] [https://github.com](https://github.com/diyhue/diyhue)
-[4] [https://www.youtube.com](https://www.youtube.com/watch?v=8ol5pO7ZZhk&t=78)
-[5] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
-[6] [https://www.youtube.com](https://www.youtube.com/watch?v=VHiCtZqllU8&t=378)
-[7] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
-[8] [https://johnmu.com](https://johnmu.com/setting-up-mqtt-with-auto-discovery-on_17/)
-[9] https://diyhue.org
-[10] [https://github.com](https://github.com/diyhue/diyHue/issues/376)
 
 ## ==========================
 ## END OF INSTALL INFO
@@ -928,9 +903,11 @@ To have diyHue discover only the specific devices you want by publishing a disco
 When you publish a JSON configuration to a specific topic, diyHue (acting as a "listener" for discovery messages) will automatically create that light in its virtual bridge. [2, 3] 
 ## 1. The Discovery Topic Structure
 You must publish your configuration to a topic that follows this format:
+
 ~~~
 homeassistant/light/[device_id]/config [1, 4] 
 ~~~
+
 * homeassistant: This is the default discoveryPrefix. Ensure it matches what you set in your config.json.
 * light: diyHue primarily listens for the light component.
 * [device_id]: A unique ID for your device (e.g., valve_001). [3, 5, 6, 7] 
@@ -939,6 +916,7 @@ homeassistant/light/[device_id]/config [1, 4]
 For your "Main Valve," you will publish a JSON payload that tells diyHue how to talk to it. Since diyHue expects a light, use the light domain: [3] 
 Topic: homeassistant/light/valve_001/config
 Payload:
+
 ~~~
 {
   "name": "Main Valve",
@@ -968,29 +946,13 @@ Since you are running the code manually and want to control discovery:
 
 Would you like an example of a Python snippet or a shell command to publish this discovery message to your broker?
 
-[1] [https://mpolinowski.github.io](https://mpolinowski.github.io/docs/Automation_and_Robotics/Home_Automation/2022-07-10-home-assistant-mqtt-autodiscovery-part-i/2022-07-10/)
-[2] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
-[3] [https://github.com](https://github.com/diyhue/diyHue/issues/310)
-[4] [https://www.youtube.com](https://www.youtube.com/watch?v=VHiCtZqllU8)
-[5] [https://www.youtube.com](https://www.youtube.com/watch?v=VHiCtZqllU8&t=559)
-[6] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
-[7] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
-[8] [https://community.home-assistant.io](https://community.home-assistant.io/t/mqtt-discovery-for-a-multiple-switch-device/922470)
-[9] [https://community.home-assistant.io](https://community.home-assistant.io/t/mqtt-discovery-setup/740394)
-[10] [https://github.com](https://github.com/diyhue/diyHue/issues/376)
-[11] [https://diyhue.readthedocs.io](https://diyhue.readthedocs.io/en/latest/lights/mqtt.html)
-[12] [https://www.youtube.com](https://www.youtube.com/watch?v=0X5skZ7KD3g)
-[13] [https://www.youtube.com](https://www.youtube.com/watch?v=0X5skZ7KD3g)
-[14] [https://diyhue.discourse.group](https://diyhue.discourse.group/t/diyhue-with-ha-and-z2mqtt/748)
-
-
-
 
 To get a simple on/off switch working with diyHue, you need to publish one configuration message to the discovery topic. Once that is done, the actual "on" or "off" commands happen on the functional topics.
 ## 1. The Discovery Message (Setup)
 Run this command (or send this JSON) once. This tells diyHue the device exists and what words to use for "on" and "off."
 Topic: homeassistant/light/switch_01/config
 Payload:
+
 ~~~
 {
   "name": "Kitchen Light",
@@ -1001,6 +963,7 @@ Payload:
   "payload_off": "OFF"
 }
 ~~~
+
 ------------------------------
 ## 2. The Operational Messages (Daily Use)
 After you trigger a "Search for lights" in the Hue app, diyHue will watch the topics defined above.
@@ -1015,13 +978,16 @@ Your device should publish ON to home/switch_01/state. diyHue sees this and upda
 If you have mosquitto_clients installed, you can test the setup with these two commands:
 
    1. Register the device:
-   
+
+~~~
    mosquitto_pub -h localhost -r -t "homeassistant/light/switch_01/config" -m '{"name":"Kitchen Light","unique_id":"sw_01","command_topic":"home/switch_01/set","state_topic":"home/switch_01/state","payload_on":"ON","payload_off":"OFF"}'
-   
+~~~
+
    2. Simulate the device being "ON":
-   ~~~
+   
+~~~
    mosquitto_pub -h localhost -t "home/switch_01/state" -m "ON"
-   ~~~
+~~~
    
 Note: If you change payload_on to "1" and payload_off to "0", diyHue will send 1 or 0 to your device instead.
 Does your hardware expect text (ON/OFF) or numbers (1/0) for its commands?
@@ -1053,6 +1019,7 @@ Perfect. Keeping it binary (strictly On/Off) makes your discovery payloads much 
 ## The Binary Discovery Template
 Topic: ###homeassistant/light/[friendly_name]/config
 Payload:
+
 ~~~
 {
   "name": "Friendly Name",
@@ -1063,6 +1030,7 @@ Payload:
   "payload_off": "OFF"
 }
 ~~~
+
 ## Why this is ideal for your setup:
 
 * State Alignment: By default, Z2M publishes ON or OFF (uppercase) to the state topic. Matching that in payload_on/off ensures diyHue reflects the real status immediately.
@@ -1078,6 +1046,7 @@ In the Hue ecosystem, "Brightness" is a value from 0 to 254. To keep things simp
 ## The "Variable" Binary + Dimmer Template
 Topic: homeassistant/light/[friendly_name]/config
 Payload:
+
 ~~~
 {
   "name": "Variable Device",
@@ -1091,6 +1060,7 @@ Payload:
   "brightness_scale": 100
 }
 ~~~
+
 ## How this works for "Anything Variable":
 
    1. Binary Control: You still have the ON/OFF toggle for the main switch.
@@ -1120,15 +1090,20 @@ By using alertaway, you are doing something even better than "nonsense"—you ar
 
    1. In config.json:
    
+~~~
    "mqtt": {
        "enabled": true,
        "discoveryPrefix": "alertaway",
        ...
    }
-   
+~~~
+
    2. In your Discovery Payload:
    You must now publish your discovery JSON to:
+
+~~~
    alertaway/light/[friendly_name]/config
+~~~
 
 Are you planning to have your IP devices publish this discovery message automatically on boot, or will you send it manually via a script?
 
