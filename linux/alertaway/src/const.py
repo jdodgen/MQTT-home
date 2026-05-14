@@ -1,19 +1,65 @@
 #inside const.py constants and configurable items
-#system wide stuff 
-version = 0.4
+version = 2.0
 
-db_name = 'devices.db'
-log_path = "/dev/shm/log/"
-error_log_path = "log/"
-mqtt_broker = "home-broker.local"   # None  # if None then we use our IP address
-mosquitto_file_path = "/etc/mosquitto/mosquitto.conf"
-fauxmo_default_dir = "/etc/fauxmo"  
+#http
+
+
+import os
+if os.name =="nt": # testing under Windows
+   db_name = 'C:\\Users\\jim\\Dropbox\\wip\\timers\\devices.db'
+   log_path = 'C:\\Users\\jim\\log\\'
+   error_log_path = 'C:\\Users\\jim\\log\\error\\'
+   #windows_broker = "home-broker.local"
+   windows_broker = "192.168.0.193"
+   mosquitto_file_path = "mosquitto.conf"
+   fauxmo_default_dir = "fauxmo"
+else: # running as a system under Linux
+   db_name = 'devices.db'
+   log_path = "/dev/shm/log/"
+   error_log_path = "log/"
+   windows_broker = "localhost" #None
+   mosquitto_file_path = "/etc/mosquitto/mosquitto.conf"
+   fauxmo_default_dir = "/etc/fauxmo"  
+
+# import socket
+# def get_ip_address():
+    # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # s.connect(("192.168.253.253", 50000))
+    # ip =  s.getsockname()[0]
+    # s.close()
+    # return ip
+    
+import socket
+
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+try:
+    # Doesn't actually connect, just triggers local IP resolution
+    s.connect(('8.8.8.8', 80))
+    local_ip = s.getsockname()[0]
+except Exception:
+    local_ip = '127.0.0.1'
+finally:
+    s.close()
+IPaddr = local_ip
+
+# try:
+    # with open("ipaddr.txt", "r") as text_file:
+        # IPaddr = text_file.read()
+# except:
+    # IPaddr = "192.168.0.134" # desktop
+
+print("Our ip address:", IPaddr)
+
+# http ports
+
 
 ifname = b"eth0"  #our network interface, see "ip a" 
 
 fauxmo_config_file_path = fauxmo_default_dir+"/config.json"
-fauxmo_sleep_seconds = 120 # wake up every two minutes, Zzzzzz
+fauxmo_sleep_seconds = 240 # wake up every 4 minutes, Zzzzzz
 #
+
 broker_mqtt_port = 1883
 #
 base_faxmo_port = 56000
@@ -23,13 +69,19 @@ MQTTPlugin = "mqttplugin.py"
 zigbe2mqtt = "zigbee2mqtt"
 zigbee_refresh_seconds = 30
 
-http_port = 80  # home-broker note the z2m package uses port 8080
+http_port = 80  # home-broker 
+Z2M_HTTP_PORT = 8080
+TRIGGERS_HTTP_PORT = 8082
+TIMERS_HTTP_PORT = 8081
+CONFIG_HTTP_PORT = 8083
+SIMPLE_EMAILER_HTTP_PORT = 8084
+
+
 mqtt_service_q_timeout = 60*60*4   # seconds every four hours if it times out then zb/ip devices are refreshed and "home/MQTT_devices" is published
 watch_dog_queue_timeout = 20
 db_timeout = 120 # we have nothing that would cause a long lock
 #
-# https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-bridge-state
-zigbee2mqtt_bridge_devices = "zigbee2mqtt/bridge/devices"  # this subscribe gets all the  devices
+zigbee2mqtt_bridge_devices = "zigbee2mqtt/bridge/devices"  # this subscribe gets all the zigbee devices from z2m 
 # 
 # home_MQTTdevices_get = "home/MQTTdevices/get"  # topic requests a fresh MQTTDevices 
 #

@@ -27,9 +27,15 @@ import paho.mqtt.publish as publish
 import paho.mqtt.subscribe as subscribe
 import sys
 import socket
+import http_common as config
 
-import const
+#import const
 import time
+
+cfg = config.get_db_config()
+BROKER_IP   = cfg["broker"]
+BROKER_PORT = cfg["broker_mqtt_port"]
+cfg = None
 #
 # conditional print
 import os 
@@ -37,25 +43,24 @@ my_name = os.path.basename(__file__).split(".")[0]
 parent = None
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
-    return
+    #return
     tag = "["+my_name+"("+parent+")]" if parent else my_name 
     xprint("["+tag+"]", *args, **kwargs) # the copied real print
 #
 #
 #my_parent = "xxx"
 #print("hello [%s]" % ("x",))
-
-def our_ip_address():
-    if const.mqtt_broker:
-        ip = const.mqtt_broker
-    else:
-        import fcntl
-        import struct
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("192.168.253.253", 50000))
-        ip = s.getsockname()[0]
-    print("ip address",ip)
-    return ip
+    
+    # if const.windows_broker:
+        # ip = const.windows_broker
+    # else:
+        # import fcntl
+        # import struct
+        # s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # s.connect(("192.168.253.253", 50000))
+        # ip = s.getsockname()[0]
+    # print("ip address",ip)
+    # return ip
 
     # hostname = socket.gethostname()
     # print("my host name [%s]" % (hostname,))
@@ -64,21 +69,20 @@ def our_ip_address():
     # return ip_address
 
 class message():
-    def __init__(self, queue=None, my_parent=None, client_id=None, clean_session=True):
+    def __init__(self, queue=None, my_parent=None):
         global parent
         parent = my_parent
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=client_id, clean_session=clean_session)
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         self.q = queue
         self.unacked_publish = set()
         self.client.user_data_set(self.unacked_publish)
-        ip = our_ip_address()
         for x in range(10):
             try:
                 print("attempting mqtt connection ")
-                self.client.connect(ip, keepalive=const.mqtt_keepalive) 
+                self.client.connect(BROKER_IP, BROKER_PORT, keepalive=config.MQTT_KEEPALIVE) 
                 break
-            except:
-                print("MQTT could not connect [%s]" % (ip,))
+            except Exception as e:
+                print(f"MQTT Connection Error: {e}")
                 time.sleep(10)
 
             # the connect will try later
@@ -104,7 +108,7 @@ class message():
     # def on_connect(self, client, userdata, flags, rc ):
         """Subscribe to state command on connect (or reconnect)."""
         #print("message: client[%s] connected" % client)
-        # when reconnect existing subscribes must be re-subscribed
+        #when reconnect existing subscribes must be re-subscribed
         print("on_connect reason_code[%s]" % (reason_code,))
         if self.q != None:
              self.q.put(("connected",None,None))
@@ -166,29 +170,29 @@ class message():
          print("subscribe[%s]" % (topic,))
          return True
          
-    def cook(self, s):
+    def cook(self, s) -> bytes:
          return bytes(s, 'utf-8')
     
 def publish_single(topic, payload, my_parent=None):
     global parent
     parent = my_parent
     print("publish_single: topic[%s] payload[%s] broker[%s]" % 
-          (topic, payload, our_ip_address(),))
-    rc = publish.single(topic, payload, hostname=our_ip_address()) 
+          (topic, payload, BROKER_IP,))
+    rc = publish.single(topic, payload, hostname=BROKER_IP) 
     print("publish_single returned[%s]" % rc)
 
-def resubscribe(client, userdata, message):
-    xprint("resubscribe for %s" % (message.topic,))
-    client.unsubscribe(message.topic)
-    client.subscribe(message.topic)
+# def resubscribe(client, userdata, message):
+    # xprint("resubscribe for %s" % (message.topic,))
+    # client.unsubscribe(message.topic)
+    # client.subscribe(message.topic)
 
-def simple_subscribe(topic, my_parent=None):
-    global parent
-    parent = my_parent
-    print("simple_subscribe: topic[%s]  broker[%s]" % 
-          (topic, our_ip_address(),))
-    rc = subscribe.callback(resubscribe, topic, hostname=our_ip_address()) 
-    print("simple_subscribe returned[%s]" % rc)
+# def simple_subscribe(topic, my_parent=None):
+    # global parent
+    # parent = my_parent
+    # print("simple_subscribe: topic[%s]  broker[%s]" % 
+          # (topic, BROKER_IP,))
+    # rc = subscribe.callback(resubscribe, topic, hostname=BROKER_IP) 
+    # print("simple_subscribe returned[%s]" % rc)
     
 
 ### test area ###
