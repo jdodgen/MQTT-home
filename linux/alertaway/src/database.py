@@ -22,6 +22,7 @@ class database:
     def __init__(self, row_factory=False):
         print(const.DB_NAME)
         self.con = sqlite3.connect(const.DB_NAME, timeout=const.DB_TIMEOUT)
+        self.con.execute("PRAGMA foreign_keys = ON;")
         # print("working directory[%s]" % os.getcwd())
         if row_factory:
             self.con.row_factory=sqlite3.Row
@@ -662,7 +663,7 @@ INSERT INTO "mqtt_device" ("friendly_name","description","source","date") VALUES
 INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") VALUES (NULL,'big thing','manual','its a nice thing','binary',NULL,'home/big_thing/state','yes','no');
 INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") VALUES (NULL,'small thing','manual','small huh','binary',NULL,'home/small_thing/state','1','0');
 
-INSERT INTO "wemo" ("wemo_name","wemo_port","friendly_name","property","topic","qos","retain") VALUES ('foobar','55555','small thing','manual','home/small_thing/state',0,0);
+INSERT INTO "wemo" ("wemo_name","wemo_port","topic","qos","retain") VALUES ('foobar','55555','home/small_thing/state',0,0);
 
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Driveway','http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1','admin','alert.Away','');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Front door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
@@ -703,124 +704,151 @@ INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_cha
 
     def initialize(self, create_test_data=False):
         create="""
-        drop table if exists wemo;
-        create table wemo (
-            wemo_name unique, -- set by user
-            wemo_port unique, -- also, must not exist at this location
-            friendly_name, --
-            property,
-            topic,
-            qos default 0,
-            retain default 0,
-            PRIMARY KEY (wemo_name, wemo_port)
-        );
-        drop table if exists mqtt_device;
-        create table mqtt_device (
-            friendly_name,
-            description,
-            source, -- "zigbee", or "IP" others in future
-                    -- zigbee2mqtt forces unique "friendly_name"s zigbee2mqtt
-                    -- our IP devices CAN share the same name to support MQTT multicast
-                    -- IEEE is stored but not use. For IP devices it will be the last one reporting in
-                    -- if the devices sharing friendly names have different features
-                    -- the one that gets published in devices_to_json() will be a collection
-                    -- of unique property features
-            date,
-            PRIMARY KEY (friendly_name)
-        );
+DROP TABLE IF EXISTS mqtt_device;
+CREATE TABLE mqtt_device (
+    friendly_name TEXT PRIMARY KEY,
+    description TEXT,
+    source TEXT,                    -- "zigbee", "IP", etc.
+    date TEXT
+);
 
-        drop table if exists device_ieee;
-        create table device_ieee (
-            ieee_addr text,
-            friendly_name,
-            date,
-            PRIMARY KEY (ieee_addr)
-        );
+DROP TABLE IF EXISTS mqtt_feature;
+CREATE TABLE mqtt_feature (   
+    mqtt_feature_id INTEGER,        
+    friendly_name TEXT NOT NULL,
+    property TEXT,                  
+    description TEXT,
+    type TEXT,                      
+    access TEXT,   
+    topic TEXT NOT NULL,
+    true_value TEXT NOT NULL,       
+    false_value TEXT,
+    PRIMARY KEY (topic, true_value),
+    -- UNIQUE (friendly_name, topic),  
+    FOREIGN KEY (friendly_name) 
+        REFERENCES mqtt_device (friendly_name)
+        ON DELETE CASCADE
+);
 
-        drop table if exists mqtt_feature;
-        create table mqtt_feature (   mqtt_feature_id integer auto increment,
-            friendly_name NOT NULL,
-            property,  -- unique within a device same as zigbee name
-            description,
-            type , -- like "binary", lots of others things like battery etc.
-            access,   -- sub or pub if known
-            topic NOT NULL,
-            true_value,    -- usually the "on" value or result from a pub only device
-            false_value,   -- off value
-            PRIMARY KEY (friendly_name, topic,  true_value)
-            --PRIMARY KEY (friendly_name, property, type, topic, access)
-            --PRIMARY KEY (friendly_name, property, type, topic, access,  true_value, false_value)
-        );
-        drop table if exists timers;
-        CREATE TABLE timers (
-            topic,
-            true_value,  -- payload
-            false_value, -- payload
-            days, /* a comma seperated string of days 0 thru 6 */
-            start_type,  /* dawn, dusk, or fixed */
-            start_hour,  /* used for fixed times */
-            start_minute, /* used for fixed times */
-            start_offset, /* use for dawn dusk */
-            stop_type,  /* dawn, dusk, or fixed */
-            stop_hour,  /* used for fixed times */
-            stop_minute, /* used for fixed times */
-            stop_offset, /* use for dawn dusk */
-            /* duration, not sure if still needed */
-            time_to_stop,  /* calculated every day at midnight + 1 second */
-            time_to_start, /* calculated every day at midnight + 1 second */
-            seconds_from_midnight INTEGER, /* calculated every day at midnight+ a second  not sure if needed */
-            state INTEGER
-        );
-        drop table if exists triggers;
-        CREATE TABLE triggers (
-            sub_topic not null,   -- trigger_deamon subscribes to this
-            sub_payload not null, -- if it matches
-            pub_topic not null,   -- and publishes this
-            pub_payload not null, -- with this
-            primary key (sub_topic,sub_payload,pub_topic,pub_payload)
-        );
+DROP TABLE IF EXISTS timers;
+CREATE TABLE timers (
+    timer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    topic TEXT NOT NULL,
+    true_value TEXT NOT NULL,     
+    false_value TEXT,    
+    days TEXT,                    
+    start_type TEXT,              
+    start_hour INTEGER,           
+    start_minute INTEGER,         
+    start_offset INTEGER,         
+    stop_type TEXT,               
+    stop_hour INTEGER,            
+    stop_minute INTEGER,          
+    stop_offset INTEGER,          
+    time_to_stop TEXT,            
+    time_to_start TEXT,           
+    seconds_from_midnight INTEGER, 
+    state INTEGER DEFAULT 0,
+    FOREIGN KEY (topic, true_value) 
+        REFERENCES mqtt_feature (topic, true_value) 
+        ON DELETE CASCADE
+);
 
-        drop table if exists events;
-        CREATE TABLE events ( -- as in MQTT topics
-            events_name,                 --
-            mqtt_topic,                 --  EXAMPLE: "home/jimdod/GAR Garage door/power"
-            matching_payload,           --  EXAMPLE: "down"  # only payloads that mach this
-            only_on_change_of_payload,  --  EXAMPLE: true # only one email until different payload arrives
-            subject,                    --  EXAMPLE: "The Garage door is open"
-            body,                       --  EXAMPLE: "by cracky I sence that the carrage house door is open. I hope the horses don't run out."
-            PRIMARY KEY (events_name, matching_payload)
-        );
+DROP TABLE IF EXISTS triggers;
+CREATE TABLE triggers (
+    sub_topic TEXT NOT NULL,   -- trigger_daemon subscribes to this
+    sub_payload TEXT NOT NULL, -- if it matches this true_value...
+    pub_topic TEXT NOT NULL,   -- ...it publishes to this topic
+    pub_payload TEXT NOT NULL, -- ...with this true_value payload
+    
+    PRIMARY KEY (sub_topic, sub_payload, pub_topic, pub_payload),
 
-        drop table if exists cameras_in_events;
-        CREATE TABLE cameras_in_events (
-            events_name  REFERENCES event(events_name),
-            camera_name REFERENCES camera(camera_name),
-            PRIMARY KEY (events_name, camera_name)
-        );
+    -- Foreign Key 1: If the input feature is deleted, remove the trigger rule
+    FOREIGN KEY (sub_topic, sub_payload) 
+        REFERENCES mqtt_feature (topic, true_value) 
+        ON DELETE CASCADE,
 
-        drop table if exists cameras;
-        CREATE TABLE cameras (
-            camera_name,
-            url,
-            user,
-            password,
-            rotate,
-            PRIMARY KEY (camera_name)
-        );
+    -- Foreign Key 2: If the output target feature is deleted, remove the trigger rule
+    FOREIGN KEY (pub_topic, pub_payload) 
+        REFERENCES mqtt_feature (topic, true_value) 
+        ON DELETE CASCADE
+);
 
-        drop table if exists emailaddr_in_events;
-        CREATE TABLE emailaddr_in_events (
-            events_name  REFERENCES event(events_name),
-            emailaddr_name REFERENCES emailaddr(emailaddr_name),
-            PRIMARY KEY (events_name, emailaddr_name)
-        );
-        
-        drop table if exists emailaddr;
-        CREATE TABLE emailaddr(
-            emailaddr_name, -- jim
-            email_address,  -- jim@foo.com   standard local-part@domain format.,
-            PRIMARY KEY (emailaddr_name)
-        );
+DROP TABLE IF EXISTS wemo;
+CREATE TABLE wemo (
+    wemo_name TEXT PRIMARY KEY, 
+    wemo_port INTEGER UNIQUE,   
+    -- friendly_name TEXT,          
+    -- property TEXT,
+    topic TEXT,
+    true_value,                  
+    qos INTEGER DEFAULT 0,
+    retain INTEGER DEFAULT 0,
+    FOREIGN KEY (topic, true_value) 
+        REFERENCES mqtt_feature (topic, true_value) 
+        ON DELETE CASCADE
+);
+
+
+-- ==========================================
+-- 1. LOOKUP DATA TABLES
+-- ==========================================
+DROP TABLE IF EXISTS cameras;
+CREATE TABLE cameras (
+    camera_name TEXT PRIMARY KEY,
+    url TEXT NOT NULL,
+    user TEXT,
+    password TEXT,
+    rotate INTEGER DEFAULT 0
+);
+
+DROP TABLE IF EXISTS emailaddr;
+CREATE TABLE emailaddr (
+    emailaddr_name TEXT PRIMARY KEY, 
+    email_address TEXT NOT NULL      
+);
+
+-- ==========================================
+-- 2. UPDATED EVENTS TABLE (With Cascading FK)
+-- ==========================================
+DROP TABLE IF EXISTS events;
+CREATE TABLE events (
+    events_name TEXT,                 
+    mqtt_topic TEXT NOT NULL,                 
+    matching_payload TEXT NOT NULL, -- Marked NOT NULL to match parent key component
+    only_on_change_of_payload INTEGER DEFAULT 1, 
+    subject TEXT,                    
+    body TEXT,                    
+    
+    PRIMARY KEY (events_name, matching_payload),
+    UNIQUE (events_name), -- Required so junction tables can bind to event name alone
+
+    -- Compound Foreign Key to mqtt_feature
+    FOREIGN KEY (mqtt_topic, matching_payload) 
+        REFERENCES mqtt_feature (topic, true_value) 
+        ON DELETE CASCADE
+);
+
+-- ==========================================
+-- 3. JUNCTION TABLES
+-- ==========================================
+DROP TABLE IF EXISTS cameras_in_events;
+CREATE TABLE cameras_in_events (
+    events_name TEXT,
+    camera_name TEXT,
+    PRIMARY KEY (events_name, camera_name),
+    FOREIGN KEY (events_name) REFERENCES events (events_name) ON DELETE CASCADE,
+    FOREIGN KEY (camera_name) REFERENCES cameras (camera_name) ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS emailaddr_in_events;
+CREATE TABLE emailaddr_in_events (
+    events_name TEXT,
+    emailaddr_name TEXT,
+    PRIMARY KEY (events_name, emailaddr_name),
+    FOREIGN KEY (events_name) REFERENCES events (events_name) ON DELETE CASCADE,
+    FOREIGN KEY (emailaddr_name) REFERENCES emailaddr (emailaddr_name) ON DELETE CASCADE
+);
 
         -- drop table if exists config;
         CREATE TABLE IF NOT EXISTS config ( -- this is a singleton
@@ -839,7 +867,7 @@ INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_cha
             mqtt_keepalive INTEGER default 120
         );
         INSERT or ignore INTO config (id) VALUES (0);  -- this is a singleton
-        """
+"""
         self.con.executescript(create)  # drop and create the tables
 
         if create_test_data:
