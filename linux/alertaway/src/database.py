@@ -23,7 +23,7 @@ class database:
         print(const.DB_NAME)
         self.con = sqlite3.connect(const.DB_NAME, timeout=const.DB_TIMEOUT)
         self.con.execute("PRAGMA foreign_keys = ON;")
-        # print("working directory[%s]" % os.getcwd())
+        print("working directory[%s]" % os.getcwd())
         if row_factory:
             self.con.row_factory=sqlite3.Row
         cur = self.con.cursor()
@@ -655,15 +655,57 @@ class database:
         """)
         all = cur.fetchall()
         return all
+        
+    def process_sql(self,sql_text):
+        # 1. Split into individual lines to strip inline comments safely
+        lines_raw = sql_text.split('\n')
+        clean_lines = []
+        
+        for line in lines_raw:
+            # Split by comment marker and take the left side (the actual SQL code)
+            code_part = line.split('--')[0]
+            # Only keep it if it contains actual characters
+            if code_part.strip():
+                clean_lines.append(code_part.strip())
+                
+        # 2. Join the cleaned lines back together with a space
+        #    This safely flattens internal newlines into a single line
+        flattened_sql = " ".join(clean_lines)
+        
+        # 3. Now it is safe to split into distinct statements by semicolon
+        statements = [stmt.strip() for stmt in flattened_sql.split(';') if stmt.strip()]
+        
+        return statements
+       
     def test_data(self):
         inserts = """
-INSERT INTO "mqtt_device" ("friendly_name","description","source","date") VALUES ('big thing','its a nice thing','manIP','1778015702');
-INSERT INTO "mqtt_device" ("friendly_name","description","source","date") VALUES ('small thing','small huh','manIP','1778015745');
+INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
+    VALUES ('big thing','its a nice thing','manIP','1778015702');
+INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
+    VALUES ('small thing','small huh','manIP','1778015745');
+INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
+    VALUES ('door','just a door','manIP','1778015745');
+INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
+    VALUES ('water leak','leak detector','manIP','1778015745');
+INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
+    VALUES ('door bell','ringgy thinggy','manIP','1778015745');
+INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
+    VALUES ('door closed','door sensor','manIP','1778015745');
 
-INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") VALUES (NULL,'big thing','manual','its a nice thing','binary',NULL,'home/big_thing/state','yes','no');
-INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") VALUES (NULL,'small thing','manual','small huh','binary',NULL,'home/small_thing/state','1','0');
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
+    VALUES (NULL,'big thing','manual','its a nice thing','binary',NULL,'home/big_thing/state','yes','no');
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
+    VALUES (NULL,'small thing','manual','small huh','binary',NULL,'home/small_thing/state','1','0');
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
+    VALUES (NULL,'door','manual','small huh','binary',NULL,'home/door/state','open','closed');
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
+    VALUES (NULL,'water leak','manual','small huh','binary',NULL,'home/water/status','leaking',NULL);
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
+    VALUES (NULL,'door bell','manual','small huh','binary',NULL,'home/doorbell/button','',NULL);
 
-INSERT INTO "wemo" ("wemo_name","wemo_port","topic","qos","retain") VALUES ('foobar','55555','home/small_thing/state',0,0);
+
+INSERT INTO "wemo" ("wemo_name","wemo_port","topic","true_value") 
+    VALUES ('foobar','55555','home/small_thing/state',"1");
 
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Driveway','http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1','admin','alert.Away','');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Front door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
@@ -675,7 +717,18 @@ INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('Jim','jim@do
 
 INSERT INTO "timers" ("topic","true_value","false_value","days","start_type","start_hour","start_minute","start_offset","stop_type","stop_hour","stop_minute","stop_offset","time_to_stop","time_to_start","seconds_from_midnight","state") VALUES ('home/small_thing/state','1','0','0,1,2,3,4,5,6','Sunrise',0,0,'0','Sunrise',0,0,'30',NULL,NULL,NULL,NULL);
 
-INSERT INTO "triggers" ("sub_topic","sub_payload","pub_topic","pub_payload") VALUES ('home/small_thing/state','1','home/big_thing/state','yes');
+INSERT INTO "triggers" ("sub_topic","sub_true_value", "sub_payload","pub_topic","pub_true_value", "pub_payload") 
+    VALUES ('home/small_thing/state','1','1',   'home/big_thing/state','yes','no');
+
+INSERT INTO "events" ("events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES ('door open','home/door/state','open','open',0,'door is open','Me thinks a knave has left the hatch open');
+INSERT INTO "events" ("events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES ('bad thing','home/water/status','leaking','leaking',0,'water leak from heater','turn the valve next to the door off.
+if you had ball_valve_controller you could use triggers to turn it off automatically');
+INSERT INTO "events" ("events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES ('door bell','home/doorbell/button','','',0,'door bell pressed','What do you see');
+INSERT INTO "events" ("events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES ('door closed','home/door/state','open','closed',0,'closed now','yes it is');
 
 -- test set for simple_emailer 
 INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('bad thing','Side door');
@@ -693,13 +746,16 @@ INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door closed','bill');
 INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door closed','don');
 
-INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('door open','home/door/state','open',0,'door is open','Me thinks a knave has left the hatch open');
-INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('bad thing','home/water/status','leaking',0,'water leak from heater','turn the valve next to the door off.
-if you had ball_valve_controller you could use triggers to turn it off automatically');
-INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('door bell','home/doorbell/button','',0,'door bell pressed','What do you see');
-INSERT INTO "events" ("events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") VALUES ('door closed','home/door/state','closed',0,'closed now','yes it is');
 """
-        self.con.executescript(inserts)
+        xprint("loading test data")
+        cur = self.con.cursor()
+        cleaned_statements = self.process_sql(inserts)
+        for stmt in cleaned_statements:
+            try:
+                cur.execute(stmt)
+            except Exception as e:
+                xprint(f"\n{stmt}\n{e}")
+                exit()
         
 
     def initialize(self, create_test_data=False):
@@ -708,7 +764,7 @@ DROP TABLE IF EXISTS mqtt_device;
 CREATE TABLE mqtt_device (
     friendly_name TEXT PRIMARY KEY,
     description TEXT,
-    source TEXT,                    -- "zigbee", "IP", etc.
+    source TEXT,                    -- "zigbee", "IP", "manual", etc.
     date TEXT
 );
 
@@ -757,19 +813,16 @@ CREATE TABLE timers (
 DROP TABLE IF EXISTS triggers;
 CREATE TABLE triggers (
     sub_topic TEXT NOT NULL,   -- trigger_daemon subscribes to this
+    sub_true_value TEXT NOT NULL,
     sub_payload TEXT NOT NULL, -- if it matches this true_value...
     pub_topic TEXT NOT NULL,   -- ...it publishes to this topic
+    pub_true_value TEXT NOT NULL,
     pub_payload TEXT NOT NULL, -- ...with this true_value payload
-    
-    PRIMARY KEY (sub_topic, sub_payload, pub_topic, pub_payload),
-
-    -- Foreign Key 1: If the input feature is deleted, remove the trigger rule
-    FOREIGN KEY (sub_topic, sub_payload) 
+    PRIMARY KEY (sub_topic, sub_payload, pub_topic, pub_payload)
+    FOREIGN KEY (sub_topic, sub_true_value) 
         REFERENCES mqtt_feature (topic, true_value) 
         ON DELETE CASCADE,
-
-    -- Foreign Key 2: If the output target feature is deleted, remove the trigger rule
-    FOREIGN KEY (pub_topic, pub_payload) 
+    FOREIGN KEY (pub_topic, pub_true_value) 
         REFERENCES mqtt_feature (topic, true_value) 
         ON DELETE CASCADE
 );
@@ -789,10 +842,6 @@ CREATE TABLE wemo (
         ON DELETE CASCADE
 );
 
-
--- ==========================================
--- 1. LOOKUP DATA TABLES
--- ==========================================
 DROP TABLE IF EXISTS cameras;
 CREATE TABLE cameras (
     camera_name TEXT PRIMARY KEY,
@@ -808,37 +857,35 @@ CREATE TABLE emailaddr (
     email_address TEXT NOT NULL      
 );
 
--- ==========================================
--- 2. UPDATED EVENTS TABLE (With Cascading FK)
--- ==========================================
 DROP TABLE IF EXISTS events;
 CREATE TABLE events (
     events_name TEXT,                 
-    mqtt_topic TEXT NOT NULL,                 
-    matching_payload TEXT NOT NULL, -- Marked NOT NULL to match parent key component
+    mqtt_topic TEXT NOT NULL,   
+    true_value TEXT NOT NULL,              
+    matching_payload TEXT NOT NULL,
     only_on_change_of_payload INTEGER DEFAULT 1, 
     subject TEXT,                    
     body TEXT,                    
-    
     PRIMARY KEY (events_name, matching_payload),
     UNIQUE (events_name), -- Required so junction tables can bind to event name alone
 
     -- Compound Foreign Key to mqtt_feature
-    FOREIGN KEY (mqtt_topic, matching_payload) 
+    FOREIGN KEY (mqtt_topic, true_value) 
         REFERENCES mqtt_feature (topic, true_value) 
         ON DELETE CASCADE
 );
 
--- ==========================================
--- 3. JUNCTION TABLES
--- ==========================================
 DROP TABLE IF EXISTS cameras_in_events;
 CREATE TABLE cameras_in_events (
     events_name TEXT,
     camera_name TEXT,
     PRIMARY KEY (events_name, camera_name),
-    FOREIGN KEY (events_name) REFERENCES events (events_name) ON DELETE CASCADE,
-    FOREIGN KEY (camera_name) REFERENCES cameras (camera_name) ON DELETE CASCADE
+    FOREIGN KEY (events_name) 
+        REFERENCES events (events_name) 
+        ON DELETE CASCADE,
+    FOREIGN KEY (camera_name) 
+        REFERENCES cameras (camera_name) 
+        ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS emailaddr_in_events;
@@ -846,8 +893,12 @@ CREATE TABLE emailaddr_in_events (
     events_name TEXT,
     emailaddr_name TEXT,
     PRIMARY KEY (events_name, emailaddr_name),
-    FOREIGN KEY (events_name) REFERENCES events (events_name) ON DELETE CASCADE,
-    FOREIGN KEY (emailaddr_name) REFERENCES emailaddr (emailaddr_name) ON DELETE CASCADE
+    FOREIGN KEY (events_name) 
+        REFERENCES events (events_name) 
+        ON DELETE CASCADE,
+    FOREIGN KEY (emailaddr_name) 
+        REFERENCES emailaddr (emailaddr_name) 
+        ON DELETE CASCADE
 );
 
         -- drop table if exists config;
@@ -868,57 +919,28 @@ CREATE TABLE emailaddr_in_events (
         );
         INSERT or ignore INTO config (id) VALUES (0);  -- this is a singleton
 """
-        self.con.executescript(create)  # drop and create the tables
-
-        if create_test_data:
-            #
-            # this is a dummy device mostly for testing
-            #
-            #b [mqtt_hello] [send_hello] topic[home/70a8d3dd39f1/hello] payload[
-
-            name = "friendly_example"
-            self.upsert_device("test description", name, "manIP")
-            self.upsert_feature(name,
-                        "state",
-                        "relay1",
-                        "binary",
-                        "sub",
-                        "/home/"+name+"/valve",
-                        "ON",
-                        "OFF",
-                        )
-            feature_row_id = 1 # fresh table so first insert is 1
-            db.create_wemo("wemo name", "54321", feature_row_id)
-            self.con.commit()
-        pass
-
-    # def void_make_wifi_tail(self,off, on, set,get, get_payload):
-    #   tail =  """{"payload_off": "%s",
-    #               "payload_on": "%s",
-    #               "topic_set": "%s",
-    #               "topic_get": "%s",
-    #               "get_payload": "%s",
-    #               }""" %  (off, on, set, get, get_payload)
-    #   try:
-    #       work = json.loads(tail)
-    #   except:
-    #       work ='{"error": "not valid json"}'
-    #       print("did not like work")
-    #   print("work", work)
-    #   new_tail = json.dumps(work)
-
-    #   return new_tail
-
+        cur = self.con.cursor()
+        cleaned_statements = self.process_sql(create)
+        for stmt in cleaned_statements:
+            try:
+                cur.execute(stmt)
+            except Exception as e:
+                xprint(f"\n{stmt}\n{e}")
+                exit()
+                
 
 # test stuff  not running when imported
 if __name__ == "__main__":
     input("You are destroying devices.db")
     input("You are destroying devices.db")
     input("YOU ARE DESTROYING DEVICES.DB")
+    xprint("opening database")
     db=database()
+    xprint("create tables")
     db.initialize()
+    xprint("load test data")
     db.test_data()
-    print("\ninitialized and test data loaded")
+    xprint("\ninitialized and test data loaded")
     
     # print(db.cook_devices_features_for_html())
     # print(db.delete_device(13))
