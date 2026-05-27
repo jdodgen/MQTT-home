@@ -703,7 +703,6 @@ INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","descri
 INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
     VALUES (NULL,'door bell','manual','small huh','binary',NULL,'home/doorbell/button','',NULL);
 
-
 INSERT INTO "wemo" ("wemo_name","wemo_port","topic","true_value") 
     VALUES ('foobar','55555','home/small_thing/state',"1");
 
