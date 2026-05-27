@@ -18,11 +18,24 @@ def print(*args, **kwargs): # replace print
     xprint("["+my_name+"]", *args, **kwargs) # the copied real print
 #
 #
+'''        
+cursor.execute("SELECT * FROM users JOIN posts ON users.id = posts.user_id")
+row = cursor.fetchone()
+
+# Let's inspect the keys now:
+print(row.keys())  
+# Outputs: ['users.id', 'users.name', 'posts.id', 'posts.user_id', 'posts.title']
+
+# 3. ACCESS BOTH EXPEDITIOUSLY WITHOUT NAME COLLISIONS:
+print(row['users.id'])  # Outputs: 1
+print(row['posts.id'])  # Outputs: 99
+'''
 class database:
     def __init__(self, row_factory=False):
         print(const.DB_NAME)
         self.con = sqlite3.connect(const.DB_NAME, timeout=const.DB_TIMEOUT)
         self.con.execute("PRAGMA foreign_keys = ON;")
+        self.con.execute("PRAGMA full_column_names = 1;")
         print("working directory[%s]" % os.getcwd())
         if row_factory:
             self.con.row_factory=sqlite3.Row
@@ -41,6 +54,7 @@ class database:
     def close(self):
         self.con.commit()
         self.con.close()
+
 
     def replace_password(self, pw):
         if pw == "":
@@ -867,8 +881,6 @@ CREATE TABLE events (
     body TEXT,                    
     PRIMARY KEY (events_name, matching_payload),
     UNIQUE (events_name), -- Required so junction tables can bind to event name alone
-
-    -- Compound Foreign Key to mqtt_feature
     FOREIGN KEY (mqtt_topic, true_value) 
         REFERENCES mqtt_feature (topic, true_value) 
         ON DELETE CASCADE
@@ -904,16 +916,23 @@ CREATE TABLE emailaddr_in_events (
         CREATE TABLE IF NOT EXISTS config ( -- this is a singleton
             id INTEGER PRIMARY KEY CHECK (id = 0),
             alive_interval INTEGER DEFAULT 30,
+            publish  TEXT DEFAULT "home/alertaway/power",
+            zigbee_refresh_seconds INTEGER default 30,
+            -- local mosquitto
             broker TEXT DEFAULT '192.168.0.134',
+            broker_mqtt_port INTEGER default 1883,
             ssl   INTEGER DEFAULT FALSE,
             user  TEXT DEFAULT NULL,
             password TEXT DEFAULT NULL,
+            mosquitto_sleep_seconds INTEGER default 1000,
+            mqtt_keepalive INTEGER default 120
+            
             gmail_password  TEXT DEFAULT NULL,
             gmail_user  TEXT DEFAULT NULL,
-            publish  TEXT DEFAULT "home/alertaway/power",
-            zigbee_refresh_seconds INTEGER default 30,
-            mosquitto_sleep_seconds INTEGER default 1000,
-            broker_mqtt_port INTEGER default 1883,
+            
+            
+            
+            
             mqtt_keepalive INTEGER default 120
         );
         INSERT or ignore INTO config (id) VALUES (0);  -- this is a singleton
