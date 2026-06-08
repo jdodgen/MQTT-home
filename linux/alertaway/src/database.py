@@ -104,11 +104,10 @@ class database:
             mqtt_feature.false_value,
             qos,
             retain
-        from wemo
-        left join mqtt_feature on wemo.friendly_name = mqtt_feature.friendly_name
-            and mqtt_feature.property = wemo.property
-            and mqtt_feature.topic = wemo.topic
-        -- where mqtt_feature.access = "sub"
+        from voice_device
+        join mqtt_feature on mqtt_feature.topic = voice_device.topic
+            and mqtt_feature.true_value = voice_device.true_value
+        where voice_device.handler = "wemo"
         """)
         all = cur.fetchall()
         cur.close()
@@ -530,7 +529,7 @@ class database:
                 mqtt_feature.topic,
                 mqtt_feature.true_value,
                 mqtt_feature.false_value
-            from voice_devices
+            from voice_device
             left join mqtt_device  on mqtt_device.friendly_name = wemo.friendly_name
             left join mqtt_feature on mqtt_device.friendly_name = mqtt_feature.friendly_name
                     and mqtt_feature.true_value = voice.true_value
@@ -717,7 +716,7 @@ INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","descri
 INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
     VALUES (NULL,'door bell','manual','small huh','binary',NULL,'home/doorbell/button','',NULL);
 
-INSERT INTO "voice_devices" ("voice_name","port","topic","true_value", "handler") 
+INSERT INTO "voice_device" ("voice_name","port","topic","true_value", "handler") 
     VALUES ('foobar','55555','home/small_thing/state',"1","wemo");
 
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Driveway','http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1','admin','alert.Away','');
@@ -840,8 +839,8 @@ CREATE TABLE triggers (
         ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS voice_devices;
-CREATE TABLE voice_devices ( -- was wemo (
+DROP TABLE IF EXISTS voice_device;
+CREATE TABLE voice_device ( -- was wemo (
     voice_name TEXT PRIMARY KEY, 
     port INTEGER UNIQUE,   
     -- friendly_name TEXT,          
@@ -919,22 +918,25 @@ CREATE TABLE emailaddr_in_events (
             alive_interval INTEGER DEFAULT 30,
             publish  TEXT DEFAULT "home/alertaway/power",
             zigbee_refresh_seconds INTEGER default 30,
-            -- local mosquitto
-            broker TEXT DEFAULT '192.168.0.134',
-            broker_mqtt_port INTEGER default 1883,
-            ssl   INTEGER DEFAULT FALSE,
-            user  TEXT DEFAULT NULL,
-            password TEXT DEFAULT NULL,
-            mosquitto_sleep_seconds INTEGER default 1000,
-            mqtt_keepalive INTEGER default 120,
-            
+            -- local broker mosquitto
+            local_broker_ip TEXT DEFAULT '0.0.0.0',
+            local_broker_port INTEGER default 1883,
+            local_broker_ssl   INTEGER DEFAULT FALSE,
+            local_broker_user  TEXT DEFAULT NULL,
+            local_broker_password TEXT DEFAULT NULL,
+            local_broker_mosquitto_sleep_seconds INTEGER default 1000,
+            local_broker_mqtt_keepalive INTEGER default 120,
+            -- cloud broker (optional)
+            cloud_broker_ip TEXT  DEFAULT NULL,
+            cloud_broker_port INTEGER,
+            cloud_broker_ssl  INTEGER,
+            cloud_broker_user TEXT,
+            cloud_broker_password TEXT,
+            cloud_broker_sleep_seconds INTEGER,
+            cloud_broker_mqtt_keepalive INTEGER,
+            --- 
             gmail_password  TEXT DEFAULT NULL,
-            gmail_user  TEXT DEFAULT NULL,
-            
-            
-            
-            
-            mqtt_keepalive INTEGER default 120
+            gmail_user  TEXT DEFAULT NULL
         );
         INSERT or ignore INTO config (id) VALUES (0);  -- this is a singleton
 """

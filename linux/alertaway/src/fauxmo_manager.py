@@ -34,8 +34,10 @@ import database
 import http_common as config
 
 # sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 52000-52600
-
-BROKER_IP = config.get_db_config()["broker"]
+cfg = config.get_db_config()
+BROKER_IP   = cfg["local_broker_ip"]
+BROKER_PORT = cfg["local_broker_port"]
+cfg = None
 #
 # conditional print
 my_name = "fauxmo_manager"
@@ -114,7 +116,7 @@ def build_cfg() -> str:
                 off_payload = dev[4].replace('"','\\"')
             except:
                 off_payload = None
-            fauxmo_cfg = fauxmo_cfg + per_device_minimum % (port, name, topic,on_payload, topic, off_payload, BROKER_IP, config.get_db_config()["broker_mqtt_port"])
+            fauxmo_cfg = fauxmo_cfg + per_device_minimum % (port, name, topic,on_payload, topic, off_payload, BROKER_IP, BROKER_PORT)
             fauxmo_cfg = fauxmo_cfg + use_fake_state  
             fauxmo_cfg = fauxmo_cfg + initial_state
             """

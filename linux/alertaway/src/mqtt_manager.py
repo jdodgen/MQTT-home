@@ -3,9 +3,9 @@ import paho.mqtt.client as mqtt
 import ssl
 import config_send_emails
 import http_common as config
-cffg = config.get_db_config()
+db_cfg = config.get_db_config()
 
-print("cffg:", cffg)
+print("db_cfg:", db_cfg)
 TOPICS =  config_send_emails.TOPICS
 
 xprint = print # copy print
@@ -45,8 +45,8 @@ class mqtt_manager:
     def __init__(self, email_q):
         self.email_q = email_q
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-        #print(f"__init__ cffg.user [  {cffg["user"]}  ], cffg.password [  {cffg["password"]}  ]")
-        self.client.username_pw_set(cffg["user"], cffg["password"])
+        #print(f"__init__ db_cfg.user [  {db_cfg["user"]}  ], db_cfg.password [  {db_cfg["password"]}  ]")
+        self.client.username_pw_set(db_cfg["local_broker_ip"], db_cfg["local_broker_port"])
         # Configure TLS/SSL settings
         # You can adjust cert_reqs based on your security requirements:
         # ssl.CERT_REQUIRED: Server must provide a valid certificate issued by a trusted CA.
@@ -57,13 +57,13 @@ class mqtt_manager:
         #self.client.tls_set(cert_reqs=ssl.CERT_OPTIONAL) 
         #self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
         while True:
-            print(f"__init__ connecting to [{cffg['broker']}]-[{cffg['broker_mqtt_port']}]")
+            print(f"__init__ connecting to [{db_cfg['broker']}]-[{db_cfg['broker_mqtt_port']}]")
             try:
-                self.client.connect(cffg['broker'],cffg['broker_mqtt_port'])
+                self.client.connect(db_cfg['local_broker_ip'],db_cfg['local_broker_port'])
                 print ("__init__ connected")
                 break
             except:
-                print (f"__init__ could not connect to broker [{cffg['broker']}],[{cffg['broker_mqtt_port']}]")
+                print (f"__init__ could not connect to broker [{db_cfg['local_broker_ip']}],[{db_cfg['local_broker_port']}]")
                 time.sleep(5)
         print("__init__ setting callbacks")
         self.client.on_connect=self.on_connect
@@ -124,7 +124,7 @@ class mqtt_manager:
 
 # for testing
 if __name__ == "__main__":
-    print("cffg:", cffg)
+    print("db_cfg:", db_cfg)
     import multiprocessing
     q = multiprocessing.Queue(5)
     client = mqtt_manager(q)

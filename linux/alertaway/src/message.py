@@ -33,8 +33,8 @@ import http_common as config
 import time
 
 cfg = config.get_db_config()
-BROKER_IP   = cfg["broker"]
-BROKER_PORT = cfg["broker_mqtt_port"]
+BROKER_IP   = cfg["local_broker_ip"]
+BROKER_PORT = cfg["local_broker_port"]
 cfg = None
 #
 # conditional print

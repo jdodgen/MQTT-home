@@ -12,7 +12,7 @@ from  pprint import pprint
 import http_common as config
 
 DB_NAME =   config.DB_NAME
-OUR_PORT =  config.get_db_config()["broker_mqtt_port"]
+
   
 #cluster_path = "cluster_simple_emailer.toml"
 my_name = "config_send_emails"
@@ -239,10 +239,11 @@ TOPICS = load_db_topics()
 if not TOPICS:
     print("Nothing to do, sleeping")
     signal.pause()  # nothing to do so sleep forever waiting on a systemd restart and something to do 
-BROKER = config["broker"]
-SSL = config["ssl"]
-USER = config["user"]
-PASSWORD = config["password"]
+BROKER = config["local_broker_ip"]
+OUR_PORT =  config["local_broker_port"]
+SSL = config["local_broker_ssl"]
+USER = config["local_broker_user"]
+PASSWORD = config["local_broker_password"]
 GMAIL_PASSWORD = config["gmail_password"]
 GMAIL_USER = config["gmail_user"]
 PCN_TOPIC = config["publish"]
