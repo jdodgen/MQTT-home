@@ -103,26 +103,26 @@
     {% endif %}
     <tr>
       <td>
-        <form action="/create_wemo" method="post">
-          <h2>WeMo to Device mapping</h2>
+        <form action="/create_voice" method="post">
+          <h2>Voice to Device mapping</h2>
           <table class="leftright">
             <tr>
               <th>
-                <button type="submit" name=action value="create_wemo">Create WeMo</button><br>
-                <button type="submit" name=action value="restart">Restart FauxMo Process</button><br>
+                <button type="submit" name=action value="create_voice">Create WeMo</button><br>
+                <button type="submit" name=action value="restart">Restart FauxMo/Hue Processes</button><br>
                 <button type="submit" name=action value="display">Display future FauxMo config</button>
               </th>
               <th>
-                <label for="wemo_name">WeMo Name:</label>
-                <input type="text" id="wemo_name" name="wemo_name"><br>
-                <label for="wemo_port">WeMo Port:</label>
-                <input type="text" id="wemo_port" name="wemo_port" value="Optional"><br>
+                <label for="voice_name">Voice Name:</label>
+                <input type="text" id="voice_name" name="voice_name"><br>
+                <label for="port">Port:</label>
+                <input type="text" id="port" name="port" value="Optional"><br>
               </th>
               <th>
                 Device:
               </th>
               <th>
-                <select id="wemo_device" name="wemo_device" size="5">
+                <select id="voice_device" name="voice_device" size="5">
                   {% for b in get_devices_for_wemo %}
                   <option value="{{b[0]}}">
                  "{{b[1]}}"&nbsp;&nbsp; <!-- ({{b[2]}})
@@ -140,7 +140,7 @@
 
     <tr>
       <td>
-        <form action="/remove_wemo" method="post">
+        <form action="/remove_voice" method="post">
           <table class="center">
             <tr>
               <th rowspan="2">

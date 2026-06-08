@@ -97,8 +97,8 @@ class database:
         where = ''
         cur.execute("""
         select
-            wemo_port,
-            wemo_name,
+            port,
+            voice_name,
             mqtt_feature.topic,
             mqtt_feature.true_value,
             mqtt_feature.false_value,
@@ -254,8 +254,8 @@ class database:
         cur = self.con.cursor()
         cur.execute("""
         select wemo.rowid,
-            wemo_name,
-            wemo_port,
+            voice_name,
+            port,
             mqtt_feature.rowid,
             mqtt_device.friendly_name,
             mqtt_feature.property,
@@ -475,29 +475,29 @@ class database:
         cur.close()
         self.con.commit()
 
-    def create_wemo(self, wemo_name, wemo_port, feature_row_id):
-        if wemo_name == "":
+    def create_voice(self, voice_name, port, feature_row_id):
+        if voice_name == "":
             return False
         cur = self.con.cursor()
-        if not wemo_port:
+        if not port:
             cur.execute("""
-            select COALESCE(max(wemo_port),0)home_MQTT_devices
+            select COALESCE(max(port),0)home_MQTT_devices
                 from wemo
             """)
-            largest_wemo_port = cur.fetchone()[0]
+            largest_port = cur.fetchone()[0]
             cur.close()
-            print("current largest_wemo_port[%s]" % largest_wemo_port)
-            if  largest_wemo_port == 0:
-                wemo_port = const.BASE_FAXMO_PORT
+            print("current largest_port[%s]" % largest_port)
+            if  largest_port == 0:
+                port = const.BASE_FAXMO_PORT
             else:
-                wemo_port = int(largest_wemo_port) + 1
+                port = int(largest_port) + 1
             cur = self.con.cursor()
         status = True
         try:
             cur.execute("""
             insert or replace into wemo (
-               wemo_name,
-               wemo_port,
+               voice_name,
+               port,
                friendly_name,
                property,
                topic
@@ -510,9 +510,9 @@ class database:
                 mqtt_feature.topic
                 from mqtt_feature
                 join  mqtt_device on mqtt_device.friendly_name = mqtt_feature.friendly_name
-                where mqtt_feature.rowid = ? """, (wemo_name,  wemo_port, feature_row_id,))
+                where mqtt_feature.rowid = ? """, (voice_name,  port, feature_row_id,))
         except Exception as e:
-            print("create_wemo failed,", e)
+            print("create_voice failed,", e)
             status = False
         cur.close()
         self.con.commit()
@@ -522,21 +522,21 @@ class database:
         cur = self.con.cursor()
         cur.execute("""
         select
-                wemo.rowid,
-                wemo_name,
-                wemo_port,
+                voice.rowid,
+                voice_name,
+                port,
                 mqtt_device.friendly_name,
                 mqtt_device.description,
                 mqtt_feature.topic,
                 mqtt_feature.true_value,
                 mqtt_feature.false_value
-            from wemo
+            from voice_devices
             left join mqtt_device  on mqtt_device.friendly_name = wemo.friendly_name
             left join mqtt_feature on mqtt_device.friendly_name = mqtt_feature.friendly_name
-                    and mqtt_feature.property = wemo.property
+                    and mqtt_feature.true_value = voice.true_value
                     and mqtt_feature.topic = wemo.topic
             --where mqtt_feature.access = "sub"
-            order by wemo_name;
+            order by voice_name;
         """)
         all = cur.fetchall()
         cur.close()
@@ -717,8 +717,8 @@ INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","descri
 INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
     VALUES (NULL,'door bell','manual','small huh','binary',NULL,'home/doorbell/button','',NULL);
 
-INSERT INTO "wemo" ("wemo_name","wemo_port","topic","true_value") 
-    VALUES ('foobar','55555','home/small_thing/state',"1");
+INSERT INTO "voice_devices" ("voice_name","port","topic","true_value", "handler") 
+    VALUES ('foobar','55555','home/small_thing/state',"1","wemo");
 
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Driveway','http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1','admin','alert.Away','');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Front door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
@@ -840,14 +840,15 @@ CREATE TABLE triggers (
         ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS wemo;
-CREATE TABLE wemo (
-    wemo_name TEXT PRIMARY KEY, 
-    wemo_port INTEGER UNIQUE,   
+DROP TABLE IF EXISTS voice_devices;
+CREATE TABLE voice_devices ( -- was wemo (
+    voice_name TEXT PRIMARY KEY, 
+    port INTEGER UNIQUE,   
     -- friendly_name TEXT,          
     -- property TEXT,
     topic TEXT,
-    true_value,                  
+    true_value,
+    handler,   -- "wemo" or "hue" 
     qos INTEGER DEFAULT 0,
     retain INTEGER DEFAULT 0,
     FOREIGN KEY (topic, true_value) 
@@ -925,7 +926,7 @@ CREATE TABLE emailaddr_in_events (
             user  TEXT DEFAULT NULL,
             password TEXT DEFAULT NULL,
             mosquitto_sleep_seconds INTEGER default 1000,
-            mqtt_keepalive INTEGER default 120
+            mqtt_keepalive INTEGER default 120,
             
             gmail_password  TEXT DEFAULT NULL,
             gmail_user  TEXT DEFAULT NULL,

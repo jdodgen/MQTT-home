@@ -125,7 +125,7 @@ async def whoareyou(request):
     myhost = os.uname()[1]
     return web.Response(text=f"iam/{myhost}")
     
-async def create_wemo(request):
+async def create_voice(request):
     error_msg = ''
     # aiohttp requires awaiting the form data
     if request.method == "POST":
@@ -139,14 +139,14 @@ async def create_wemo(request):
             cfg = build_cfg()  #"fauxmo_cfg_placeholder" # Replace with your manager call
             return web.Response(text=f"<pre>{cfg}</pre>", content_type='text/html')
         else:
-            print(f"wemo[{data}]")
-            if "wemo_name" in data and "wemo_device" in data:
-                DB.create_wemo(data["wemo_name"], data.get("wemo_port"), data["wemo_device"])
+            print(f"Voice[{data}]")
+            if "voice_name" in data and "voice_device" in data:
+                DB.create_voice(data["voice_name"], data.get("port"), data["voice_device"])
             else:
-                error_msg = 'Both wemo name and device required'
+                error_msg = 'Both Voice name and device required'
     return await render_response(request, error_msg)
     
-async def remove_wemo(request):
+async def remove_voice(request):
     global DB
     error_msg = ''
     # aiohttp requires awaiting the form data
@@ -220,10 +220,10 @@ app.add_routes([
     web.get('/whoareyou', whoareyou),
     web.get('/create_IP_device', create_IP_device),
     web.post('/create_IP_device', create_IP_device),
-    web.get('/create_wemo', create_wemo),
-    web.post('/create_wemo', create_wemo),
-    web.get('/remove_wemo', remove_wemo),
-    web.post('/remove_wemo', remove_wemo),
+    web.get('/create_voice', create_voice),
+    web.post('/create_voice', create_voice),
+    web.get('/remove_voice', remove_voice),
+    web.post('/remove_voice', remove_voice),
     web.get('/all_devices', all_devices),
     web.post('/all_devices', all_devices),
     web.get('/zigbee2mqtt', z2m_page),
