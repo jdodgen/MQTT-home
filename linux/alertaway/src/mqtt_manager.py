@@ -57,7 +57,7 @@ class mqtt_manager:
         #self.client.tls_set(cert_reqs=ssl.CERT_OPTIONAL) 
         #self.client.tls_set(tls_version=ssl.PROTOCOL_TLS)
         while True:
-            print(f"__init__ connecting to [{db_cfg['broker']}]-[{db_cfg['broker_mqtt_port']}]")
+            print(f"__init__ connecting to [{db_cfg['local_broker_ip']}]-[{db_cfg['local_broker_port']}]")
             try:
                 self.client.connect(db_cfg['local_broker_ip'],db_cfg['local_broker_port'])
                 print ("__init__ connected")
