@@ -24,25 +24,52 @@ async def update_config(db_path, data):
         ssl_val = 1 if 'ssl' in data else 0
         
         sql = """UPDATE config SET 
-                 alive_interval = ?, 
-                 broker = ?, 
-                 ssl = ?,
-                 user = ?,
-                 password = ?,
-                 gmail_user = ?,
-                 gmail_password = ?,
-                 publish = ? 
+                    alive_interval = ?, 
+                    publish = ?,
+                    -- local broker mosquitto
+                    local_broker_ip = ?,
+                    local_broker_port = ?,
+                    local_broker_ssl = ?,
+                    local_broker_user = ?,
+                    local_broker_password = ?,
+                    local_broker_sleep_seconds = ?,
+                    local_broker_mqtt_keepalive = ?,
+                    -- cloud broker (optional)
+                    cloud_broker_ip = ?,
+                    cloud_broker_port = ?,
+                    cloud_broker_ssl = ?,
+                    cloud_broker_user = ?,
+                    cloud_broker_password = ?,
+                    cloud_broker_sleep_seconds = ?,
+                    cloud_broker_mqtt_keepalive = ?,
+                    --- 
+                    gmail_password = ?,
+                    gmail_user =?
                  WHERE id = 0"""
         # In aiosqlite, .execute() and .commit() must be awaited
         await db.execute(sql, (
-            int(data['alive_interval']),
-            data['broker'],
-            ssl_val,
-            data['user'],
-            data['password'],
-            data['gmail_user'],
-            data['gmail_password'],
-            data['publish']
+                                data['alive_interval'], 
+                                data['publish'],
+                                #data['zigbee_refresh_seconds'],
+                                # local broker mosquitto
+                                data['local_broker_ip'],
+                                data['local_broker_port'],
+                                data.get('local_broker_ssl', '0'),
+                                data['local_broker_user'],
+                                data['local_broker_password'],
+                                data['local_broker_sleep_seconds'],
+                                data['local_broker_mqtt_keepalive'],
+                                #-- cloud broker (optional)
+                                data['cloud_broker_ip'],
+                                data['cloud_broker_port'],
+                                data.get('cloud_broker_ssl', '0'),
+                                data['cloud_broker_user'],
+                                data['cloud_broker_password'],
+                                data['cloud_broker_sleep_seconds'],
+                                data['cloud_broker_mqtt_keepalive'],
+                                #
+                                data['gmail_password'],
+                                data['gmail_user']
         ))
         await db.commit()
 
@@ -56,6 +83,7 @@ async def handle_index(request):
 async def handle_update(request):
     # Retrieve form data from POST
     data = await request.post()
+    # print(data)
     await update_config(request.app['db_path'], data)
     # Redirect back to home after update
     return web.HTTPFound('/')

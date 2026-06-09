@@ -912,28 +912,28 @@ CREATE TABLE emailaddr_in_events (
         ON DELETE CASCADE
 );
 
-        -- drop table if exists config;
+        drop table if exists config;
         CREATE TABLE IF NOT EXISTS config ( -- this is a singleton
             id INTEGER PRIMARY KEY CHECK (id = 0),
             alive_interval INTEGER DEFAULT 30,
             publish  TEXT DEFAULT "home/alertaway/power",
-            zigbee_refresh_seconds INTEGER default 30,
+            -- zigbee_refresh_seconds INTEGER default 30,
             -- local broker mosquitto
-            local_broker_ip TEXT DEFAULT '0.0.0.0',
+            local_broker_ip TEXT DEFAULT '127.0.0.1',
             local_broker_port INTEGER default 1883,
             local_broker_ssl   INTEGER DEFAULT FALSE,
             local_broker_user  TEXT DEFAULT NULL,
             local_broker_password TEXT DEFAULT NULL,
-            local_broker_mosquitto_sleep_seconds INTEGER default 1000,
+            local_broker_sleep_seconds INTEGER default 1000,
             local_broker_mqtt_keepalive INTEGER default 120,
             -- cloud broker (optional)
             cloud_broker_ip TEXT  DEFAULT NULL,
-            cloud_broker_port INTEGER,
-            cloud_broker_ssl  INTEGER,
-            cloud_broker_user TEXT,
-            cloud_broker_password TEXT,
-            cloud_broker_sleep_seconds INTEGER,
-            cloud_broker_mqtt_keepalive INTEGER,
+            cloud_broker_port INTEGER DEFAULT 1883,
+            cloud_broker_ssl  INTEGER DEFAULT FALSE,
+            cloud_broker_user TEXT DEFAULT NULL,
+            cloud_broker_password TEXT DEFAULT NULL,
+            cloud_broker_sleep_seconds INTEGER default 1000,
+            cloud_broker_mqtt_keepalive INTEGER default 120,
             --- 
             gmail_password  TEXT DEFAULT NULL,
             gmail_user  TEXT DEFAULT NULL
@@ -943,6 +943,7 @@ CREATE TABLE emailaddr_in_events (
         cur = self.con.cursor()
         cleaned_statements = self.process_sql(create)
         for stmt in cleaned_statements:
+            #xprint(stmt)
             try:
                 cur.execute(stmt)
             except Exception as e:

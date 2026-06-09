@@ -7,49 +7,107 @@
 {{ nav_section|safe }}
 <div class="refill-area">
 <body>
-    <h2>Configure</h2>
+    <h2>Configuration</h2>
     <form action="/update" method="post">
-        <h3>Broker</h3>
-        <label>Broker IP:</label>
-        <input type="text" maxlength=60 name="broker" value="{{ config.broker }}"><br>
+        <hr>
+        <button type="submit">Update Configuration</button>
+        <hr>
+        <h3>Local Broker</h3>
+        <label>IP:</label>
+        <input type="text" maxlength=60 name="local_broker_ip" value="{{ config.local_broker_ip }}"><br>
+        <label>Port:</label>
+        <input 
+              type="text" 
+              name="local_broker_port" 
+              value="{{ config.local_broker_port }}" 
+              inputmode="numeric" 
+              pattern="[0-9]*" 
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+            ><br>
         <label>Use SSL:</label>
-        <input type="checkbox" name="ssl" {{ 'checked' if config.ssl else '' }}><br>
+        <input type="checkbox" name="local_broker_ssl" {{ 'checked' if config.local_broker_ssl else '' }}><br>
         <label>User:</label>
-        <input type="text" name="user" maxlength=30 value="{{ config.user or '' }}"><br>
+        <input type="text" name="local_broker_user" maxlength=30 value="{{ config.local_broker_user or '' }}"><br>
         <label>Pass:</label>
-        <input type="text" name="password" maxlength=30 value="{{ config.password or '' }}"><br>
-
+        <input type="text" name="local_broker_password" maxlength=30 value="{{ config.local_broker_password or '' }}"><br>
+        <label>Sleep Seconds:</label>
+        <input 
+              type="text" 
+              name="local_broker_sleep_seconds" 
+              value="{{ config.local_broker_sleep_seconds }}" 
+              inputmode="numeric" 
+              pattern="[0-9]*" 
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+            ><br>
+        <label>Keepalive:</label>
+        <input 
+              type="text" 
+              name="local_broker_mqtt_keepalive" 
+              value="{{ config.local_broker_mqtt_keepalive }}" 
+              inputmode="numeric" 
+              pattern="[0-9]*" 
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+            >
+            
+        <hr>
+        <h3>Cloud Broker</h3>
+        <label>IP:</label>
+        <input type="text" maxlength=60 name="cloud_broker_ip" value="{{ config.cloud_broker_ip }}"><br>
+        <label>Port:</label>
+        <input 
+              type="text" 
+              name="cloud_broker_port" 
+              value="{{ config.cloud_broker_port }}" 
+              inputmode="numeric" 
+              pattern="[0-9]*" 
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+            ><br>
+        <label>Use SSL:</label>
+        <input type="checkbox" name="cloud_broker_ssl" {{ 'checked' if config.cloud_broker_ssl else '' }}><br>
+        <label>User:</label>
+        <input type="text" name="cloud_broker_user" maxlength=30 value="{{ config.cloud_broker_user or '' }}"><br>
+        <label>Pass:</label>
+        <input type="text" name="cloud_broker_password" maxlength=30 value="{{ config.cloud_broker_password or '' }}"><br>
+        <label>Sleep Seconds:</label>
+        <input 
+              type="text" 
+              name="cloud_broker_sleep_seconds" 
+              value="{{ config.cloud_broker_sleep_seconds }}" 
+              inputmode="numeric" 
+              pattern="[0-9]*" 
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+            ><br>
+        <label>Keepalive:</label>
+        <input 
+              type="text" 
+              name="cloud_broker_mqtt_keepalive" 
+              value="{{ config.cloud_broker_mqtt_keepalive }}" 
+              inputmode="numeric" 
+              pattern="[0-9]*" 
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+            >
+       
         <hr>
         <h3>Gmail Service Settings</h3>
         <label>User:</label>
-        <input type="email" name="gmail_user" value="{{ config.gmail_user or '' }}"><br>
+        <input type="text" name="gmail_user" value="{{ config.gmail_user }}"><br>
         <label>Password:</label>
-        <input type="text" name="gmail_password" value="{{ config.gmail_password or '' }}"><br>
+        <input type="text" name="gmail_password" value="{{ config.gmail_password }}"><br>
 
         <hr>
-        <h3>PCN PowerChangeNotifier</h3>
-        <label>Alive topic:</label>
-        <input type="text" name="alive_publish_topic" value="{{ config.publish }}"><br>
-        <label>Alive interval:</label>
-        <input type="number" name="alive_interval" value="{{ config.alive_interval }}"><br>
-
-        <hr>
-        <h3>Mosquitto</h3>
-        <label>Mosquitto sleep seconds:</label>
-        <input type="number" name="mosquitto_sleep_seconds" value="{{ config.mosquitto_sleep_seconds }}"><br>
-        <label>listener port:</label>
-        <input type="number" name="broker_mqtt_port" value="{{ config.broker_mqtt_port }}"><br>
-        
-        <hr>
-        <h3>Zigbee</h3>
-        <label>Zigbee refresh seconds:</label>
-        <input type="text" name="zigbee_refresh_seconds" value="{{ config.zigbee_refresh_seconds }}"><br>
-        
-        <hr>
-        <h3>Alive notification</h3>
-        <label>Topic to publish (needs to end in /power):</label>
+        <h3>Publish life</h3>
+        <label>topic:</label>
         <input type="text" name="publish" value="{{ config.publish }}"><br>
-        
+        <label>Alive interval:</label>
+        <input 
+              type="text" 
+              name="alive_interval" 
+              value="{{ config.alive_interval }}" 
+              inputmode="numeric" 
+              pattern="[0-9]*" 
+              oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+            >
+            
         <hr>
         <button type="submit">Update Configuration</button>
     </form>

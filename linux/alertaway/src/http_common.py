@@ -124,7 +124,7 @@ def nav_section():
         <a href="http://{ my_ip }:{ TIMERS_PORT }">Timers</a>
         <a href="http://{ my_ip }:{ CAM_PORT }">Cameras</a>
         <a href="http://{ my_ip }:{ EMAIL_PORT }">Emails</a>
-        <a href="http://{ my_ip }:{ CONFIG_PORT }">Configuation</a>
+        <a href="http://{ my_ip }:{ CONFIG_PORT }">Configuration</a>
     </nav>
     '''}
     #print(nav)
