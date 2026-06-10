@@ -10,6 +10,7 @@ import sqlite3
 # production ports
 # DB_NAME = "devices.db"
 
+VOICE_PORT = 8088
 EMAIL_PORT = 8087
 CONFIG_PORT = 8086
 CAM_PORT = 8085
