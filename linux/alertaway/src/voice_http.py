@@ -2,21 +2,19 @@ import os
 import jinja2
 import aiohttp_jinja2
 from aiohttp import web
-import database
+import aiosqlite
+#import database
 import re
-import message
-import mqtt_hello
+#import message
+#import mqtt_hello
 import restart_service
 from fauxmo_manager import build_cfg
 import http_common as config
 
-NAV =       config.nav_section()
-STYLE =     config.STYLE
-
 MY_IP = config.get_ip() # replaced when forked
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.VOICE_PORT
-NAV = config.nav_section() # replaced when forked
+NAV = config.nav_section(raw=True) # replaced when forked
 STYLE = config.STYLE
 
 #MAIN_Q=None  #  messages queue
@@ -48,14 +46,8 @@ async def render_response(request, error, update_ip=False, manIP_rowid=None):
             # break
     context = {
         "error_message": error,
-        "do_update_IP": update_ip,
-        "man_ip": DB.get_manIP_device(manIP_rowid),
-        "manIP_devices": DB.cook_devices_features_for_html(source='manIP'),
-        "autoIP_devices": DB.cook_devices_features_for_html(source='IP'),
-        "zigbee_devices": DB.cook_devices_features_for_html(source='ZB'),
         "get_devices_for_wemo": DB.get_devices_for_wemo(),
         "all_wemo": DB.get_all_wemo(),
-        "manual_device_names": DB.get_all_manual_device_names(),
         "style": STYLE
     }
     # This renders the template named 'index.html'
@@ -124,7 +116,18 @@ async def render_index(request):
 # async def whoareyou(request):
     # myhost = os.uname()[1]
     # return web.Response(text=f"iam/{myhost}")
-    
+
+async def get_voice_row(db_path):
+    # 'async with' handles opening and automatically closing the connection
+    async with aiosqlite.connect(db_path) as db:
+        # Set the row_factory to return Row objects (for column-name access)
+        db.row_factory = aiosqlite.Row
+        # 'execute' is an async method; use 'async with' to handle the cursor
+        async with db.execute("SELECT * FROM config WHERE id = ?", rowid) as cursor:
+            # 'fetchone' is also a coroutine and must be awaited
+            row = await cursor.fetchone()
+        return row
+        
 async def create_voice(request):
     error_msg = ''
     # aiohttp requires awaiting the form data
@@ -147,21 +150,45 @@ async def create_voice(request):
     return await render_response(request, error_msg)
     
 async def remove_voice(request):
-    global DB
-    error_msg = ''
-    # aiohttp requires awaiting the form data
-    if request.method == "POST":
-        data = await request.post()
-        action = data.get("action")
-        print("action", action)
-        if "delete_wemo" in action:
-            print("deleteing")
-            match = re.search(r'delete_wemo/(\d+)', action)
-            print("deleteing ", match.group(1))
-            if match:
-                target_id = match.group(1)
-                DB.delete_wemo(target_id)
-    return await render_response(request, error_msg)
+    data = await request.post()
+    print(data)
+    rowid = data.get("rowid")
+    print("rowid", rowid)
+    async with aiosqlite.connect(DB_NAME) as db:
+        db.row_factory = aiosqlite.Row
+        # 
+        async with db.execute("SELECT * FROM voice_device WHERE id=?", (rowid,)) as cursor:
+            row = await cursor.fetchone()
+            
+        await db.execute("DELETE FROM voice_device WHERE id = ?", (rowid,))
+        await db.commit()
+    if row:
+        # Redirect back with query params to pre-fill the form
+        return web.HTTPFound(
+            f'/?voice_name={row["voice_name"]}&refill_topic={row[1]}&refill_payload={row[2]}'
+            f'&refill_subj={row[4]}&refill_body={row[5]}'
+        )
+    return web.HTTPFound('/')
+    
+# async def xxxxremove_voice(request):
+    # global DB
+    # error_msg = ''
+    # # aiohttp requires awaiting the form data
+    # if request.method == "POST":
+        # data = await request.post()
+        # action = data.get("action")
+        # print("action", action)
+        # if "delete_wemo" in action:
+            # print("deleteing")
+            # match = re.search(r'delete_wemo/(\d+)', action)
+            # print("deleteing ", match.group(1))
+            # if match:
+                # target_id = match.group(1)
+                
+                # DB.delete_wemo(target_id)
+                
+                
+    # return await render_response(request, error_msg)
     
 # async def all_devices(request):
     # error = ""
@@ -208,8 +235,29 @@ async def remove_voice(request):
             # update_IP = True
             # rowid = parts[1]
     # return await render_response(request, msg, update_ip=update_IP, manIP_rowid=rowid)
-
-# 3. App Setup
+    
+@aiohttp_jinja2.template('voice.html')
+async def render_index(request):
+    async with aiosqlite.connect(DB_NAME) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT * FROM mqtt_feature") as cursor:
+            devices_for_voice = await cursor.fetchall()
+            for row in devices_for_voice:
+                print(dict(row),"\n==================\n")
+        #db.row_factory = aiosqlite.Row   
+        async with db.execute("SELECT * FROM voice_device") as cursor:
+            current_voice = await cursor.fetchall()
+            for row in current_voice:
+                print("\n-------\n", dict(row),"\n-------------\n")
+# 
+    return {
+    'current_voice': current_voice,
+    'devices_for_voice': devices_for_voice,
+    'query': request.query,
+    "style": STYLE,
+    "nav_section": NAV
+    }
+            
 app = web.Application()
 
 # Setup Jinja2 (Points to a folder named 'templates')
@@ -241,8 +289,8 @@ def task(fauxmo):
  #   MAIN_Q = queue.Queue() 
     
 #    msg = message.message(MAIN_Q, my_parent=my_name)
-    msg.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES)
-    msg.publish(mqtt_hello.hello_request_topic, my_name)
+    #msg.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES)
+    #msg.publish(mqtt_hello.hello_request_topic, my_name)
     fauxmo_task = fauxmo
     # os.nice(-1)
     print("Starting http server...")
@@ -253,5 +301,5 @@ def task(fauxmo):
         print("Error during web.run_app:", e)
     
 if __name__ == '__main__':
-    DB=database.database()
+    #DB=database.database()
     web.run_app(app, port=OUR_PORT)

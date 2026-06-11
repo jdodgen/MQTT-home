@@ -10,7 +10,7 @@ import restart_service
 from fauxmo_manager import build_cfg
 import http_common as config
 
-NAV =       config.nav_section()
+NAV =       config.nav_section(raw=false)
 STYLE =     config.STYLE
 
 MY_IP = config.get_ip() # replaced when forked

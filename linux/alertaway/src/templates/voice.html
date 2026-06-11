@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>{{ style|safe }}</style>
+    <title>Devices/WeMo</title>
+</head>
+{{ nav_section|safe }}
+<div class="refill-area">
+<body>
+</head>
+<body>
+  <table style="border: none;">
+  </table>
+  <table>
+    <tr>
+      <td>
+        <form action="/create_voice" method="post">
+          <h2>Voice to Device mapping</h2>
+          <table class="leftright">
+            <tr>
+              <th>
+                <button type="submit" name=action value="create_voice">Create</button><br>
+              </th>
+            <tr>
+              <th>
+                <label>Voice phrase:</label>
+                <input type="text" maxlength=60 name="voice_name" value="{{ query.get('voice_name', '')  }}"><br>
+                <label>Port (optional):</label>
+                <input 
+                  type="text" 
+                  name="port" 
+                  value="{{ port }}" 
+                  inputmode="numeric" 
+                  pattern="[0-9]*" 
+                  oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                ><br>
+                <label>WeMo</label>
+                <input type="radio" id="port_wemo" name="handler" value="wemo" {% if handler == 'wemo' %}checked{% endif %}>
+                <label>Hue</label>
+                <input type="radio" id="port_hue" name="handler" value="hue" {% if handler == 'hue' %}checked{% endif %}><br>
+              </th>
+            </tr>
+            <tr>
+              <th>
+                Select Device: 
+              </th>
+            </tr>
+              <th>
+                <select id="device_to_control" name="device_to_control" size="10">
+                  {% for row in devices_for_voice %}
+                      <option value="{{ row.id }}">
+                     "{{ row.friendly_name }}"&nbsp; 
+                      {{ row.topic }}&nbsp;[{{ row.true_value }}/{{ row.false_value }}]
+                      </option>
+                  {% endfor %}
+                </select>
+              </th>
+            </tr>
+            <tr>
+            <th colspan="100%", align=left>
+                <button type="submit" name=action value="restart">Restart FauxMo/Hue Processes</button><br>
+                <button type="submit" name=action value="display">Display future FauxMo config</button>
+            </th>
+            <tr>
+          </table>
+        </form>
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        <form action="/remove_voice" method="post">
+          <table class="center">
+            <tr>
+              <th align=left colspan="100%">
+                Current mapped commands
+              </th>
+            </tr>
+            <tr></tr>
+            <tr>
+              <th>
+                Voice Name + port
+              </th>
+              <th>
+                Device name
+              </th>
+              <th>
+                topic
+              </th>
+              <th>
+                Handler
+              </th>
+              <td></td)
+            </tr>
+            {% for row in current_voice %}
+                 <tr>
+                    <td>{{ row.voice_name }}+{{ row.port }}</td>
+                    <td>{{ row.friendly_name }}</td>
+                    <td>{{ row.topic }}</td>
+                    <td>{{ row.handler }}</td>
+                    <td>
+                        <form action="/delete" method="post" style="display:inline;">
+                            <input type="hidden" name="rowid" value="{{ row.id }}">
+                            <button type="submit">Delete & Edit</button>
+                        </form>
+                        <!-- <a href="/manage?events_name={{ name }}"><button>Link Assets</button></a> -->
+                    </td>
+                  </tr>
+            {% endfor %}
+
+            
+          </table>
+        </form>
+      </td>
+    </tr>
+ </tr>
+  </table>
+</body>
+</html>

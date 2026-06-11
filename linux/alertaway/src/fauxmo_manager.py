@@ -35,6 +35,7 @@ import http_common as config
 
 # sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 52000-52600
 cfg = config.get_db_config()
+#print(cfg)
 BROKER_IP   = cfg["local_broker_ip"]
 BROKER_PORT = cfg["local_broker_port"]
 cfg = None

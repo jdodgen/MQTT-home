@@ -113,9 +113,9 @@ allow_anonymous true
 
 ## print(mosquitto_configuration())
 
-def nav_section():
+def nav_section(raw=False):
     my_ip = get_ip()
-    nav =  {"nav_section": f'''
+    raw_nav = f'''
     <h1>AlertAway Toolbox</h1>
     <nav>
         <a href="http://{ my_ip }:{ HTTP_MAIN_PORT }">MQTT/IP Devices</a>
@@ -128,9 +128,10 @@ def nav_section():
         <a href="http://{ my_ip }:{ EMAIL_PORT }">Emails</a>
         <a href="http://{ my_ip }:{ CONFIG_PORT }">Configuration</a>
     </nav>
-    '''}
-    #print(nav)
-    return nav
+    '''
+    if raw: 
+        return raw_nav;
+    return {"nav_section": raw_nav}
  
 def get_ip():
     import socket
