@@ -103,13 +103,13 @@ async def create_voice(request):
                     db.row_factory = aiosqlite.Row
                     async with db.execute("SELECT * FROM mqtt_feature  WHERE id = ?", (data["device_to_control"],)) as cursor:
                         # 'fetchone' is also a coroutine and must be awaited
-                        row = await cursor.fetchone()
+                        mqtt_feature = await cursor.fetchone()
                     await db.execute('''INSERT INTO voice_device (voice_name, port, handler, topic, true_value) VALUES (?,?,?,?,?)''',
                      (data['voice_name'],
                      data['port'],
                      data['handler'],
-                     row['topic'],
-                     row['true_value'],
+                     mqtt_feature['topic'],
+                     mqtt_feature['true_value'],
                      ))
                     await db.commit()
             else:
