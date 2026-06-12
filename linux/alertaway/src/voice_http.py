@@ -35,29 +35,30 @@ def print(*args, **kwargs): # replace print
 fauxmo_task = None
 
 # 1. Helper to replace your 'render' function
-async def render_response(request, error, update_ip=False, manIP_rowid=None):
-    global DB
-    # This replaces your 'render' function and uses the Jinja2 engine
-    # flush the message MAIN_Q 
-#    while True:
-        # try:
-# #            MAIN_Q.get_nowait()
-        # except queue.Empty:
-            # break
-    context = {
-        "error_message": error,
-        "get_devices_for_wemo": DB.get_devices_for_wemo(),
-        "all_wemo": DB.get_all_wemo(),
-        "style": STYLE
-    }
-    # This renders the template named 'index.html'
-    return aiohttp_jinja2.render_template('index.html', request, context | NAV)
+# async def render_response(request, error, update_ip=False, manIP_rowid=None):
+    # global DB
+    # # This replaces your 'render' function and uses the Jinja2 engine
+    # # flush the message MAIN_Q 
+# #    while True:
+        # # try:
+# # #            MAIN_Q.get_nowait()
+        # # except queue.Empty:
+            # # break
+    # context = {
+        # "error_message": error,
+        # "get_devices_for_wemo": DB.get_devices_for_wemo(),
+        
+        # "all_wemo": DB.get_all_wemo(),
+        # "style": STYLE
+    # }
+    # # This renders the template named 'index.html'
+    # return aiohttp_jinja2.render_template('voice.html', request, context | NAV)
 
 # 2. Define Route Handlers
-async def render_index(request):
-    print("getting index.html")
+#async def render_index(request):
+    # print("getting index.html")
     # return aiohttp_jinja2.render_template('index.html', request, {})
-    return await render_response(request, "")
+    #return await render_response(request, "")
     
 # async def create_IP_device(request):
     # error_msg=''
@@ -127,7 +128,8 @@ async def get_voice_row(db_path):
             # 'fetchone' is also a coroutine and must be awaited
             row = await cursor.fetchone()
         return row
-        
+
+@aiohttp_jinja2.template('voice.html')        
 async def create_voice(request):
     error_msg = ''
     # aiohttp requires awaiting the form data
@@ -144,10 +146,22 @@ async def create_voice(request):
         else:
             print(f"Voice[{data}]")
             if "voice_name" in data and "voice_device" in data:
-                DB.create_voice(data["voice_name"], data.get("port"), data["voice_device"])
+                # DB.create_voice(data["voice_name"], data.get("port"), data["voice_device"])
+                async with aiosqlite.connect(DB_NAME) as db:
+                    db.row_factory = aiosqlite.Row
+                    # 
+                    await db.execute('''INSERT INTO voice_device (
+                                    voice_name, 
+                                    friendly_name, 
+                                    topic, 
+                                    ''', (rowid,))
+                    await db.commit()
             else:
                 error_msg = 'Both Voice name and device required'
-    return await render_response(request, error_msg)
+    context_data = await render_response(request, error_msg = error_msg)
+    return aiohttp_jinja2.render_template('voice.html', request, context_data)
+    #return { "error_msg": error_msg }
+    #return await render_response(request, error_msg)
     
 async def remove_voice(request):
     data = await request.post()
@@ -165,7 +179,7 @@ async def remove_voice(request):
     if row:
         # Redirect back with query params to pre-fill the form
         return web.HTTPFound(
-            f'/?voice_name={row["voice_name"]}&refill_topic={row[1]}&refill_payload={row[2]}'
+            f'/?voice_name={row["voice_name"]}&port={row["port"]}&refill_payload={row[2]}'
             f'&refill_subj={row[4]}&refill_body={row[5]}'
         )
     return web.HTTPFound('/')
@@ -237,7 +251,7 @@ async def remove_voice(request):
     # return await render_response(request, msg, update_ip=update_IP, manIP_rowid=rowid)
     
 @aiohttp_jinja2.template('voice.html')
-async def render_index(request):
+async def render_response(request, error_msg=""):
     async with aiosqlite.connect(DB_NAME) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute("SELECT * FROM mqtt_feature") as cursor:
@@ -245,12 +259,25 @@ async def render_index(request):
             for row in devices_for_voice:
                 print(dict(row),"\n==================\n")
         #db.row_factory = aiosqlite.Row   
-        async with db.execute("SELECT * FROM voice_device") as cursor:
+        async with db.execute('''SELECT 
+                    v.id AS voice_device_id,
+                    v.voice_name,
+                    v.port,
+                    v.handler,
+                    m.friendly_name,
+                    v.topic,
+                    v.true_value,
+                    m.false_value
+                FROM voice_device v
+                JOIN mqtt_feature m 
+                    ON v.topic = m.topic 
+                   AND v.true_value = m.true_value''') as cursor:
             current_voice = await cursor.fetchall()
             for row in current_voice:
                 print("\n-------\n", dict(row),"\n-------------\n")
 # 
     return {
+    'error_message': error_msg,
     'current_voice': current_voice,
     'devices_for_voice': devices_for_voice,
     'query': request.query,
@@ -264,7 +291,7 @@ app = web.Application()
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
 
 app.add_routes([
-    web.get('/', render_index),
+    web.get('/', render_response),
     web.get('/create_voice', create_voice),
     web.post('/create_voice', create_voice),
     web.get('/remove_voice', remove_voice),

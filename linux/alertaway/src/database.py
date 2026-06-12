@@ -716,8 +716,8 @@ INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","descri
 INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
     VALUES (NULL,'door bell','manual','small huh','binary',NULL,'home/doorbell/button','',NULL);
 
-INSERT INTO "voice_device" ("friendly_name", "voice_name","port","topic","true_value", "handler") 
-    VALUES ("beadroom light", 'foobar','55555','home/small_thing/state',"1","wemo");
+INSERT INTO "voice_device" ("voice_name","port","topic","true_value", "handler") 
+    VALUES ("beadroom light", '55555','home/small_thing/state',"1","wemo");
 
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Driveway','http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1','admin','alert.Away','');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Front door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
@@ -845,7 +845,7 @@ CREATE TABLE voice_device ( -- was wemo (
     id INTEGER PRIMARY KEY,  
     voice_name TEXT UNIQUE, 
     port INTEGER UNIQUE,   
-    friendly_name TEXT,          
+    -- friendly_name TEXT,          
     -- property TEXT,
     topic TEXT,
     true_value,

@@ -23,13 +23,13 @@
               </th>
             <tr>
               <th>
-                <label>Voice phrase:</label>
+                <label>Command words:</label>
                 <input type="text" maxlength=60 name="voice_name" value="{{ query.get('voice_name', '')  }}"><br>
                 <label>Port (optional):</label>
                 <input 
                   type="text" 
                   name="port" 
-                  value="{{ port }}" 
+                  value="{{ query.get('port', 0)  }}" 
                   inputmode="numeric" 
                   pattern="[0-9]*" 
                   oninput="this.value = this.value.replace(/[^0-9]/g, '')"
@@ -79,10 +79,10 @@
             <tr></tr>
             <tr>
               <th>
-                Voice Name + port
+                Command words
               </th>
               <th>
-                Device name
+                Device Frendly Name
               </th>
               <th>
                 topic
@@ -94,13 +94,13 @@
             </tr>
             {% for row in current_voice %}
                  <tr>
-                    <td>{{ row.voice_name }}+{{ row.port }}</td>
+                    <td>{{ row.voice_name }}</td>
                     <td>{{ row.friendly_name }}</td>
                     <td>{{ row.topic }}</td>
                     <td>{{ row.handler }}</td>
                     <td>
                         <form action="/delete" method="post" style="display:inline;">
-                            <input type="hidden" name="rowid" value="{{ row.id }}">
+                            <input type="hidden" name="rowid" value="{{ row.voice_device_id }}">
                             <button type="submit">Delete & Edit</button>
                         </form>
                         <!-- <a href="/manage?events_name={{ name }}"><button>Link Assets</button></a> -->
