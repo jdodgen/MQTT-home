@@ -15,6 +15,7 @@ modules = [
     ("alertaway-main",                "main.py", "Starting up", 10),
     ("alertaway-http",                "main_http.py", "HTTP Server & UI", 10),
     ("alertaway-timers-http",         "timers_httl.py", "Maintain timers", 1),
+    ("alertaway-voice-http",         "voice_httl.py", "Maintain Voices", 1),
     ("alertaway-timers-daemon",       "timers_daemon.py", "Monitoring Timers ", 10),
     ("alertaway-triggers-http",       "triggers_http.py", "Maintain triggers", 10),
     ("alertaway-triggers-daemon",     "triggers_daemon.py", "Trigger & Event Logic", 10),
