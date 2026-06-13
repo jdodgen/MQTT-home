@@ -20,6 +20,7 @@
             <tr>
               <th>
                 <button type="submit" name=action value="create_voice">Create</button><br>
+                <p style="color: #FF0000;">{{ error_message }}</p>
               </th>
 
             <tr>
@@ -101,7 +102,7 @@
                     <td>{{ row.topic }}</td>
                     <td>{{ row.handler }}</td>
                     <td>
-                        <form action="/delete" method="post" style="display:inline;">
+                        <form action="/remove_voice" method="post" style="display:inline;">
                             <input type="hidden" name="rowid" value="{{ row.voice_device_id }}">
                             <button type="submit">Delete & Edit</button>
                         </form>
