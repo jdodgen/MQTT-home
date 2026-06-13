@@ -22,8 +22,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
-import os
-import subprocess
+#import os
+#import subprocess
 import time
 # import fauxmo.cli
 # print("cli path", fauxmo.cli.__file__)
@@ -188,19 +188,8 @@ def get_fauxmo_cfg() -> str:
         fauxmo_config = open(config.FAUXMO_CONFIG_FILE_PATH, "w")
         n = fauxmo_config.write(fauxmo_cfg)
         fauxmo_config.close() 
-        print("config:",fauxmo_cfg)
+        
     return fauxmo_cfg
 
-        # while True:
-        #     subprocess.run(["/usr/local/bin/fauxmo", "-c", const.config_file_path])
-        #     ## never returns
-            
-        #     print("fauxmo_manager faxmo exited, waiting and restarting")
-        #     time.sleep(10)                   
-
 if __name__ == "__main__":
-   
     task()
-    time.sleep(1000)
-    #print(build_cfg())
-   # task()
