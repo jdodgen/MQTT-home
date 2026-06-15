@@ -149,6 +149,27 @@ def get_ip():
 #    cfg = get_db_config()
 #    return cfg["broker_mqtt_port"]
 
+import asyncio
+import aiosqlite
+from contextlib import asynccontextmanager
+@asynccontextmanager
+async def db_connect(row_factory=True):
+    db = await aiosqlite.connect(DB_NAME)
+    
+    # 1. The 'try' block must start here to pair with the 'finally' block
+    try:
+        if row_factory:
+            db.row_factory = aiosqlite.Row
+        
+        await db.execute("PRAGMA foreign_keys = ON;")
+        
+        # 2. Hand control to the 'async with' block
+        yield db
+        
+    finally:
+        # 3. This block will now execute perfectly when exiting
+        await db.close()
+    
 def get_uuid():
     # Get the hardware address
     mac_int = uuid.getnode()

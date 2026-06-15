@@ -9,9 +9,21 @@
 <body>
     <h2>Add / Edit Event</h2>
     <form action="/events/add" method="post">
-        <input type="text" name="events_name" placeholder="Event Name" value="{{ query.get('refill_name', '') }}" required>
-        <input type="text" name="mqtt_topic" placeholder="Topic" value="{{ query.get('refill_topic', '') }}">
-        <input type="text" name="matching_payload" placeholder="Payload" value="{{ query.get('refill_payload', '') }}">
+        <input type="text" name="events_name" placeholder="Event Name" value="{{ query.get('refill_name', '') }}" required><br>
+        <input type="text" name="mqtt_topic" placeholder="Topic" value="{{ query.get('refill_topic', '') }}"><br>
+        <select name="feature" size="10">
+              {% for row in features %}
+                  <option value="{{row.mqtt_feature_id }}">
+                 "{{ row.friendly_name }}"&nbsp; 
+                  {{ row.topic }}&nbsp;[{{ row.true_value }}/{{ row.false_value }}]
+                  </option>
+              {% endfor %}
+        </select><br>
+        <label>on or off?</label>
+        <input type="radio" id="notify-on" name="on_or_off" value="on" checked>
+        <label for="notify-on">On</label>
+        <input type="radio" id="notify-off" name="on_or_off" value="off">
+        <label for="notify-off">Off</label>
         <br><br>
         <input type="text" name="subject" placeholder="Email Subject" value="{{ query.get('refill_subj', '') }}" style="width: 100%;">
         <br><br>
@@ -23,11 +35,12 @@
 
 <table>
     <tr><th>Name</th><th>Topic</th><th>Payload</th><th>Action</th></tr>
-    {% for name, topic, payload, change, subj, body in events %}
+    
+    {% for data in events %}
     <tr>
-        <td>{{ name }}</td>
-        <td>{{ topic }}</td>
-        <td>{{ payload }}</td>
+        <td>{{ data['events_name'] }}</td>
+        <td>{{ data['mqtt_topic'] }}</td>
+        <td>{{ data['matching_payload'] }}</td>
         <td>
             <form action="/events/delete" method="post" style="display:inline;">
                 <input type="hidden" name="events_name" value="{{ name }}">
