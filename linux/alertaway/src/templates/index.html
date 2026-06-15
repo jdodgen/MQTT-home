@@ -2,7 +2,7 @@
 <html>
 <head>
     <style>{{ style|safe }}</style>
-    <title>Devices/WeMo</title>
+    <title>Devices</title>
 </head>
 {{ nav_section|safe }}
 <div class="refill-area">
@@ -27,9 +27,7 @@
       </th>
      </tr> -->
     <tr>
-        <td style="border: none;"><h2>Device and WeMo/fauxmo Management</h2></td>
-    </tr>
-    </tr>
+        <td style="border: none;"><h2>Device Management</h2></td>
     </tr>
     {% if do_update_IP %}
     <tr>
@@ -101,7 +99,7 @@
       </td>
     </tr>
     {% endif %}
-    <tr>
+    <!--<tr>
       <td>
         <form action="/create_voice" method="post">
           <h2>Voice to Device mapping</h2>
@@ -126,7 +124,7 @@
                   {% for b in get_devices_for_wemo %}
                   <option value="{{b[0]}}">
                  "{{b[1]}}"&nbsp;&nbsp; <!-- ({{b[2]}})
-                  Property({{b[3]}})&nbsp;&nbsp;[{{b[4]}}] -->
+                  Property({{b[3]}})&nbsp;&nbsp;[{{b[4]}}] 
                   [{{b[5]}}]&nbsp;&nbsp;
                   [{{b[6]}}]-[{{b[7]}}] </option>
                   {% endfor %}
@@ -136,7 +134,7 @@
           </table>
         </form>
       </td>
-    </tr>
+    </tr> 
 
     <tr>
       <td>
@@ -193,7 +191,7 @@
           </table>
         </form>
       </td>
-    </tr>
+    </tr> -->
     <tr>
       <td>
         <form action=" /create_IP_device" method="post">
