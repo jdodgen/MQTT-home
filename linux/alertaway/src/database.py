@@ -727,20 +727,21 @@ INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('bill','bill@
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('don','don@foo.com');
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('Jim','jim@dodgen.us');
 
-INSERT INTO "timers" ("topic","true_value","false_value","days","start_type","start_hour","start_minute","start_offset","stop_type","stop_hour","stop_minute","stop_offset","time_to_stop","time_to_start","seconds_from_midnight","state") VALUES ('home/small_thing/state','1','0','0,1,2,3,4,5,6','Sunrise',0,0,'0','Sunrise',0,0,'30',NULL,NULL,NULL,NULL);
+INSERT INTO "timers" ("mqtt_feature_id", "topic","true_value","false_value","days","start_type","start_hour","start_minute","start_offset","stop_type","stop_hour","stop_minute","stop_offset","time_to_stop","time_to_start","seconds_from_midnight","state") 
+VALUES (2,'home/small_thing/state','1','0','0,1,2,3,4,5,6','Sunrise',0,0,'0','Sunrise',0,0,'30',NULL,NULL,NULL,NULL);
 
-INSERT INTO "triggers" ("sub_topic","sub_true_value", "sub_payload","pub_topic","pub_true_value", "pub_payload") 
-    VALUES ('home/small_thing/state','1','1',   'home/big_thing/state','yes','no');
+INSERT INTO "triggers" ("sub_mqtt_feature_id", "sub_topic","sub_true_value", "sub_payload","pub_mqtt_feature_id", "pub_topic","pub_true_value", "pub_payload") 
+    VALUES (2, 'home/small_thing/state','1','1',   1, 'home/big_thing/state','yes','no');
 
-INSERT INTO "events" ("events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES ('door open','home/door/state','open','open',0,'door is open','Me thinks a knave has left the hatch open');
-INSERT INTO "events" ("events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES ('bad thing','home/water/status','leaking','leaking',0,'water leak from heater','turn the valve next to the door off.
+INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES (3, 'door open','home/door/state','open','open',0,'door is open','Me thinks a knave has left the hatch open');
+INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES (4,'bad thing','home/water/status','leaking','leaking',0,'water leak from heater','turn the valve next to the door off.
 if you had ball_valve_controller you could use triggers to turn it off automatically');
-INSERT INTO "events" ("events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES ('door bell','home/doorbell/button','','',0,'door bell pressed','What do you see');
-INSERT INTO "events" ("events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES ('door closed','home/door/state','open','closed',0,'closed now','yes it is');
+INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES (5,'door bell','home/doorbell/button','','',0,'door bell pressed','What do you see');
+INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES (3,'door closed','home/door/state','open','closed',0,'closed now','yes it is');
 
 -- test set for simple_emailer 
 INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('bad thing','Side door');
@@ -772,6 +773,7 @@ INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door
 
     def initialize(self, create_test_data=False):
         create="""
+PRAGMA foreign_keys = OFF;
 DROP TABLE IF EXISTS mqtt_device;
 CREATE TABLE mqtt_device (
     friendly_name TEXT PRIMARY KEY,
@@ -782,17 +784,16 @@ CREATE TABLE mqtt_device (
 
 DROP TABLE IF EXISTS mqtt_feature;
 CREATE TABLE mqtt_feature (
-    id INTEGER PRIMARY KEY,  
-    mqtt_feature_id INTEGER,        
+    mqtt_feature_id INTEGER PRIMARY KEY,  
     friendly_name TEXT NOT NULL,
     property TEXT,                  
     description TEXT,
     type TEXT,                      
     access TEXT,   
     topic TEXT NOT NULL,
-    true_value TEXT NOT NULL,       
+    true_value TEXT,  --  NOT NULL,       
     false_value TEXT,
-    UNIQUE (topic, true_value),
+    -- UNIQUE (topic, true_value),
     -- UNIQUE (friendly_name, topic),  
     FOREIGN KEY (friendly_name) 
         REFERENCES mqtt_device (friendly_name)
@@ -802,8 +803,10 @@ CREATE TABLE mqtt_feature (
 DROP TABLE IF EXISTS timers;
 CREATE TABLE timers (
     timer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    mqtt_feature_id INTEGER NOT NULL,
     topic TEXT NOT NULL,
-    true_value TEXT NOT NULL,     
+    true_value TEXT NOT NULL,  
+       
     false_value TEXT,    
     days TEXT,                    
     start_type TEXT,              
@@ -818,31 +821,34 @@ CREATE TABLE timers (
     time_to_start TEXT,           
     seconds_from_midnight INTEGER, 
     state INTEGER DEFAULT 0,
-    FOREIGN KEY (topic, true_value) 
-        REFERENCES mqtt_feature (topic, true_value) 
+    FOREIGN KEY (mqtt_feature_id) 
+        REFERENCES mqtt_feature (mqtt_feature_id) 
         ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS triggers;
 CREATE TABLE triggers (
+    sub_mqtt_feature_id INTEGER,
     sub_topic TEXT NOT NULL,   -- trigger_daemon subscribes to this
     sub_true_value TEXT NOT NULL,
     sub_payload TEXT NOT NULL, -- if it matches this true_value...
+    pub_mqtt_feature_id INTEGER,
     pub_topic TEXT NOT NULL,   -- ...it publishes to this topic
     pub_true_value TEXT NOT NULL,
     pub_payload TEXT NOT NULL, -- ...with this true_value payload
     PRIMARY KEY (sub_topic, sub_payload, pub_topic, pub_payload)
-    FOREIGN KEY (sub_topic, sub_true_value) 
-        REFERENCES mqtt_feature (topic, true_value) 
+    FOREIGN KEY (sub_mqtt_feature_id) 
+        REFERENCES mqtt_feature (id) 
         ON DELETE CASCADE,
-    FOREIGN KEY (pub_topic, pub_true_value) 
-        REFERENCES mqtt_feature (topic, true_value) 
+    FOREIGN KEY (pub_mqtt_feature_id) 
+        REFERENCES mqtt_feature (mqtt_feature_id) 
         ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS voice_device;
 CREATE TABLE voice_device ( -- was wemo (
-    id INTEGER PRIMARY KEY,  
+    id INTEGER PRIMARY KEY,
+    mqtt_feature_id INTEGER,  
     voice_name TEXT UNIQUE, 
     port INTEGER UNIQUE,   
     -- friendly_name TEXT,          
@@ -852,8 +858,8 @@ CREATE TABLE voice_device ( -- was wemo (
     handler,   -- "wemo" or "hue" 
     qos INTEGER DEFAULT 0,
     retain INTEGER DEFAULT 0,
-    FOREIGN KEY (topic, true_value) 
-        REFERENCES mqtt_feature (topic, true_value) 
+    FOREIGN KEY (mqtt_feature_id) 
+        REFERENCES mqtt_feature (mqtt_feature_id) 
         ON DELETE CASCADE
 );
 
@@ -874,17 +880,18 @@ CREATE TABLE emailaddr (
 
 DROP TABLE IF EXISTS events;
 CREATE TABLE events (
+    mqtt_feature_id INTEGER, 
     events_name TEXT,                 
     mqtt_topic TEXT NOT NULL,   
-    true_value TEXT NOT NULL,              
+    true_value,              
     matching_payload TEXT NOT NULL,
     only_on_change_of_payload INTEGER DEFAULT 1, 
     subject TEXT,                    
     body TEXT,                    
     PRIMARY KEY (events_name, matching_payload),
     UNIQUE (events_name), -- Required so junction tables can bind to event name alone
-    FOREIGN KEY (mqtt_topic, true_value) 
-        REFERENCES mqtt_feature (topic, true_value) 
+    FOREIGN KEY (mqtt_feature_id) 
+        REFERENCES mqtt_feature (mqtt_feature_id) 
         ON DELETE CASCADE
 );
 
@@ -941,6 +948,7 @@ CREATE TABLE emailaddr_in_events (
             gmail_user  TEXT DEFAULT NULL
         );
         INSERT or ignore INTO config (id) VALUES (0);  -- this is a singleton
+        PRAGMA foreign_keys = ON;
 """
         cur = self.con.cursor()
         cleaned_statements = self.process_sql(create)
