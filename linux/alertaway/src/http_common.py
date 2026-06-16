@@ -87,7 +87,7 @@ th { background-color: #f4f4f4; }
 def get_db_config():
     """Retrieves all configuration fields as a dictionary."""
     try:
-        with sqlite3.connect(DB_NAME) as conn:
+        with db_connect_sync() as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM config WHERE id = 0")
@@ -151,7 +151,8 @@ def get_ip():
 
 import asyncio
 import aiosqlite
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
+
 @asynccontextmanager
 async def db_connect(row_factory=True):
     db = await aiosqlite.connect(DB_NAME)
@@ -169,6 +170,24 @@ async def db_connect(row_factory=True):
     finally:
         # 3. This block will now execute perfectly when exiting
         await db.close()
+        
+@contextmanager
+def db_connect_sync(row_factory=True):
+    db = sqlite3.connect(DB_NAME)
+    
+    # 1. The 'try' block must start here to pair with the 'finally' block
+    try:
+        if row_factory:
+            db.row_factory = sqlite3.Row
+        
+        db.execute("PRAGMA foreign_keys = ON;")
+        
+        # 2. Hand control to the 'async with' block
+        yield db
+        
+    finally:
+        # 3. This block will now execute perfectly when exiting
+        db.close()
     
 def get_uuid():
     # Get the hardware address
@@ -181,17 +200,23 @@ def get_uuid():
 #print(f"Your static Bridge ID: {bridge_id}")
     
 if __name__ == "__main__":
-    print("get_ip: ", get_ip())  
-    print("get_uuid: ", get_uuid())  
-    print("\n\nnav_section:", nav_section())
-    try:
-        cfg=get_db_config()
-    except Exception as e:
-        print("No database",e)
-    else:
-        print("\n\nget_db_config:",cfg)
-        print("\n\nmosquitto_configuration:",mosquitto_configuration())
-        print("broker_port", get_broker_port())
+    with db_connect_sync() as db:
+        cursor = db.execute("SELECT * FROM events")
+        rows = cursor.fetchall()
+        events_list = [dict(row) for row in rows]
+        print(events_list)
+        
+    # print("get_ip: ", get_ip())  
+    # print("get_uuid: ", get_uuid())  
+    # print("\n\nnav_section:", nav_section())
+    # try:
+        # cfg=get_db_config()
+    # except Exception as e:
+        # print("No database",e)
+    # else:
+        # print("\n\nget_db_config:",cfg)
+        # print("\n\nmosquitto_configuration:",mosquitto_configuration())
+        # #print("broker_port", get_broker_port())
     
     
         
