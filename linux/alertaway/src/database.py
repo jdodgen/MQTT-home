@@ -35,7 +35,7 @@ class database:
         print(const.DB_NAME)
         self.con = sqlite3.connect(const.DB_NAME, timeout=const.DB_TIMEOUT)
         self.con.execute("PRAGMA foreign_keys = ON;")
-        self.con.execute("PRAGMA full_column_names = 1;")
+        #self.con.execute("PRAGMA full_column_names = 1;")
         print("working directory[%s]" % os.getcwd())
         if row_factory:
             self.con.row_factory=sqlite3.Row
@@ -561,7 +561,7 @@ class database:
         cur = self.con.cursor()
         cur.execute("""
         select distinct
-            mqtt_feature.rowid,
+            mqtt_feature_id,
             -- source,
             topic,
             type,
@@ -577,6 +577,8 @@ class database:
         """)
         all = cur.fetchall()
         cur.close()
+        tuple_rows = [tuple(row) for row in all]
+        xprint(tuple_rows)
         return all
 
     def get_subscribe_devices(self):

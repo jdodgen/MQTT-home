@@ -38,7 +38,7 @@
                     {% for alert in alerts %}
                     <tr>
                         <td>
-                            <input type="radio" name="selected_rowid" value="{{alert.rowid}}">
+                            <input type="radio" name="mqtt_feature_rowid" value="{{alert.mqtt_feature_rowid}}">
                         </td>
                         <td>{{alert.topic}}</td>
                         <td>{{alert.type}}</td>
@@ -177,7 +177,7 @@
                 {% for timer in timed_alerts %}
                 <tr>
                     <td>
-                        <input type="submit" name="state" value="Remove Timer:{{ timer.rowid }}">
+                        <input type="submit" name="state" value="Remove Timer:{{ timer.timer_id }}">
                     </td>
                     <td>{{ timer.topic }}</td>
                     <td>{{ timer.days }}</td>
