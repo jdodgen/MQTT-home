@@ -71,9 +71,19 @@ async def timer_manager(request):
                 print("[%s][%s]{%s]" % (topic, true_value, false_value))
                 db.con.execute("""
                     INSERT INTO timers (
-                        topic, true_value, false_value, days, start_type, stop_type, 
-                        start_hour, start_minute, start_offset, 
-                        stop_hour, stop_minute, stop_offset, state
+                        topic, 
+                        true_value, 
+                        false_value, 
+                        days, 
+                        start_type, 
+                        stop_type, 
+                        start_hour, 
+                        start_minute, 
+                        start_offset, 
+                        stop_hour, 
+                        stop_minute, 
+                        stop_offset, 
+                        state
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     topic, 
