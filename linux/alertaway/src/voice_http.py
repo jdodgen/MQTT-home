@@ -50,8 +50,7 @@ async def refresh_page(request):
     form_data = await request.post() if request.method == "POST" else request.query
     error_msg = request.get('error_msg', "")
     
-    async with aiosqlite.connect(DB_NAME) as db:
-        db.row_factory = aiosqlite.Row
+    async with config.db_connect() as db:
         async with db.execute("SELECT * FROM mqtt_feature") as cursor:
             devices_for_voice = await cursor.fetchall()
             #for row in devices_for_voice:
@@ -102,8 +101,7 @@ async def create_voice(request):
             #print(f'data values in if "{data["voice_name"]}" and "{data.get("device_to_control")}"')
             if data.get("voice_name") and data.get("device_to_control"):
                 print(f'processing {data["voice_name"]} -- {data["device_to_control"]}')
-                async with aiosqlite.connect(DB_NAME) as db:
-                    db.row_factory = aiosqlite.Row
+                async with config.db_connect() as db:
                     async with db.execute("SELECT * FROM voice_device where voice_name = ?", (data['voice_name'],)) as cursor:
                         voice_name = await cursor.fetchone()
                         if voice_name:  # exists
@@ -130,12 +128,13 @@ async def create_voice(request):
                                         mqtt_feature = await cursor.fetchone()
                                     print(f"inserting {data['voice_name']}")
                                     await db.execute('''INSERT INTO voice_device (
+                                        mqtt_feature_id,
                                         voice_name, 
                                         port, 
                                         handler, 
                                         topic, 
                                         true_value) 
-                                        VALUES (?,?,?,?,?)''',
+                                        VALUES (?,?,?,?,?,?)''',
                                      (data['voice_name'],
                                      port,
                                      data.get('handler',"wemo"),
@@ -161,9 +160,7 @@ async def remove_voice(request):
     rowid = data.get("rowid")
     print("rowid", rowid)
     
-    async with aiosqlite.connect(DB_NAME) as db:
-        db.row_factory = aiosqlite.Row
-        
+    async with config.db_connect() as db:
         # Keep your select query to fetch the row before deletion
         async with db.execute("SELECT * FROM voice_device WHERE id=?", (rowid,)) as cursor:
             row = await cursor.fetchone()
