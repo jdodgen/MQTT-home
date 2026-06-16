@@ -6,13 +6,10 @@
 import sys
 import signal
 import tomllib
-import sqlite3
+#import sqlite3
 import time
 from  pprint import pprint
 import http_common as config
-
-DB_NAME =   config.DB_NAME
-
   
 #cluster_path = "cluster_simple_emailer.toml"
 my_name = "config_send_emails"
@@ -29,24 +26,21 @@ def print(*args, **kwargs): # replace print
     except:
         xprint(f"[{my_name}]", *args, **kwargs) # the copied real print
         
-def get_config():
-    with sqlite3.connect(DB_NAME) as db:
-        db.row_factory = sqlite3.Row
-        cursor = db.execute("SELECT * FROM config WHERE id = 0")
-        row = cursor.fetchone()
-        #print("broker: ",row["broker"])
-        return dict(row)
+# def get_config():
+    # with config.db_connect_sync() as db:
+        # cursor = db.execute("SELECT * FROM config WHERE id = 0")
+        # row = cursor.fetchone()
+        # #print("broker: ",row["broker"])
+        # return dict(row)
         
 def get_events():
-    with sqlite3.connect(DB_NAME) as db:
-        db.row_factory = sqlite3.Row
+    with config.db_connect_sync() as db:
         cursor = db.execute("SELECT * FROM events")
         rows = cursor.fetchall()
         return rows
         
 def get_cameras(events_name):
-    with sqlite3.connect(DB_NAME) as db:
-        db.row_factory = sqlite3.Row
+    with config.db_connect_sync() as db:
         cursor = db.execute(f'''
             SELECT * FROM cameras 
             JOIN cameras_in_events on cameras_in_events.camera_name =  cameras.camera_name
@@ -56,8 +50,7 @@ def get_cameras(events_name):
         return rows
   
 def get_emails(events_name):
-    with sqlite3.connect(DB_NAME) as db:
-        db.row_factory = sqlite3.Row
+    with config.db_connect_sync() as db:
         cursor = db.execute(f'''
             SELECT * FROM emailaddr 
             JOIN emailaddr_in_events on emailaddr_in_events.emailaddr_name =  emailaddr.emailaddr_name
@@ -228,9 +221,9 @@ def load_db_topics():
     return all_topics 
 
 try:
-    config = get_config()
+    db_config = config.get_db_config()
 except Exception as e:
-    print(f"could not get config",e)
+    print(f"could not get db_config",e)
     time.sleep(10)
     sys.exit()
     
@@ -239,14 +232,14 @@ TOPICS = load_db_topics()
 if not TOPICS:
     print("Nothing to do, sleeping")
     signal.pause()  # nothing to do so sleep forever waiting on a systemd restart and something to do 
-BROKER = config["local_broker_ip"]
-OUR_PORT =  config["local_broker_port"]
-SSL = config["local_broker_ssl"]
-USER = config["local_broker_user"]
-PASSWORD = config["local_broker_password"]
-GMAIL_PASSWORD = config["gmail_password"]
-GMAIL_USER = config["gmail_user"]
-PCN_TOPIC = config["publish"]
+BROKER = db_config["local_broker_ip"]
+OUR_PORT =  db_config["local_broker_port"]
+SSL = db_config["local_broker_ssl"]
+USER = db_config["local_broker_user"]
+PASSWORD = db_config["local_broker_password"]
+GMAIL_PASSWORD = db_config["gmail_password"]
+GMAIL_USER = db_config["gmail_user"]
+PCN_TOPIC = db_config["publish"]
 
 # print(f"BROKER [{BROKER}] SSL [{SSL}] USER [{USER}] PASSWORD [{PASSWORD}]\n\tGMAIL_PASSWORD [{GMAIL_PASSWORD}] GMAIL_USER  [{GMAIL_PASSWORD}]")
 # print("TOPICS >>>>>>>>>>>> ", TOPICS)

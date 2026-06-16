@@ -51,9 +51,9 @@
               <th>
                 <select id="device_to_control" name="device_to_control" size="10">
                   {% for row in devices_for_voice %}
-                      <option value="{{ row.id }}">
-                     "{{ row.friendly_name }}"&nbsp; 
-                      {{ row.topic }}&nbsp;[{{ row.true_value }}/{{ row.false_value }}]
+                      <option value="{{row.mqtt_feature_id }}">
+                 "{{ row.friendly_name }}"&nbsp; 
+                  {{ row.topic }}&nbsp;[{{ row.true_value }}/{{ row.false_value }}]
                       </option>
                   {% endfor %}
                 </select>
