@@ -135,12 +135,8 @@ async def create_voice(request):
                                         topic, 
                                         true_value) 
                                         VALUES (?,?,?,?,?,?)''',
-<<<<<<< HEAD
                                      (data["device_to_control"],
                                      data['voice_name'],
-=======
-                                     (data['voice_name'],
->>>>>>> b67af120bd1d5220391ec5eb1fb1aa6c250a729e
                                      port,
                                      data.get('handler',"wemo"),
                                      mqtt_feature['topic'],
@@ -166,11 +162,8 @@ async def remove_voice(request):
     print("rowid", rowid)
     
     async with config.db_connect() as db:
-<<<<<<< HEAD
         #db.row_factory = aiosqlite.Row
         
-=======
->>>>>>> b67af120bd1d5220391ec5eb1fb1aa6c250a729e
         # Keep your select query to fetch the row before deletion
         async with db.execute("SELECT * FROM voice_device WHERE id=?", (rowid,)) as cursor:
             row = await cursor.fetchone()
