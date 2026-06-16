@@ -716,8 +716,8 @@ INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","descri
 INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
     VALUES (NULL,'door bell','manual','small huh','binary',NULL,'home/doorbell/button','',NULL);
 
-INSERT INTO "voice_device" ("voice_name","port","topic","true_value", "handler") 
-    VALUES ("beadroom light", '55555','home/small_thing/state',"1","wemo");
+INSERT INTO "voice_device" ("mqtt_feature_id","voice_name","port","topic","true_value", "handler") 
+    VALUES (2, "beadroom light", '55555','home/small_thing/state',"1","wemo");
 
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Driveway','http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1','admin','alert.Away','');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Front door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
@@ -733,15 +733,15 @@ VALUES (2,'home/small_thing/state','1','0','0,1,2,3,4,5,6','Sunrise',0,0,'0','Su
 INSERT INTO "triggers" ("sub_mqtt_feature_id", "sub_topic","sub_true_value", "sub_payload","pub_mqtt_feature_id", "pub_topic","pub_true_value", "pub_payload") 
     VALUES (2, 'home/small_thing/state','1','1',   1, 'home/big_thing/state','yes','no');
 
-INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES (3, 'door open','home/door/state','open','open',0,'door is open','Me thinks a knave has left the hatch open');
-INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES (4,'bad thing','home/water/status','leaking','leaking',0,'water leak from heater','turn the valve next to the door off.
+INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES (3, 'door open','home/door/state','open',0,'door is open','Me thinks a knave has left the hatch open');
+INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES (4,'bad thing','home/water/status','leaking',0,'water leak from heater','turn the valve next to the door off.
 if you had ball_valve_controller you could use triggers to turn it off automatically');
-INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES (5,'door bell','home/doorbell/button','','',0,'door bell pressed','What do you see');
-INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","true_value","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES (3,'door closed','home/door/state','open','closed',0,'closed now','yes it is');
+INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES (5,'door bell','home/doorbell/button','',0,'door bell pressed','What do you see');
+INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") 
+    VALUES (3,'door closed','home/door/state','closed',0,'closed now','yes it is');
 
 -- test set for simple_emailer 
 INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('bad thing','Side door');
@@ -883,7 +883,7 @@ CREATE TABLE events (
     mqtt_feature_id INTEGER, 
     events_name TEXT,                 
     mqtt_topic TEXT NOT NULL,   
-    true_value,              
+    -- true_value,              
     matching_payload TEXT NOT NULL,
     only_on_change_of_payload INTEGER DEFAULT 1, 
     subject TEXT,                    
