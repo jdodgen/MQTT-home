@@ -52,25 +52,26 @@ async def timer_manager(request):
     # 1. Handle Form Actions (POST)
     if request.method == "POST":
         form = await request.post()
-        print("form\n", form)
+        #print("form\n", form)
         state = form.get("state", "")
         print("state [%s]" % (state,))
         # Logic for "Set timer"
         if state == "Create timer":
-            selected_rowid = form.get("selected_rowid")
-            print("row_id", selected_rowid)
+            mqtt_feature_id = form.get("mqtt_feature_id")
+            print("row_id", mqtt_feature_id)
             days_list = form.getall("TIMED:days", [])
             days_str = ",".join(days_list)
-            print("processing new timer\ndays_list[%s] rowid[%s]" % (days_str, selected_rowid))
+            print("processing new timer\ndays_list[%s] rowid[%s]" % (days_str, mqtt_feature_id))
             
-            if selected_rowid and days_str:
+            if mqtt_feature_id and days_str:
                 # Setup time logic
                 is_start_fixed = form.get("TIMED:start") == "Fixed"
                 is_stop_fixed = form.get("TIMED:stop") == "Fixed"
-                (topic, true_value, false_value) = db.get_device_info(selected_rowid)
+                (topic, true_value, false_value) = db.get_device_info(mqtt_feature_id)
                 print("[%s][%s]{%s]" % (topic, true_value, false_value))
                 db.con.execute("""
                     INSERT INTO timers (
+                        mqtt_feature_id, 
                         topic, 
                         true_value, 
                         false_value, 
@@ -84,8 +85,9 @@ async def timer_manager(request):
                         stop_minute, 
                         stop_offset, 
                         state
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
+                    mqtt_feature_id,
                     topic, 
                     true_value, 
                     false_value, 

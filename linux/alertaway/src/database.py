@@ -577,8 +577,8 @@ class database:
         """)
         all = cur.fetchall()
         cur.close()
-        tuple_rows = [tuple(row) for row in all]
-        xprint(tuple_rows)
+        #tuple_rows = [tuple(row) for row in all]
+        #xprint(tuple_rows)
         return all
 
     def get_subscribe_devices(self):
