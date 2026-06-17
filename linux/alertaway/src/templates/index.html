@@ -364,6 +364,10 @@
             <tr>
               <th colspan="100%"  style="text-align: left;">ZigBee devices
                 <button type="submit" name=action value="zbrefresh">Refresh ZigBee2MQTT devices</button>
+                <button type="submit" name=action value="delete_old"
+                onclick="if(!this.classList.contains('confirmed')){ this.innerText='Are you sure?'; this.classList.add('confirmed'); return false; }">
+                Delete old devices 
+                </button>
               </th>
             </tr>
             {% for d in zigbee_devices %}
