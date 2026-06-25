@@ -789,7 +789,7 @@ DROP TABLE IF EXISTS mqtt_device;
 CREATE TABLE mqtt_device (
     friendly_name TEXT PRIMARY KEY,
     description TEXT,
-    source TEXT,                    -- "zigbee", "IP", "manual", etc.
+    source TEXT, -- "zigbee", "IP", "manual", etc.
     date TEXT
 );
 
@@ -797,12 +797,12 @@ DROP TABLE IF EXISTS mqtt_feature;
 CREATE TABLE mqtt_feature (
     mqtt_feature_id INTEGER PRIMARY KEY,
     friendly_name TEXT NOT NULL,
-    property TEXT,
+    property TEXT,  -- state 
     description TEXT,
-    type TEXT,
-    access TEXT,
+    type TEXT,  -- binary, numeric, etc
+    access TEXT,  -- device "pub"lishes this or "sub"scribes to this
     topic TEXT NOT NULL,
-    true_value TEXT,
+    true_value TEXT, -- also other values
     false_value TEXT,
     
     -- Hidden fingerprint column that catches NULL duplicates
