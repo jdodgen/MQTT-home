@@ -53,8 +53,8 @@ async def render_response(request, error, update_ip=False, manIP_rowid=None):
         "manIP_devices": DB.cook_devices_features_for_html(source='manIP'),
         "autoIP_devices": DB.cook_devices_features_for_html(source='IP'),
         "zigbee_devices": DB.cook_devices_features_for_html(source='ZB'),
-        "get_devices_for_wemo": DB.get_devices_for_wemo(),
-        "all_wemo": DB.get_all_wemo(),
+        #"get_devices_for_wemo": DB.get_devices_for_wemo(),
+        #"all_wemo": DB.get_all_wemo(),
         "manual_device_names": DB.get_all_manual_device_names(),
         "style": STYLE
     }
@@ -146,22 +146,22 @@ async def create_voice(request):
                 error_msg = 'Both Voice name and device required'
     return await render_response(request, error_msg)
     
-async def remove_voice(request):
-    global DB
-    error_msg = ''
-    # aiohttp requires awaiting the form data
-    if request.method == "POST":
-        data = await request.post()
-        action = data.get("action")
-        print("action", action)
-        if "delete_wemo" in action:
-            print("deleteing")
-            match = re.search(r'delete_wemo/(\d+)', action)
-            print("deleteing ", match.group(1))
-            if match:
-                target_id = match.group(1)
-                DB.delete_wemo(target_id)
-    return await render_response(request, error_msg)
+# async def remove_voice(request):
+    # global DB
+    # error_msg = ''
+    # # aiohttp requires awaiting the form data
+    # if request.method == "POST":
+        # data = await request.post()
+        # action = data.get("action")
+        # print("action", action)
+        # if "delete_wemo" in action:
+            # print("deleteing")
+            # match = re.search(r'delete_wemo/(\d+)', action)
+            # print("deleteing ", match.group(1))
+            # if match:
+                # target_id = match.group(1)
+                # DB.delete_wemo(target_id)
+    # return await render_response(request, error_msg)
     
 async def all_devices(request):
     error = ""
@@ -181,6 +181,10 @@ async def all_devices(request):
             # subscribe.simple(const.zigbee2mqtt_bridge_devices, hostname=message.our_ip_address())
             msg.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES)
             error="ZigBee devices refreshing"
+        elif parts[0] == "delete_old":
+            # subscribe.simple(const.zigbee2mqtt_bridge_devices, hostname=message.our_ip_address())
+            db.delete_marked_devices()
+            error="marked zero-date devices removed"
         elif parts[0] == "iprefresh":
             msg.publish(mqtt_hello.hello_request_topic, my_name) 
             error="Auto IP devices refreshed"
@@ -222,8 +226,8 @@ app.add_routes([
     web.post('/create_IP_device', create_IP_device),
     web.get('/create_voice', create_voice),
     web.post('/create_voice', create_voice),
-    web.get('/remove_voice', remove_voice),
-    web.post('/remove_voice', remove_voice),
+    #web.get('/remove_voice', remove_voice),
+    #web.post('/remove_voice', remove_voice),
     web.get('/all_devices', all_devices),
     web.post('/all_devices', all_devices),
     web.get('/zigbee2mqtt', z2m_page),

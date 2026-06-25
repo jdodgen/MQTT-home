@@ -96,22 +96,22 @@ def reset_stuff(msg):
     msg.publish(mqtt_hello.hello_request_topic, b"hello please") # ask for configs to be publised in format of "hello_subscribe_pattern"
 
 
-def start_MQTT_service_task(mqtt_queue):
-    p = multiprocessing.Process(target=task, args=(mqtt_queue,))
-    p.start()
-    return p
+# def start_MQTT_service_task(mqtt_queue):
+    # p = multiprocessing.Process(target=task, args=(mqtt_queue,))
+    # p.start()
+    # return p
 
-def stop_MQTT_service_task(p):
-    p.terminate()
-    while p.is_alive():
-        print("MQTT wont die")
-        time.sleep(0.1)
-    p.join()
-    p.close()
+# def stop_MQTT_service_task(p):
+    # p.terminate()
+    # while p.is_alive():
+        # print("MQTT wont die")
+        # time.sleep(0.1)
+    # p.join()
+    # p.close()
 
-# unit test code 
+
 if __name__ == "__main__":
     q = Queue()
     task(q)
-    #start_MQTT_service_task(mqtt_queue)
+    # never gets here except on a failure
     time.sleep(100)
