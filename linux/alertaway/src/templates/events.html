@@ -46,7 +46,7 @@
                 <input type="hidden" name="events_name" value="{{ name }}">
                 <button type="submit">Delete & Edit</button>
             </form>
-            <a href="/manage?events_name={{ name }}"><button>Link Assets</button></a>
+            <a href="/manage?events_name={{ data['events_name'] }}"><button>Link Assets</button></a>
         </td>
     </tr>
     {% endfor %}

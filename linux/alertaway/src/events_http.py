@@ -123,7 +123,7 @@ async def handle_run_event(request):
 
 @aiohttp_jinja2.template('manage_event.html')
 async def handle_manage_view(request):
-    event_name = request.query.get('events_name')
+    event_name = request.query.get('events_name') # from events.html
     async with config.db_connect(row_factory = False) as db:
         # 1. Get all available options
         async with db.execute("SELECT camera_name FROM cameras") as c:
