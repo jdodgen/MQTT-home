@@ -310,18 +310,16 @@ class database:
         # we always update atleast for date
         #
         print("upsert_device:", description, name, source)
-        now = int(time.time())
         cur = self.con.cursor()
         cur.execute(
             """
             insert or replace into mqtt_device
                 (description,
                 friendly_name,
-                source,
-                date)
-            values (?,?,?,?)
+                source)
+            values (?,?,?)
             """,
-                (description, name, source, now))
+                (description, name, source))
         cur.close()
         self.con.commit()
         return
@@ -703,29 +701,38 @@ class database:
        
     def test_data(self):
         inserts = """
-INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
-    VALUES ('big thing','its a nice thing','manIP','1778015702');
-INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
-    VALUES ('small thing','small huh','manIP','1778015745');
-INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
-    VALUES ('door','just a door','manIP','1778015745');
-INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
-    VALUES ('water leak','leak detector','manIP','1778015745');
-INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
-    VALUES ('door bell','ringgy thinggy','manIP','1778015745');
-INSERT INTO "mqtt_device" ("friendly_name","description","source","date") 
-    VALUES ('door closed','door sensor','manIP','1778015745');
+INSERT INTO "mqtt_device" ("friendly_name","description","source") 
+    VALUES ('Alarm chime','four chime alarm','manIP');
+    
+INSERT INTO "mqtt_device" ("friendly_name","description","source") 
+    VALUES ('small thing','small huh','manIP');
+    
+INSERT INTO "mqtt_device" ("friendly_name","description","source") 
+    VALUES ('door','just a door','manIP');
+    
+INSERT INTO "mqtt_device" ("friendly_name","description","source") 
+    VALUES ('water leak','leak detector','manIP');
+    
+INSERT INTO "mqtt_device" ("friendly_name","description","source") 
+    VALUES ('door bell','ringgy thinggy','manIP');
+    
+INSERT INTO "mqtt_device" ("friendly_name","description","source") 
+    VALUES ('door closed','door sensor','manIP');
 
-INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
-    VALUES (NULL,'big thing','manual','its a nice thing','binary',NULL,'home/big_thing/state','yes','no');
-INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
-    VALUES (NULL,'small thing','manual','small huh','binary',NULL,'home/small_thing/state','1','0');
-INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
-    VALUES (NULL,'door','manual','small huh','binary',NULL,'home/door/state','open','closed');
-INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
-    VALUES (NULL,'water leak','manual','small huh','binary',NULL,'home/water/status','leaking',NULL);
-INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property","description","type","access","topic","true_value","false_value") 
-    VALUES (NULL,'door bell','manual','small huh','binary',NULL,'home/doorbell/button','',NULL);
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property",     "description",            "type",       "access",        "topic",                     "true_value", "false_value") 
+    VALUES                  (NULL,            'Alarm chime',  "sensor",       'Makes a pretty noise',   'binary',     "sub",           'home/Alarm chime/state',    "westminster", NULL);
+    
+INSERT INTO "mqtt_feature" ("mqtt_feature_id", "friendly_name", "property",    "description",  "type",   "access",                      "topic",                  "true_value","false_value") 
+    VALUES                 (NULL,              'home heater',  "controller",   'turn up/down', 'binary', "sub",                         'home/home heater/state', '1',          '0');
+    
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name", "property", "description",       "type",   "access",                     "topic",           "true_value", "false_value") 
+    VALUES                 (NULL,             'door',          'sensor',   'side door sensor',   'binary', "pub",                       'home/door/state', 'open',       'closed');
+    
+INSERT INTO "mqtt_feature" ("mqtt_feature_id", "friendly_name", "property", "description", "type",  "access",                            "topic",                    "true_value","false_value") 
+    VALUES                 (NULL,              'water leak2','   sensor',   'Kitchen sink', 'binary',"pub",                              'home/water leak2/status', 'leaking',   "not");
+    
+INSERT INTO "mqtt_feature" ("mqtt_feature_id", "friendly_name",     "property", "description",    "type",   "access",                    "topic",                         "true_value",  "false_value") 
+    VALUES                 (NULL,              'door bell button',  'state',    'at front door',   'binary', "pub",                      'home/door bell button/button',  "pressed",  NULL);
 
 INSERT INTO "voice_device" ("mqtt_feature_id","voice_name","port","topic","true_value", "handler") 
     VALUES (2, "beadroom light", '55555','home/small_thing/state',"1","wemo");
@@ -790,7 +797,7 @@ CREATE TABLE mqtt_device (
     friendly_name TEXT PRIMARY KEY,
     description TEXT,
     source TEXT, -- "zigbee", "IP", "manual", etc.
-    date TEXT
+    date  INTEGER DEFAULT (unixepoch())
 );
 
 DROP TABLE IF EXISTS mqtt_feature;
