@@ -41,7 +41,7 @@ def make_trigger_structure(db):
         triggers[sub_topic][sub_payload].append([pub_topic, pub_payload])
     print(f"trigger_structure: {triggers}")
     return triggers
-        
+
 def task():
     db = database.database(row_factory=True)
     q = queue.Queue()  
@@ -56,20 +56,17 @@ def task():
         if item[0] == "callback":
             topic = item[1]
             payload = item[2]
-            if topic in triggers:
-                if payload in triggers[topic]:
-                    print("processing", topic, payload)
-                    things_to_pub = triggers[topic][payload]
-                    for sub_topic, payload in things_to_pub.items():
-                        msg.client.publish(sub_topic,payload)
-                        print("published:", sub_topic, payload)
-                        continue
-            print("Error: unknown callback:", topic, payload)
-    
-# def start_daemon():
-    # p = multiprocessing.Process(target=task)
-    # p.start()
-    # return p
-    
+            process_request(topic, payload)
+
+def process_request():
+    if topic in triggers: # subscribed payload
+        if payload in triggers[topic]: # payload we want
+            print("processing", topic, payload)
+            things_to_pub = triggers[topic][payload]
+            for pub_topic, pub_payload in things_to_pub.items():
+                print(f"publishing: {pub_topic}...{pub_payload}")
+                msg.client.publish(pub_topic,pub_payload)
+    print(f"Error: unknown topic?:{topic}...{payload}")
+
 if __name__ == "__main__":
     task()
