@@ -53,17 +53,21 @@ async def trigger_manager(request):
             print("selected_pub", selected_pub)
             print("selected_sub", selected_sub)
             if selected_pub and selected_sub:
-                (pub_topic, pub_payload) = selected_pub.split("|")
-                (sub_topic, sub_payload) = selected_sub.split("|")
+                (pub_mqtt_feature_id, pub_topic, pub_payload) = selected_pub.split("|")
+                (sub_mqtt_feature_id, sub_topic, sub_payload) = selected_sub.split("|")
                 db.con.execute("""
                     INSERT INTO triggers (
-                        sub_topic, sub_payload, pub_topic, pub_payload
+                        sub_mqtt_feature_id, sub_payload, 
+                        pub_mqtt_feature_id, pub_payload
                     ) VALUES (?, ?, ?, ?)
                 """, (
-                    sub_topic,
+                    pub_mqtt_feature_id, # we sub scribe to this
+                    #pub_topic, 
+                    pub_payload,
+                    sub_mqtt_feature_id, # we then publish to this
+                    #sub_topic,
                     sub_payload,
-                    pub_topic, 
-                    pub_payload
+                    
                 ))
                 db.con.commit()
             else:
@@ -80,10 +84,15 @@ async def trigger_manager(request):
             restart_service.restart("alertaway-triggers-daemon")
             # watch_dog_queue.put(["restarttriggertask", "restart"])
 
-    #cursor = db.execute("SELECT * FROM devices") # Adjust table name as needed
-    context['pubs'] = db.get_publish_devices() 
+    pubbys = db.get_publish_devices() 
+    context['pubs'] = pubbys
+    #import pprint
+    #pprint.pprint(f"devices that publish:{[dict(row) for row in pubbys]}")
     context['subs'] = db.get_subscribe_devices() 
-    context['current_triggers'] = db.get_all_triggers()
+    cur_triggers = db.get_all_triggers()
+    context['current_triggers'] = cur_triggers
+    import pprint
+    pprint.pprint(f"\ncurrent_triggers:{[dict(row) for row in cur_triggers]}\n")
     context["IPaddr"] = config.get_ip()
     context["style"] = STYLE
 

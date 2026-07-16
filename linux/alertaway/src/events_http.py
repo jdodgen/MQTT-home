@@ -23,7 +23,7 @@ async def handle_list_events(request):
     async with config.db_connect() as db:
         async with db.execute("SELECT * FROM events") as cursor:
             event_rows = await cursor.fetchall()
-        async with db.execute("SELECT * FROM mqtt_feature") as cursor:
+        async with db.execute("SELECT * FROM mqtt_feature where access = 'pub'") as cursor:
             feature_rows = await cursor.fetchall()
         return {
             'events': event_rows,

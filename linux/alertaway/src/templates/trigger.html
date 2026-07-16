@@ -24,20 +24,22 @@
             <td>
                 <table> <!-- </table> class="tbody"> -->
                     <tr   >
-                        <th colspan="100%">Select Device to subscribe and select true or false to compare</th>
+                        <th colspan="100%">Select Device to subscribe to by selecting true or false</th>
                     </tr>
                     <tr   >
                         <th>topic</th>
                         <th>true</th>
                         <th>false</th>
                     </tr>
-                    {% for sub in subs %}
+                    {% for pub in pubs %}
                     <tr>
-                        <td>{{sub.topic}}</td>
-                        <td><input type="radio" name="selected_sub" value="{{sub.topic}}|{{sub.true_value}}">{{sub.true_value}}</td>
-                        <td><input type="radio" name="selected_sub" value="{{sub.topic}}|{{sub.false_value}}">{{sub.false_value}}</td>
+                        <td>{{pub.topic}}</td>
+                        <td><input type="radio" name="selected_pub" value="{{pub.mqtt_feature_id}}|{{pub.topic}}|{{pub.true_value}}">{{pub.true_value}}</td>
+                        <td><input type="radio" name="selected_pub" value="{{pub.mqtt_feature_id}}|{{pub.topic}}|{{pub.false_value}}">{{pub.false_value}}</td>
                     </tr>
                     {% endfor %}
+                    
+                     
                 </table>
             </td>
         </tr>
@@ -55,13 +57,14 @@
                         <th>true</th>
                         <th>false</th>
                     </tr>
-                    {% for pub in pubs %}
+                    {% for sub in subs %}
                     <tr>
-                        <td>{{pub.topic}}</td>
-                        <td><input type="radio" name="selected_pub" value="{{pub.topic}}|{{pub.true_value}}">{{pub.true_value}}</td>
-                        <td><input type="radio" name="selected_pub" value="{{pub.topic}}|{{pub.false_value}}">{{pub.false_value}}</td>
+                        <td>{{sub.topic}}</td>
+                        <td><input type="radio" name="selected_sub" value="{{sub.mqtt_feature_id}}|{{sub.topic}}|{{sub.true_value}}">{{sub.true_value}}</td>
+                        <td><input type="radio" name="selected_sub" value="{{sub.mqtt_feature_id}}|{{sub.topic}}|{{sub.false_value}}">{{sub.false_value}}</td>
                     </tr>
                     {% endfor %}
+                   
                 </table>
             </td>
         </tr>
@@ -103,9 +106,9 @@
                     <td>
                         <input type="submit" name=action value="Remove Trigger:{{ trigger.rowid }}">
                     </td>
-                    <td>{{ trigger.sub_topic }}</td>
+                    <td>{{ trigger.stopic }}</td>
                     <td>{{ trigger.sub_payload }}</td>
-                    <td>{{ trigger.pub_topic }}</td>
+                    <td>{{ trigger.ptopic }}</td>
                     <td>{{ trigger.pub_payload }}</td>
                 </tr>
                 {% endfor %}

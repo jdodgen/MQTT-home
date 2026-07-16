@@ -51,7 +51,7 @@ async def refresh_page(request):
     error_msg = request.get('error_msg', "")
     
     async with config.db_connect() as db:
-        async with db.execute("SELECT * FROM mqtt_feature") as cursor:
+        async with db.execute("SELECT * FROM mqtt_feature where access = 'sub'") as cursor:
             devices_for_voice = await cursor.fetchall()
             #for row in devices_for_voice:
                 #print(dict(row), "\n==================\n")

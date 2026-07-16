@@ -319,7 +319,7 @@ class database:
                 source)
             values (?,?,?)
             """,
-                (description, name, source))
+                (description, name, source, now))
         cur.close()
         self.con.commit()
         return
@@ -575,11 +575,9 @@ class database:
             property,
             true_value,
             false_value
-
         from mqtt_feature
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
-        where (type = "binary" and source = "ZB" and property like "state%" and topic like "%set")
-            or source = "IP" or source = "manIP"
+        where  mqtt_feature.access = 'pub' 
         order by topic desc
         """)
         all = cur.fetchall()
@@ -592,7 +590,7 @@ class database:
         cur = self.con.cursor()
         cur.execute("""
         select distinct
-            mqtt_feature.rowid,
+            mqtt_feature_id,
             -- source,
             topic,
             type,
@@ -601,8 +599,7 @@ class database:
             false_value
         from mqtt_feature
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
-        where (type = "binary" and source = "ZB" and property like "state%" and topic like "%get")
-            or source = "IP" or source = "manIP"
+        where  mqtt_feature.access = 'sub' 
         order by topic desc
         """)
         all = cur.fetchall()
@@ -635,13 +632,15 @@ class database:
         cur = self.con.cursor()
         cur.execute("""
         select
-            rowid,
-            pub_topic,
-            pub_payload,
-            sub_topic,
-            sub_payload
+            triggers.rowid,
+            pub_feature.topic as ptopic,
+            triggers.pub_payload,
+            sub_feature.topic as stopic,
+            triggers.sub_payload
             from triggers
-            order by pub_topic
+            join mqtt_feature as sub_feature on sub_feature.mqtt_feature_id = triggers.sub_mqtt_feature_id
+            join mqtt_feature as pub_feature on pub_feature.mqtt_feature_id = triggers.pub_mqtt_feature_id
+            order by sub_feature.topic
         """)
         all = cur.fetchall()
         cur.close()
@@ -705,37 +704,43 @@ INSERT INTO "mqtt_device" ("friendly_name","description","source")
     VALUES ('Alarm chime','four chime alarm','manIP');
     
 INSERT INTO "mqtt_device" ("friendly_name","description","source") 
-    VALUES ('small thing','small huh','manIP');
+    VALUES ('home heater','house fau','manIP');
     
 INSERT INTO "mqtt_device" ("friendly_name","description","source") 
-    VALUES ('door','just a door','manIP');
+    VALUES ('door','on deck','manIP');
     
 INSERT INTO "mqtt_device" ("friendly_name","description","source") 
-    VALUES ('water leak','leak detector','manIP');
+    VALUES ('water leak2','leak detector','manIP');
     
 INSERT INTO "mqtt_device" ("friendly_name","description","source") 
-    VALUES ('door bell','ringgy thinggy','manIP');
+    VALUES ('door bell button','ringgy thinggy on the wall','manIP');
     
 INSERT INTO "mqtt_device" ("friendly_name","description","source") 
-    VALUES ('door closed','door sensor','manIP');
+    VALUES ('hall light','large light on wall','manIP');
 
 INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property",     "description",            "type",       "access",        "topic",                     "true_value", "false_value") 
-    VALUES                  (NULL,            'Alarm chime',  "sensor",       'Makes a pretty noise',   'binary',     "sub",           'home/Alarm chime/state',    "westminster", NULL);
+    VALUES                  (1,            'Alarm chime',  "sensor",       'westminster abby chime',   'binary',     "sub",           'home/Alarm chime/state',    "westminster", NULL);
+    
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property",     "description",            "type",       "access",        "topic",                     "true_value", "false_value") 
+    VALUES                  (7,            'Alarm chime',  "sensor",       'ding dong chime',   'binary',     "sub",           'home/Alarm chime/state',    "ding_dong", NULL);
+    
+INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name","property",     "description",            "type",       "access",        "topic",                     "true_value", "false_value") 
+    VALUES                  (8,            'Alarm chime',  "sensor",       'ding ding chime',   'binary',     "sub",           'home/Alarm chime/state',    "ding_ding", NULL);
     
 INSERT INTO "mqtt_feature" ("mqtt_feature_id", "friendly_name", "property",    "description",  "type",   "access",                      "topic",                  "true_value","false_value") 
-    VALUES                 (NULL,              'home heater',  "controller",   'turn up/down', 'binary', "sub",                         'home/home heater/state', '1',          '0');
+    VALUES                 (9,              'home heater',  "controller",   'turn up/down', 'binary',               "sub",                         'home/home heater/state', '1',          '0');
+
+INSERT INTO "mqtt_feature" ("mqtt_feature_id", "friendly_name", "property",    "description",  "type",   "access",                      "topic",                  "true_value","false_value") 
+    VALUES                 (3,              'hall light',  "controller",   'turn on/off', 'binary',               "sub",                         'home/hall light/state', 'on',          'off');
     
 INSERT INTO "mqtt_feature" ("mqtt_feature_id","friendly_name", "property", "description",       "type",   "access",                     "topic",           "true_value", "false_value") 
-    VALUES                 (NULL,             'door',          'sensor',   'side door sensor',   'binary', "pub",                       'home/door/state', 'open',       'closed');
+    VALUES                 (4,             'door',          'sensor',   'side door sensor',   'binary',              "pub",                       'home/door/state', 'open',       'closed');
     
 INSERT INTO "mqtt_feature" ("mqtt_feature_id", "friendly_name", "property", "description", "type",  "access",                            "topic",                    "true_value","false_value") 
-    VALUES                 (NULL,              'water leak2','   sensor',   'Kitchen sink', 'binary',"pub",                              'home/water leak2/status', 'leaking',   "not");
+    VALUES                 (5,              'water leak2','   sensor',   'Kitchen sink', 'binary',                  "pub",             'home/water leak2/status', 'leaking',   "not");
     
 INSERT INTO "mqtt_feature" ("mqtt_feature_id", "friendly_name",     "property", "description",    "type",   "access",                    "topic",                         "true_value",  "false_value") 
-    VALUES                 (NULL,              'door bell button',  'state',    'at front door',   'binary', "pub",                      'home/door bell button/button',  "pressed",  NULL);
-
-INSERT INTO "voice_device" ("mqtt_feature_id","voice_name","port","topic","true_value", "handler") 
-    VALUES (2, "beadroom light", '55555','home/small_thing/state',"1","wemo");
+    VALUES                 (6,              'door bell button',  'state',    'at front door',   'binary',            "pub",           'home/door bell button/button',  "pressed",  NULL);
 
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Driveway','http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1','admin','alert.Away','');
 INSERT INTO "cameras" ("camera_name","url","user","password","rotate") VALUES ('Front door','http://192.168.0.3/cgi-bin/snapshot.cgi?channel=4','admin','dr0wssap!','90');
@@ -745,37 +750,24 @@ INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('bill','bill@
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('don','don@foo.com');
 INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('Jim','jim@dodgen.us');
 
+INSERT INTO "voice_device" ("mqtt_feature_id","voice_name","port","topic","true_value", "handler") 
+    VALUES (3, "light down the hall", '55555','home/hall light/state',"1","wemo");
+    
 INSERT INTO "timers" ("mqtt_feature_id", "topic","true_value","false_value","days","start_type","start_hour","start_minute","start_offset","stop_type","stop_hour","stop_minute","stop_offset","time_to_stop","time_to_start","seconds_from_midnight","state") 
-VALUES (2,'home/small_thing/state','1','0','0,1,2,3,4,5,6','Sunrise',0,0,'0','Sunrise',0,0,'30',NULL,NULL,NULL,NULL);
+    VALUES (2,'home/hall light/state','1','0','0,1,2,3,4,5,6','Sunrise',0,0,'0','Sunrise',0,0,'30',NULL,NULL,NULL,NULL);
 
-INSERT INTO "triggers" ("sub_mqtt_feature_id", "sub_topic","sub_true_value", "sub_payload","pub_mqtt_feature_id", "pub_topic","pub_true_value", "pub_payload") 
-    VALUES (2, 'home/small_thing/state','1','1',   1, 'home/big_thing/state','yes','no');
+INSERT INTO "triggers" ("sub_mqtt_feature_id", "sub_payload", "pub_mqtt_feature_id", "pub_payload") 
+    VALUES (6, 'pressed', 3, 'on');
 
 INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES (3, 'door open','home/door/state','open',0,'door is open','Me thinks a knave has left the hatch open');
-INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES (4,'bad thing','home/water/status','leaking',0,'water leak from heater','turn the valve next to the door off.
-if you had ball_valve_controller you could use triggers to turn it off automatically');
-INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES (5,'door bell','home/doorbell/button','',0,'door bell pressed','What do you see');
-INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES (3,'door closed','home/door/state','closed',0,'closed now','yes it is');
+    VALUES (3, 'Door bell pressed','home/door bell button/state','pressed',0,'Someone is at the door','Me thinks a knave has left the hatch open');
 
--- test set for simple_emailer 
-INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('bad thing','Side door');
-INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('bad thing','Front door');
-INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('door open','Front door');
-INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('door open','Driveway');
-INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('door bell','Front door');
-INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('door closed','Side door');
+-- testset for simple_emailer 
+INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('Door bell pressed','Side door');
+INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('Door bell pressed','Front door');
 
-INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('bad thing','Jim');
-INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('bad thing','don');
-INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door open','bill');
-INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door bell','Jim');
-INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door closed','Jim');
-INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door closed','bill');
-INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('door closed','don');
+INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('Door bell pressed','Jim');
+INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('Door bell pressed','don');
 
 """
         xprint("loading test data")
@@ -856,16 +848,16 @@ CREATE TABLE timers (
 DROP TABLE IF EXISTS triggers;
 CREATE TABLE triggers (
     sub_mqtt_feature_id INTEGER,
-    sub_topic TEXT NOT NULL,   -- trigger_daemon subscribes to this
-    sub_true_value TEXT NOT NULL,
+    -- sub_topic TEXT NOT NULL,   -- trigger_daemon subscribes to this
+    -- sub_true_value TEXT NOT NULL,
     sub_payload TEXT NOT NULL, -- if it matches this true_value...
     pub_mqtt_feature_id INTEGER,
-    pub_topic TEXT NOT NULL,   -- ...it publishes to this topic
-    pub_true_value TEXT NOT NULL,
+    -- pub_topic TEXT NOT NULL,   -- ...it publishes to this topic
+    -- pub_true_value TEXT NOT NULL,
     pub_payload TEXT NOT NULL, -- ...with this true_value payload
-    PRIMARY KEY (sub_topic, sub_payload, pub_topic, pub_payload)
+    PRIMARY KEY (sub_mqtt_feature_id, sub_payload, pub_mqtt_feature_id, pub_payload)
     FOREIGN KEY (sub_mqtt_feature_id) 
-        REFERENCES mqtt_feature (id) 
+        REFERENCES mqtt_feature (mqtt_feature_id) 
         ON DELETE CASCADE,
     FOREIGN KEY (pub_mqtt_feature_id) 
         REFERENCES mqtt_feature (mqtt_feature_id) 

@@ -25,27 +25,28 @@ def print(*args, **kwargs): # replace print
 def make_trigger_structure(db):
     triggers = {}
     raw_triggers = db.get_all_triggers()
+    #import pprint
+    #pprint.pprint(f"\ncurrent_triggers:{[dict(row) for row in raw_triggers]}\n")
     for t in raw_triggers:
-        pub_topic =   t[1]
-        pub_payload = t[2].encode()
-        sub_topic =   t[3]
-        sub_payload = t[4].encode()
+        #print(F"t[1] = {t[1]} T['ptopic'] {t['ptopic']}")
+        pub_topic =   t["ptopic"]
+        pub_payload = t["pub_payload"].encode()
+        sub_topic =   t["stopic"]
+        sub_payload = t["sub_payload"].encode()
         # subscribe to
         if sub_topic not in triggers:
             triggers[sub_topic] = {}
         if sub_payload not in triggers[sub_topic]:
-            triggers[sub_topic][sub_payload] = {}
-        # publish to
-        if pub_topic not in triggers[sub_topic][sub_payload]:
-            triggers[sub_topic][sub_payload][pub_topic] = pub_payload
-    print(triggers)
+            triggers[sub_topic][sub_payload] = []
+        triggers[sub_topic][sub_payload].append([pub_topic, pub_payload])
+    print(f"trigger_structure: {triggers}")
     return triggers
         
 def task():
-    db = database.database()
+    db = database.database(row_factory=True)
     q = queue.Queue()  
-    msg = message.message(q, my_parent=my_name)
     triggers = make_trigger_structure(db)
+    msg = message.message(q, my_parent=my_name)
     for sub in list(triggers):
         print("sub",sub)
         msg.client.subscribe(sub, 0)
@@ -64,11 +65,11 @@ def task():
                         print("published:", sub_topic, payload)
                         continue
             print("Error: unknown callback:", topic, payload)
-
-def start_daemon():
-    p = multiprocessing.Process(target=task)
-    p.start()
-    return p
+    
+# def start_daemon():
+    # p = multiprocessing.Process(target=task)
+    # p.start()
+    # return p
     
 if __name__ == "__main__":
     task()
