@@ -60,13 +60,14 @@ def task():
 
 def process_request():
     if topic in triggers: # subscribed payload
-        if payload in triggers[topic]: # payload we want
+        if payload in triggers[topic]: # payload we want, ignore others
             print("processing", topic, payload)
             things_to_pub = triggers[topic][payload]
             for pub_topic, pub_payload in things_to_pub.items():
                 print(f"publishing: {pub_topic}...{pub_payload}")
                 msg.client.publish(pub_topic,pub_payload)
-    print(f"Error: unknown topic?:{topic}...{payload}")
+    else:
+        print(f"Error: unknown topic?:{topic}...{payload}")
 
 if __name__ == "__main__":
     task()

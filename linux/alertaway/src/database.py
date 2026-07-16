@@ -758,6 +758,10 @@ INSERT INTO "timers" ("mqtt_feature_id", "topic","true_value","false_value","day
 
 INSERT INTO "triggers" ("sub_mqtt_feature_id", "sub_payload", "pub_mqtt_feature_id", "pub_payload") 
     VALUES (6, 'pressed', 3, 'on');
+INSERT INTO "triggers" ("sub_mqtt_feature_id", "sub_payload", "pub_mqtt_feature_id", "pub_payload") 
+    VALUES (6, 'pressed', 8, 'ding ding chime');
+INSERT INTO "triggers" ("sub_mqtt_feature_id", "sub_payload", "pub_mqtt_feature_id", "pub_payload") 
+    VALUES (4, 'pressed', 3, 'on');
 
 INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") 
     VALUES (3, 'Door bell pressed','home/door bell button/state','pressed',0,'Someone is at the door','Me thinks a knave has left the hatch open');
