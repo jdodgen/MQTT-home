@@ -951,7 +951,7 @@ CREATE TABLE IF NOT EXISTS config ( -- this is a singleton
     publish  TEXT DEFAULT "home/alertaway/power",
     -- zigbee_refresh_seconds INTEGER default 30,
     -- local broker mosquitto
-    local_broker_ip TEXT DEFAULT '127.0.0.1',
+    local_broker_ip TEXT DEFAULT '192.168.0.134',  -- use this in production '127.0.0.1',
     local_broker_port INTEGER default 1883,
     local_broker_ssl   INTEGER DEFAULT FALSE,
     local_broker_user  TEXT DEFAULT NULL,
