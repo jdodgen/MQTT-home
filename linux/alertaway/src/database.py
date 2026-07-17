@@ -141,7 +141,7 @@ class database:
             mqtt_feature.rowid,
             mqtt_device.friendly_name,
             mqtt_device.description as device_description,
-            strftime('%Y-%m-%d', mqtt_device.date, 'unixepoch', 'localtime'),
+            strftime('%Y-%m-%d', mqtt_device.date, 'unixepoch', 'localtime') as date,
             mqtt_feature.property,
             mqtt_feature.description,
             mqtt_feature.type,
@@ -993,10 +993,10 @@ if __name__ == "__main__":
     xprint("load test data")
     db.test_data()
     xprint("\ninitialized and test data loaded")
-    all = db.cook_devices_features_for_html()
+    all = db.get_all_devices_features()
     import pprint
     #pprint.pprint(all)
-    #pprint.pprint(f"{[dict(row) for row in all]}")
+    pprint.pprint(f"{[dict(row) for row in all]}")
     # print(db.cook_devices_features_for_html())
     # print(db.delete_device(13))
     # rc = db.upsert_device("no addr test", "foobar", "IP")

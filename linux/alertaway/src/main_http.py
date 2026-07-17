@@ -58,13 +58,13 @@ async def render_response(request, error, update_ip=False, manIP_rowid=None):
         "manual_device_names": DB.get_all_manual_device_names(),
         "style": STYLE
     }
-    # This renders the template named 'index.html'
-    return aiohttp_jinja2.render_template('index.html', request, context | NAV)
+
+    return aiohttp_jinja2.render_template('main.html', request, context | NAV)
 
 # 2. Define Route Handlers
 async def render_index(request):
-    print("getting index.html")
-    # return aiohttp_jinja2.render_template('index.html', request, {})
+    print("getting main.html")
+    # return aiohttp_jinja2.render_template(main.html', request, {})
     return await render_response(request, "")
     
 async def create_IP_device(request):
