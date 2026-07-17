@@ -141,7 +141,7 @@ class database:
             mqtt_feature.rowid,
             mqtt_device.friendly_name,
             mqtt_device.description as device_description,
-            mqtt_device.date,
+            strftime('%Y-%m-%d', mqtt_device.date, 'unixepoch', 'localtime'),
             mqtt_feature.property,
             mqtt_feature.description,
             mqtt_feature.type,
