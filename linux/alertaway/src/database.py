@@ -134,19 +134,13 @@ class database:
         cur.close()
         return all
 
-    def get_all_devices_features(self, source=None):
-        where = ''
-        if source in ("manIP", "IP", "ZB"):
-            where = "where source = '%s'" %  (source,)
-        else:
-            return None
-
+    def get_all_devices_features(self):
         cur = self.con.cursor()
         query = """
         select
             mqtt_feature.rowid,
             mqtt_device.friendly_name,
-            mqtt_device.description,
+            mqtt_device.description as device_description,
             mqtt_device.date,
             mqtt_feature.property,
             mqtt_feature.description,
@@ -157,9 +151,8 @@ class database:
             mqtt_feature.false_value
         from mqtt_device
         left join mqtt_feature on mqtt_feature.friendly_name = mqtt_device.friendly_name
-        %s
         order by mqtt_feature.friendly_name, mqtt_feature.access desc
-        """ % (where,)
+        """
         #print(query)
         cur.execute(query)
         all = cur.fetchall()
@@ -167,13 +160,15 @@ class database:
         cur.close()
         return all
 
-    def cook_devices_features_for_html(self, source=None):
-        all = self.get_all_devices_features(source=source)
+    def cook_devices_features_for_html(self):
+        all = self.get_all_devices_features()
         last_friendly_name = ""
         new_all = []
         for d in all:
-            access = d[7]
+            access = d["access"]
+            xprint(access)
             new = list(d)
+            print(all,new)
             if d[1] == last_friendly_name:
                 new[1] = ''
                 new[2] = ''
@@ -192,8 +187,10 @@ class database:
             #   new.append(True)
             # else:
             #   new.append(False)
+            i = 0
             for x in d:
-                print(x)
+                xprint(f"[{i}] {x}")
+                i += 1
             new.append(cooked_address)
             new_all.append(tuple(new))
         print(new_all)
@@ -990,13 +987,16 @@ if __name__ == "__main__":
     input("You are destroying devices.db")
     input("YOU ARE DESTROYING DEVICES.DB")
     xprint("opening database")
-    db=database()
+    db=database(row_factory=True)
     xprint("create tables")
     db.initialize()
     xprint("load test data")
     db.test_data()
     xprint("\ninitialized and test data loaded")
-    
+    all = db.cook_devices_features_for_html()
+    import pprint
+    #pprint.pprint(all)
+    #pprint.pprint(f"{[dict(row) for row in all]}")
     # print(db.cook_devices_features_for_html())
     # print(db.delete_device(13))
     # rc = db.upsert_device("no addr test", "foobar", "IP")
