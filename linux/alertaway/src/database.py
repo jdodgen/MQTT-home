@@ -316,7 +316,7 @@ class database:
                 source)
             values (?,?,?)
             """,
-                (description, name, source, now))
+                (description, name, source))
         cur.close()
         self.con.commit()
         return
@@ -454,21 +454,21 @@ class database:
         # print("get_feature returned [%s]" % (rec,))
         # return rec
 
-    # def get_feature_mqtt(self, rowid):
-        # cur = self.con.cursor()
-        # cur.execute("""
-        # select
-            # access,
-            # topic,
-            # true_value,
-            # false_value
-            # from mqtt_feature
-            # where rowid = ?
-        # """, (rowid,))
-        # rec = cur.fetchone()
-        # cur.close()
-        # #print("get_feature_mqtt returned [%s]" % (rec,))
-        # return rec
+    def get_feature_mqtt(self, rowid):
+        cur = self.con.cursor()
+        cur.execute("""
+        select
+            access,
+            topic,
+            true_value,
+            false_value
+            from mqtt_feature
+            where rowid = ?
+        """, (rowid,))
+        rec = cur.fetchone()
+        cur.close()
+        #print("get_feature_mqtt returned [%s]" % (rec,))
+        return rec
 
     # def delete_wemo(self, row_id):
         # cur = self.con.cursor()
