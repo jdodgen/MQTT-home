@@ -31,7 +31,7 @@ print(row['users.id'])  # Outputs: 1
 print(row['posts.id'])  # Outputs: 99
 '''
 class database:
-    def __init__(self, row_factory=False):
+    def __init__(self, row_factory=True):
         print(const.DB_NAME)
         self.con = sqlite3.connect(const.DB_NAME, timeout=const.DB_TIMEOUT)
         self.con.execute("PRAGMA foreign_keys = ON;")
@@ -138,7 +138,7 @@ class database:
         cur = self.con.cursor()
         query = """
         select
-            mqtt_feature.rowid,
+            mqtt_feature.mqtt_feature_id,
             mqtt_device.friendly_name,
             mqtt_device.description as device_description,
             strftime('%Y-%m-%d', mqtt_device.date, 'unixepoch', 'localtime') as date,
