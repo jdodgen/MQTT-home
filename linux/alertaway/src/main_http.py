@@ -79,13 +79,13 @@ async def create_IP_device(request):
         print("create_IP_device", name, desc)
         if name and desc: # and access:
             print("upsert_device")
-            DB.upsert_device(desc, name, "manIP")
+            DB.insert_or_ignore_device(desc, name, "manIP")
             data_list = {
                 "friendly_name": name, 
                 "property": "manual", #data["IP_property"],
-                "description": desc, #data["IP_feature"],
+                "description": data["IP_topic_description"],
                 "type": "binary",
-                "access": None, #data["IP_access"],
+                "access": data["IP_access"],
                 "topic": data["IP_topic"],
                 "true_value": data["IP_true"],
                 "false_value": data["IP_false"],
@@ -185,7 +185,7 @@ async def all_devices(request):
             msg.publish(mqtt_hello.hello_request_topic, my_name) 
             error="Auto IP devices refreshed"
         elif parts[0] == 'delete':
-            DB.delete_device(parts[1])
+            DB.delete_feature(parts[1],parts[2])
         elif parts[0] == "manIP":
             update_IP = True
             rowid = parts[1]

@@ -198,7 +198,7 @@
           <h2>Manual Creation of IP Devices</h2>
           <table class="leftright">
             <tr>
-              <td rowspan=2>
+              <td rowspan=3>
                   <button type="submit" name=action value="create_wifi/0">Create IP Device</button>
               </td>
               <th><label for="IP_frendly_name">Friendly Name:</label>
@@ -207,25 +207,21 @@
               <th><label for="IP_description">Description:</label>
                 <input type="text" id="IP_description" name="IP_description"><br>
               </th>
-            </tr>
-            <!-- <tr>
-              <th><label for="IP_property">Property:</label>
-                <input type="text" id="IP_property" name="IP_property"><br>
-              </th>
-              <th><label for="IP_feature">Feature:</label>
-                <input type="text" id="IP_feature" name="IP_feature"><br>
-              </th>
-             </tr> -->
+             </tr>
              <tr>
-                <!-- <th>
-                    <select name="IP_access" size="2">
-                        <option value="sub"> Subscribe</option>
-                        <option value="pub" selected> Publish</option>
-                    </select>
-              </th> -->
-              <th><label for="IP_topic">topic:</label>
-                <input type="text" id="IP_topic" name="IP_topic" size=30><br>
+              <th><label for="IP_topic_description">topic description:</label>
+                <input type="text" id="IP_topic_description" name="IP_topic_description" size=30><br>
               </th>
+              <th>
+                  <label for="IP_topic">topic:</label>
+                  <input type="text" id="IP_topic" name="IP_topic" size=30>
+                  <select name="IP_access" size="2">
+                   <option value="sub" selected>Subscribes</option>
+                   <option value="pub">Publishes</option>
+                  </select>
+              </th>
+            </tr>
+            <tr>
               <th><label for="IP_true">Payload True/Value:</label>
                 <input type="text" id="IP_true" name="IP_true"><br>
               </th>
@@ -263,7 +259,7 @@
     </tr>
 -->
     
-    </td>
+<!--    </td> -->
     </tr>
     <tr>
       <td>
@@ -315,7 +311,7 @@
             {% for d in devices %}
             <tr>
               <th align="center">
-                <button type="submit" name=action value="delete/{{ d['mqtt_feature_id'] }}">
+                <button type="submit" name=action value="delete/{{ d['mqtt_feature_id'] }}/{{ d['friendly_name'] }}">
                     Delete
                 </button>
                 {{d['friendly_name']}}

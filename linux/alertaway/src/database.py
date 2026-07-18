@@ -160,41 +160,41 @@ class database:
         cur.close()
         return all
 
-    def cook_devices_features_for_html(self):
-        all = self.get_all_devices_features()
-        last_friendly_name = ""
-        new_all = []
-        for d in all:
-            access = d["access"]
-            xprint(access)
-            new = list(d)
-            print(all,new)
-            if d[1] == last_friendly_name:
-                new[1] = ''
-                new[2] = ''
-                new[3] = ''
-                cooked_address=""
-            else:
-                try:
-                    new[3] = time.strftime("%d %b %H:%M %Y", time.localtime(float(new[3])))
-                    #'Thu, 28 Jun 2001 14:17:15 +0000
-                except:
-                    new[3] = ''
-                cooked_address = " ".join(wrap(d[1],width=9))
-            last_friendly_name = d[1]
-            print("access [%s]" % (access,))
-            new.append(True if access == "sub" else False)
-            #   new.append(True)
+    # def cook_devices_features_for_html(self):
+        # all = self.get_all_devices_features()
+        # last_friendly_name = ""
+        # new_all = []
+        # for d in all:
+            # access = d["access"]
+            # xprint(access)
+            # new = list(d)
+            # print(all,new)
+            # if d[1] == last_friendly_name:
+                # new[1] = ''
+                # new[2] = ''
+                # new[3] = ''
+                # cooked_address=""
             # else:
-            #   new.append(False)
-            i = 0
-            for x in d:
-                xprint(f"[{i}] {x}")
-                i += 1
-            new.append(cooked_address)
-            new_all.append(tuple(new))
-        print(new_all)
-        return new_all
+                # try:
+                    # new[3] = time.strftime("%d %b %H:%M %Y", time.localtime(float(new[3])))
+                    # #'Thu, 28 Jun 2001 14:17:15 +0000
+                # except:
+                    # new[3] = ''
+                # cooked_address = " ".join(wrap(d[1],width=9))
+            # last_friendly_name = d[1]
+            # print("access [%s]" % (access,))
+            # new.append(True if access == "sub" else False)
+            # #   new.append(True)
+            # # else:
+            # #   new.append(False)
+            # i = 0
+            # for x in d:
+                # xprint(f"[{i}] {x}")
+                # i += 1
+            # new.append(cooked_address)
+            # new_all.append(tuple(new))
+        # print(new_all)
+        # return new_all
 
     def get_manIP_device(self, rowid):
         if rowid == None:
@@ -288,16 +288,39 @@ class database:
         cur.close()
         self.con.commit()
 
-    def delete_device(self, name):
-        print(f"delete_device = {name}")
+    def delete_feature(self, id, friendly_name):
+        xprint(f"delete_device = {id}")
         cur = self.con.cursor()
         try:
-            # already gone via CASCADE cur.execute("delete from mqtt_feature where friendly_name = ?", (name,))
-            cur.execute("delete from mqtt_device where friendly_name = ?", (name,))
+            cur.execute("delete from mqtt_feature where mqtt_feature_id = ?", (id,))
+            cur.execute("""delete from mqtt_device where friendly_name = ?
+                and friendly_name not in (select friendly_name from mqtt_feature)""", (friendly_name,))
         except:
-            print(f"problem deleting {name}")
+            print(f"problem deleting {id}")
         cur.close()
         self.con.commit()
+
+    def insert_or_ignore_device(self, description, name, source):
+        # first check to see if we have a major change
+        # notifiers may need this to reduce MQTT traffic
+        #
+        #
+        # we always update atleast for date
+        #
+        print("upsert_device:", description, name, source)
+        cur = self.con.cursor()
+        cur.execute(
+            """
+            insert or ignore into mqtt_device
+                (description,
+                friendly_name,
+                source)
+            values (?,?,?)
+            """,
+                (description, name, source))
+        cur.close()
+        self.con.commit()
+        return
 
     def upsert_device(self, description, name, source):
         # first check to see if we have a major change
@@ -650,7 +673,6 @@ class database:
             topic,
             true_value,
             false_value
-
         from mqtt_device
         join mqtt_feature on mqtt_feature.friendly_name = mqtt_device.friendly_name
         where
@@ -668,7 +690,6 @@ class database:
         select
             *
             from timers
-
             WHERE days LIKE strftime('%%%w%%','now' ,'localtime')
         """)
         all = cur.fetchall()
