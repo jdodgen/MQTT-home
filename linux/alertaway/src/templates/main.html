@@ -268,8 +268,18 @@
     <tr>
       <td>
         <form action="/all_devices" method="post">
-          <h2>All  Things</h2>
+          <h2>All  Devices</h2>
           <table class="center">
+            <tr>
+              <th colspan="100%"  style="text-align: left;">
+                <button type="submit" name=action value="zbrefresh">Refresh ZigBee2MQTT devices</button>
+                <button type="submit" name=action value="delete_old"
+                onclick="if(!this.classList.contains('confirmed')){ this.innerText='Are you sure?'; this.classList.add('confirmed'); return false; }">
+                Delete old devices 
+                </button>
+                <button type="submit" name=action value="iprefresh"> refresh auto IP devices</th>
+              </th>
+            </tr>
             <tr>
               <th>
                 Friendly name
@@ -296,49 +306,46 @@
                 MQTT Topic
               </th>
               <th>
-                MQTT payload<br>True/other
+                MQTT payload<br>True/value
               </th>
               <th>
                 MQTT payload<br>False
               </th>
             </tr>
-            <tr>
-              <th colspan="100%"  style="text-align: left;">Manual entered IP devices</th>
-            </tr>
-            {% for d in manIP_devices %}
+            {% for d in devices %}
             <tr>
               <th align="center">
-                {% if d[1] %}
-                {{d[1]}} 
-                <button type="submit" name=action value="delete/{{d[1]}}">
+                <button type="submit" name=action value="delete/{{ d['mqtt_feature_id'] }}">
                     Delete
                 </button>
-                {% endif %}
+                {{d['friendly_name']}}
               </th>
-              <td>{{d[2]}}</td>
-              <td>{{d[3]}}</td>
-              <th>{{d[4]}}
+              <td> {{ d['device_description'] }}</td>
+              <td>{{ d['date'] }}</td>
+              <th>{{ d['property'] }}
 <!--
                 <button type="submit" name=action value="manIP/{{d[0]}}">Modify
                   values
                 </button>
 -->
               </th>
-              <td>{{d[5]}}</td>
-              <td>{{d[6]}}</td>
-              <td>{{d[7]}}</td>
-              <td>{{d[8]}}</td>
-              <td>{{d[9]}}<br>{% if d[11] %} <button type="submit" name=action value="send/1/{{d[0]}}">Send</button>{%
-                endif %}</td>
-              <td>{{d[10]}}<br>{% if d[11] %} <button type="submit" name=action value="send/0/{{d[0]}}">Send</button>
-                {%endif %}</td>
+              <td>{{d['description']}}</td>
+              <td>{{d['type']}}</td>
+              <td>{{d['access']}}</td>
+              <td>{{d['topic']}}</td>
+              <td>{{d['true_value']}}<br><button type="submit" name=action value="send/1/{{ d['mqtt_feature_id'] }}">Send</button></td>
+              <td>{{d['false_value']}} 
+                {% if d['false_value'] %}  
+                    <br><button type="submit" name=action value="send/0/{{ d['mqtt_feature_id'] }}">Send</button>
+                {% endif %}
+              </td>
             </tr>
             {% endfor %}
-            <tr>
+            <!-- <tr>
               <th colspan="100%"  style="text-align: left;">Auto discovered IP devices
               <button type="submit" name=action value="iprefresh"> refresh auto IP devices</th>
-            </tr>
-            {% for d in autoIP_devices %}
+            </tr> -->
+            <!--{% for d in autoIP_devices %}
             <tr>
               <th>
                 {{d[1]}}
@@ -360,17 +367,9 @@
               <td>{{d[10]}}<br>{% if d[11] %} <button type="submit" name=action value="send/0/{{d[0]}}">Send</button>{%
                 endif %}</td>
             </tr>
-            {% endfor %}
-            <tr>
-              <th colspan="100%"  style="text-align: left;">ZigBee devices
-                <button type="submit" name=action value="zbrefresh">Refresh ZigBee2MQTT devices</button>
-                <button type="submit" name=action value="delete_old"
-                onclick="if(!this.classList.contains('confirmed')){ this.innerText='Are you sure?'; this.classList.add('confirmed'); return false; }">
-                Delete old devices 
-                </button>
-              </th>
-            </tr>
-            {% for d in zigbee_devices %}
+            {% endfor %} -->
+           
+            <!--{% for d in zigbee_devices %}
             <tr>
               <th>{{d[1]}}</th>
               <td>{{d[2]}}</td>
@@ -385,7 +384,7 @@
               <td>{{d[10]}}<br>{% if d[11] %} <button type="submit" name=action value="send/0/{{d[0]}}">Send</button>{%
                 endif %}</td>
             </tr>
-            {% endfor %}
+            {% endfor %} -->
           </table>
         </form>
       </td>

@@ -50,9 +50,9 @@ async def render_response(request, error, update_ip=False, manIP_rowid=None):
         "error_message": error,
         "do_update_IP": update_ip,
         "man_ip": DB.get_manIP_device(manIP_rowid),
-        "manIP_devices": DB.cook_devices_features_for_html(source='manIP'),
-        "autoIP_devices": DB.cook_devices_features_for_html(source='IP'),
-        "zigbee_devices": DB.cook_devices_features_for_html(source='ZB'),
+        "devices": DB.get_all_devices_features(),
+        #"autoIP_devices": DB.cook_devices_features_for_html(source='IP'),
+        #"zigbee_devices": DB.cook_devices_features_for_html(source='ZB'),
         #"get_devices_for_wemo": DB.get_devices_for_wemo(),
         #"all_wemo": DB.get_all_wemo(),
         "manual_device_names": DB.get_all_manual_device_names(),
@@ -146,22 +146,18 @@ async def create_voice(request):
                 error_msg = 'Both Voice name and device required'
     return await render_response(request, error_msg)
     
-# async def remove_voice(request):
-    # global DB
-    # error_msg = ''
-    # # aiohttp requires awaiting the form data
-    # if request.method == "POST":
-        # data = await request.post()
-        # action = data.get("action")
-        # print("action", action)
-        # if "delete_wemo" in action:
-            # print("deleteing")
-            # match = re.search(r'delete_wemo/(\d+)', action)
-            # print("deleteing ", match.group(1))
-            # if match:
-                # target_id = match.group(1)
-                # DB.delete_wemo(target_id)
-    # return await render_response(request, error_msg)
+def send_mqtt_publish(feature_rowid, true_or_false):
+    print(f"send_mqtt_publish rowid[{feature_rowid}] [{true_or_false}]")
+    (access, 
+    topic, 
+    true_value, 
+    false_value, 
+    ) = DB.get_feature_mqtt(feature_rowid)
+    if true_or_false ==  "1":
+        payload = true_value
+    else:
+        payload = false_value
+    message.publish_single(topic, payload, my_parent=my_name)
     
 async def all_devices(request):
     error = ""
