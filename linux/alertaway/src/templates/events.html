@@ -10,7 +10,9 @@
     <h2>Add / Edit Event</h2>
     <form action="/events/add" method="post">
         <input type="text" name="events_name" placeholder="Event Name" value="{{ query.get('refill_name', '') }}" required><br>
+        {% if query.get('refill_topic', None) %} 
         <input type="text" name="mqtt_topic" placeholder="Topic" value="{{ query.get('refill_topic', '') }}"><br>
+        {% endif %}
         <select name="feature" size="10">
               {% for row in features %}
                   <option value="{{row.mqtt_feature_id }}">
@@ -43,10 +45,10 @@
         <td>{{ data['matching_payload'] }}</td>
         <td>
             <form action="/events/delete" method="post" style="display:inline;">
-                <input type="hidden" name="events_name" value="{{ name }}">
+                <input type="hidden" name="event_id" value="{{  data['event_id']  }}">
                 <button type="submit">Delete & Edit</button>
             </form>
-            <a href="/manage?events_name={{ data['events_name'] }}"><button>Link Assets</button></a>
+            <a href="/manage?event_id={{ data['event_id'] }}"><button>Link Assets</button></a>
         </td>
     </tr>
     {% endfor %}

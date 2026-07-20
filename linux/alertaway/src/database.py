@@ -785,11 +785,11 @@ INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","matching_pay
     VALUES (3, 'Door bell pressed','home/door bell button/state','pressed',0,'Someone is at the door','Me thinks a knave has left the hatch open');
 
 -- testset for simple_emailer 
-INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('Door bell pressed','Side door');
-INSERT INTO "cameras_in_events" ("events_name","camera_name") VALUES ('Door bell pressed','Front door');
+INSERT INTO "cameras_in_events" ("event_id","camera_name") VALUES (1,'Side door');
+INSERT INTO "cameras_in_events" ("event_id","camera_name") VALUES (1,'Front door');
 
-INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('Door bell pressed','Jim');
-INSERT INTO "emailaddr_in_events" ("events_name","emailaddr_name") VALUES ('Door bell pressed','don');
+INSERT INTO "emailaddr_in_events" ("event_id","emailaddr_name") VALUES (1,'Jim');
+INSERT INTO "emailaddr_in_events" ("event_id","emailaddr_name") VALUES (1,'don');
 
 """
         xprint("loading test data")
@@ -921,6 +921,7 @@ CREATE TABLE emailaddr (
 
 DROP TABLE IF EXISTS events;
 CREATE TABLE events (
+    event_id INTEGER PRIMARY KEY,
     mqtt_feature_id INTEGER, 
     events_name TEXT,                 
     mqtt_topic TEXT NOT NULL,   
@@ -929,7 +930,7 @@ CREATE TABLE events (
     only_on_change_of_payload INTEGER DEFAULT 1, 
     subject TEXT,                    
     body TEXT,                    
-    PRIMARY KEY (events_name, matching_payload),
+    UNIQUE (events_name, matching_payload),
     UNIQUE (events_name), -- Required so junction tables can bind to event name alone
     FOREIGN KEY (mqtt_feature_id) 
         REFERENCES mqtt_feature (mqtt_feature_id) 
@@ -938,11 +939,11 @@ CREATE TABLE events (
 
 DROP TABLE IF EXISTS cameras_in_events;
 CREATE TABLE cameras_in_events (
-    events_name TEXT,
+    event_id INTEGER,
     camera_name TEXT,
-    PRIMARY KEY (events_name, camera_name),
-    FOREIGN KEY (events_name) 
-        REFERENCES events (events_name) 
+    PRIMARY KEY (event_id, camera_name),
+    FOREIGN KEY (event_id) 
+        REFERENCES events (event_id) 
         ON DELETE CASCADE,
     FOREIGN KEY (camera_name) 
         REFERENCES cameras (camera_name) 
@@ -951,11 +952,11 @@ CREATE TABLE cameras_in_events (
 
 DROP TABLE IF EXISTS emailaddr_in_events;
 CREATE TABLE emailaddr_in_events (
-    events_name TEXT,
+    event_id TEXT,
     emailaddr_name TEXT,
-    PRIMARY KEY (events_name, emailaddr_name),
-    FOREIGN KEY (events_name) 
-        REFERENCES events (events_name) 
+    PRIMARY KEY (event_id, emailaddr_name),
+    FOREIGN KEY (event_id) 
+        REFERENCES events (event_id) 
         ON DELETE CASCADE,
     FOREIGN KEY (emailaddr_name) 
         REFERENCES emailaddr (emailaddr_name) 
@@ -1014,10 +1015,10 @@ if __name__ == "__main__":
     xprint("load test data")
     db.test_data()
     xprint("\ninitialized and test data loaded")
-    all = db.get_all_devices_features()
-    import pprint
+    #all = db.get_all_devices_features()
+    #import pprint
     #pprint.pprint(all)
-    pprint.pprint(f"{[dict(row) for row in all]}")
+    #pprint.pprint(f"{[dict(row) for row in all]}")
     # print(db.cook_devices_features_for_html())
     # print(db.delete_device(13))
     # rc = db.upsert_device("no addr test", "foobar", "IP")

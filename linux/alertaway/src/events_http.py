@@ -38,8 +38,7 @@ async def handle_add_event(request):
     # Convert 'true'/'false' strings from form to integers for SQLite
     on_change = 1 if data.get('only_on_change_of_payload') == 'true' else 0
     selected_feature = int(data.get("feature"))
-   
-        
+
     async with config.db_connect() as db:
         async with db.execute("SELECT * FROM mqtt_feature WHERE mqtt_feature_id = ?", (selected_feature,)) as cursor:
             mqtt_feature = await cursor.fetchone()
@@ -67,15 +66,14 @@ async def handle_add_event(request):
 
 async def handle_delete_event(request):
     data = await request.post()
-    name = data.get('events_name')
+    event_id = data.get('event_id')
 
     async with config.db_connect(row_factory = False) as db:
         db.row_factory = aiosqlite.Row
         # Fetch data to refill before it's gone
-        async with db.execute("SELECT * FROM events WHERE events_name=?", (name,)) as cursor:
+        async with db.execute("SELECT * FROM events WHERE event_id=?", (event_id,)) as cursor:
             row = await cursor.fetchone()
-            
-        await db.execute("DELETE FROM events WHERE events_name = ?", (name,))
+        await db.execute("DELETE FROM events WHERE event_id = ?", (event_id,))
         await db.commit()
 
     if row:
@@ -153,13 +151,13 @@ async def handle_update_links(request):
     selected_emails =  data.getall('emails', [])
     async with config.db_connect(row_factory = False) as db:
         # Clear existing links for this event
-        await db.execute("DELETE FROM cameras_in_events WHERE events_name=?", (event_name,))
-        await db.execute("DELETE FROM emailaddr_in_events WHERE events_name=?", (event_name,))
+        await db.execute("DELETE FROM cameras_in_events WHERE event_id=?", (event_id,))
+        await db.execute("DELETE FROM emailaddr_in_events WHERE event_id=?", (event_id,))
         # Insert new links
         for c in selected_cameras:
-            await db.execute("INSERT INTO cameras_in_events VALUES (?, ?)", (event_name, c))
+            await db.execute("INSERT INTO cameras_in_events VALUES (?, ?)", (event_id, c))
         for e in selected_emails:
-            await db.execute("INSERT INTO emailaddr_in_events VALUES (?, ?)", (event_name, e))
+            await db.execute("INSERT INTO emailaddr_in_events VALUES (?, ?)", (event_id, e))
         await db.commit()
     raise web.HTTPFound('/events')
 

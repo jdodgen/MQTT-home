@@ -37,7 +37,7 @@ def print(*args, **kwargs): # replace print
 fauxmo_task = None
 
 # 1. Helper to replace your 'render' function
-async def render_response(request, error, update_ip=False, manIP_rowid=None):
+async def render_response(request, error): #,  manIP_rowid=None): # update_ip=False, manIP_rowid=None):
     global DB
     # This replaces your 'render' function and uses the Jinja2 engine
     # flush the message MAIN_Q 
@@ -48,8 +48,8 @@ async def render_response(request, error, update_ip=False, manIP_rowid=None):
             # break
     context = {
         "error_message": error,
-        "do_update_IP": update_ip,
-        "man_ip": DB.get_manIP_device(manIP_rowid),
+        #"do_update_IP": update_ip,
+        #"man_ip": DB.get_manIP_device(manIP_rowid),
         "devices": DB.get_all_devices_features(),
         #"autoIP_devices": DB.cook_devices_features_for_html(source='IP'),
         #"zigbee_devices": DB.cook_devices_features_for_html(source='ZB'),
@@ -186,12 +186,12 @@ async def all_devices(request):
             error="Auto IP devices refreshed"
         elif parts[0] == 'delete':
             DB.delete_feature(parts[1],parts[2])
-        elif parts[0] == "manIP":
-            update_IP = True
-            rowid = parts[1]
+        # elif parts[0] == "manIP":
+            # update_IP = True
+            # rowid = parts[1]
         else:
             error="unknown request"
-    return await render_response(request, error, update_ip=update_IP, manIP_rowid=rowid)
+    return await render_response(request, error) #,  manIP_rowid=rowid) #update_ip=update_IP,)
     # return render(msg, update_ip=update_IP,manIP_rowid=rowid)
 
 # async def all_devices(request):
