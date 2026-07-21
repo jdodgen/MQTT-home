@@ -3,11 +3,11 @@
     <style>{{ style|safe }}</style>
 <body>
 <div class="refill-area">
-<h2>[{{ event_name }}] Cameras and Email addresses</h2>
+<h2>[{{ events_name }}] Cameras and Email addresses</h2>
 
 <form action="/update-links" method="post">
-    <input type="hidden" name="events_name" value="{{ event_name }}">
-
+    <input type="hidden" name="event_id" value="{{ event_id }}">
+    <input type="hidden" name="events_name" value="{{ events_name }}">
     <h3>Cameras</h3>
     {% for camera in all_cameras %}
     <label>
@@ -26,7 +26,6 @@
 
     <br>
     <button type="submit">Save Changes</button>
-    <a href="/events">Cancel</a>
 </form>
 </div)
 </body>

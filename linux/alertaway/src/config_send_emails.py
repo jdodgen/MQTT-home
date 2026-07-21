@@ -35,27 +35,36 @@ def print(*args, **kwargs): # replace print
         
 def get_events():
     with config.db_connect_sync() as db:
-        cursor = db.execute("SELECT * FROM events")
+        cursor = db.execute("""SELECT event_id,
+            mqtt_feature.mqtt_feature_id as mqtt_feature_id,
+            events_name,                 
+            matching_payload,
+            subject,                    
+            body,
+            only_on_change_of_payload,
+            mqtt_feature.topic as topic
+            FROM events 
+            JOIN mqtt_feature on mqtt_feature.mqtt_feature_id = events.mqtt_feature_id""")
         rows = cursor.fetchall()
         return rows
         
-def get_cameras(events_name):
+def get_cameras(event_id):
     with config.db_connect_sync() as db:
         cursor = db.execute(f'''
             SELECT * FROM cameras 
             JOIN cameras_in_events on cameras_in_events.camera_name =  cameras.camera_name
-            WHERE cameras_in_events.events_name = ?
-            ''', (events_name,))
+            WHERE cameras_in_events.event_id = ?
+            ''', (event_id,))
         rows = cursor.fetchall()
         return rows
   
-def get_emails(events_name):
+def get_emails(event_id):
     with config.db_connect_sync() as db:
         cursor = db.execute(f'''
             SELECT * FROM emailaddr 
             JOIN emailaddr_in_events on emailaddr_in_events.emailaddr_name =  emailaddr.emailaddr_name
-            WHERE emailaddr_in_events.events_name = ?
-            ''', (events_name,))
+            WHERE emailaddr_in_events.event_id = ?
+            ''', (event_id,))
         rows = cursor.fetchall()
         return rows
               
@@ -114,12 +123,10 @@ example_topics = {'home/jimdod/Front door/quad_chimes':
                'home/jimdod/Pub/quad_chimes': {None: {'subject': 'Button on bar pressed', 'body': 'See! it did work!!!', 'cc_string': '<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}], 'to_list': ['jim@dodgen.us'], 'only_on_change_of_payload': False}}, 'home/jimdod/GAR Garage door/power': {'down': {'subject': 'The Garage door is open', 'body': "by cracky I sence that the carrage house door is open. I hope the horses don't run out.", 'cc_string': '<jan@dodgen.us>,<jim@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jan@dodgen.us', 'jim@dodgen.us'], 'only_on_change_of_payload': True}, 'up': {'subject': 'The garage door is closed', 'body': 'Horses be contained, all is well now, ta! ta! cheerio', 'cc_string': '<jim@dodgen.us>,<jan@dodgen.us>', 'image_urls': [{'url': 'http://192.168.0.4/cgi-bin/snapshot.cgi?channel=1&type=0', 'user': 'admin', 'pw': 'alert.Away'}, {'url': 'http://192.168.0.3/cgi-bin/snapshot.cgi?channel=2&type=0', 'user': 'admin', 'pw': 'dr0wssap!'}], 'to_list': ['jim@dodgen.us', 'jan@dodgen.us'], 'only_on_change_of_payload': True}}}
 
 def build_a_payload(event):
-        if event["matching_payload"]:
-            matching_payload=  event["matching_payload"]
-        else:
-            matching_payload= None
+        event_dict = dict(event)
+        matching_payload = event_dict.get("matching_payload")
         list_of_images = []
-        image_urls = get_cameras(event["events_name"])
+        image_urls = get_cameras(event["event_id"])
         for i in image_urls:
             print(f'/n]ngetting image [{i["camera_name"]}]')
             d = {"url": i["url"], 'user': i['user'], 'pw': i["password"], 'rotate': i["rotate"]}
@@ -131,7 +138,7 @@ def build_a_payload(event):
         only_on_change_of_payload = event["only_on_change_of_payload"]
         subject =   event["subject"]
         body =      event["body"]
-        emails = get_emails(event["events_name"])
+        emails = get_emails(event["event_id"])
         email_string = ""
         for e in emails:
             email_string += f"<{e['email_address']}>,"
@@ -151,12 +158,12 @@ def load_db_topics():
     if not events:
         return None 
     for t in events:
-        mqtt_topic = t["mqtt_topic"]
+        mqtt_topic = t["topic"]
         payload_event = build_a_payload(t)
         if mqtt_topic not in all_topics:
             all_topics[mqtt_topic] = {}
         all_topics[mqtt_topic][t["matching_payload"]] = payload_event
-        #print("\ntopic",mqtt_topic,"\n")
+        #print("\ntopic",topic,"\n")
         
         #mqtt_topic = cluster["topic"][topic]["mqtt_topic"]
         # if t["matching_payload"]:

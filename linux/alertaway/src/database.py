@@ -781,8 +781,8 @@ INSERT INTO "triggers" ("sub_mqtt_feature_id", "sub_payload", "pub_mqtt_feature_
 INSERT INTO "triggers" ("sub_mqtt_feature_id", "sub_payload", "pub_mqtt_feature_id", "pub_payload") 
     VALUES (4, 'pressed', 3, 'on');
 
-INSERT INTO "events" ("mqtt_feature_id","events_name","mqtt_topic","matching_payload","only_on_change_of_payload","subject","body") 
-    VALUES (3, 'Door bell pressed','home/door bell button/state','pressed',0,'Someone is at the door','Me thinks a knave has left the hatch open');
+INSERT INTO "events" ("mqtt_feature_id","events_name","matching_payload","subject","body") 
+    VALUES (6, 'Door bell pressed','pressed','Someone is at the door','Me thinks a knave has left the hatch open');
 
 -- testset for simple_emailer 
 INSERT INTO "cameras_in_events" ("event_id","camera_name") VALUES (1,'Side door');
@@ -924,13 +924,13 @@ CREATE TABLE events (
     event_id INTEGER PRIMARY KEY,
     mqtt_feature_id INTEGER, 
     events_name TEXT,                 
-    mqtt_topic TEXT NOT NULL,   
+    -- mqtt_topic TEXT NOT NULL,   
     -- true_value,              
-    matching_payload TEXT NOT NULL,
+    matching_payload TEXT,
     only_on_change_of_payload INTEGER DEFAULT 1, 
     subject TEXT,                    
     body TEXT,                    
-    UNIQUE (events_name, matching_payload),
+    -- UNIQUE (events_name, matching_payload),
     UNIQUE (events_name), -- Required so junction tables can bind to event name alone
     FOREIGN KEY (mqtt_feature_id) 
         REFERENCES mqtt_feature (mqtt_feature_id) 
@@ -1002,12 +1002,7 @@ PRAGMA foreign_keys = ON;
                 xprint(f"\n{stmt}\n{e}")
                 exit()
                 
-
-# test stuff  not running when imported
-if __name__ == "__main__":
-    input("You are destroying devices.db")
-    input("You are destroying devices.db")
-    input("YOU ARE DESTROYING DEVICES.DB")
+def load_test_data():
     xprint("opening database")
     db=database(row_factory=True)
     xprint("create tables")
@@ -1015,6 +1010,13 @@ if __name__ == "__main__":
     xprint("load test data")
     db.test_data()
     xprint("\ninitialized and test data loaded")
+    
+# test stuff  not running when imported
+if __name__ == "__main__":
+    input("You are destroying devices.db")
+    input("You are destroying devices.db")
+    input("YOU ARE DESTROYING DEVICES.DB")
+    load_test_data()
     #all = db.get_all_devices_features()
     #import pprint
     #pprint.pprint(all)
@@ -1071,9 +1073,4 @@ if __name__ == "__main__":
     # print(row)
     #d = db.get_fauxmo_devices()
     #print(d)
-
-
-
-
-
-
+    

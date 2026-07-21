@@ -21,7 +21,16 @@ STYLE =     config.STYLE
 @aiohttp_jinja2.template('events.html')
 async def handle_list_events(request):
     async with config.db_connect() as db:
-        async with db.execute("SELECT * FROM events") as cursor:
+        async with db.execute("""SELECT event_id,
+            mqtt_feature.mqtt_feature_id as mqtt_feature_id,
+            events_name,                 
+            matching_payload,
+            subject,                    
+            body,
+            only_on_change_of_payload,
+            mqtt_feature.topic as topic
+            FROM events 
+            JOIN mqtt_feature on mqtt_feature.mqtt_feature_id = events.mqtt_feature_id""") as cursor:
             event_rows = await cursor.fetchall()
         async with db.execute("SELECT * FROM mqtt_feature where access = 'pub'") as cursor:
             feature_rows = await cursor.fetchall()
@@ -34,32 +43,37 @@ async def handle_list_events(request):
 
 async def handle_add_event(request):
     data = await request.post()
-    print(data)
+    print("request data: >>", data)
     # Convert 'true'/'false' strings from form to integers for SQLite
-    on_change = 1 if data.get('only_on_change_of_payload') == 'true' else 0
-    selected_feature = int(data.get("feature"))
+    #on_change = 1 if data.get('only_on_change_of_payload') == 'true' else 0
+    print(f'refill_topic_id: {data.get("refill_topic_id")}')
+    selected_feature = int(data.get("refill_topic_id"))
 
     async with config.db_connect() as db:
         async with db.execute("SELECT * FROM mqtt_feature WHERE mqtt_feature_id = ?", (selected_feature,)) as cursor:
             mqtt_feature = await cursor.fetchone()
-            matching_payload = mqtt_feature['true_value']  if data["on_or_off"] == "on" else mqtt_feature['false_value']
-            print(dict(mqtt_feature))
+        matching_payload = mqtt_feature['true_value']  if data["on_or_off"] == "on" else mqtt_feature['false_value']
+        events_name = data['events_name']
+        print("selected feature: >>", dict(mqtt_feature))
+       
+            
         try:
+            print("matching_payload:", matching_payload)
+            print("events_name:", events_name)
             await db.execute("""
-                INSERT INTO events (mqtt_feature_id, events_name, mqtt_topic, matching_payload, 
-                                   only_on_change_of_payload, subject, body) 
-                VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                INSERT INTO events (mqtt_feature_id, events_name, matching_payload, 
+                                   subject, body, only_on_change_of_payload) 
+                VALUES (?, ?, ?, ?, ?, ?)""",
                 (selected_feature,
-                 data['events_name'], 
-                 mqtt_feature['topic'], 
+                 events_name, 
                  matching_payload,
-                 on_change, 
                  data['subject'], 
-                 data['body'])
+                 data['body'],
+                 data['only_on_change_of_payload']), 
             )
             await db.commit()
         except aiosqlite.IntegrityError as e:
-            print(e)
+            print("insert failed", e)
             return web.Response(text=e)
     
     raise web.HTTPFound('/events')
@@ -71,7 +85,19 @@ async def handle_delete_event(request):
     async with config.db_connect(row_factory = False) as db:
         db.row_factory = aiosqlite.Row
         # Fetch data to refill before it's gone
-        async with db.execute("SELECT * FROM events WHERE event_id=?", (event_id,)) as cursor:
+        async with db.execute("""
+            SELECT event_id,
+            mqtt_feature.mqtt_feature_id as mqtt_feature_id,
+            events_name,                 
+            matching_payload,
+            subject,                    
+            body,
+            mqtt_feature.topic as topic,
+            only_on_change_of_payload
+            FROM events 
+            JOIN mqtt_feature on mqtt_feature.mqtt_feature_id = events.mqtt_feature_id
+            WHERE event_id=?""", 
+            (event_id,)) as cursor:
             row = await cursor.fetchone()
         await db.execute("DELETE FROM events WHERE event_id = ?", (event_id,))
         await db.commit()
@@ -79,8 +105,8 @@ async def handle_delete_event(request):
     if row:
         # Redirect back with query params to pre-fill the form
         return web.HTTPFound(
-            f'/events?refill_name={row[0]}&refill_topic={row[1]}&refill_payload={row[2]}'
-            f'&refill_subj={row[4]}&refill_body={row[5]}'
+            f"/events?refill_name={row['events_name']}&refill_topic={row['topic']}&refill_payload={row['matching_payload']}"
+            f"&refill_subj={row['subject']}&refill_body={row['body']}&default_refill_feature_id={row['mqtt_feature_id']}"
         )
     return web.HTTPFound('/events')
 
@@ -121,7 +147,10 @@ async def handle_run_event(request):
 
 @aiohttp_jinja2.template('manage_event.html')
 async def handle_manage_view(request):
-    event_name = request.query.get('events_name') # from events.html
+    event_id    = request.query.get('event_id') # from events.html
+    events_name = request.query.get('events_name') # from events.html
+    print("events_name", events_name)
+    print("event_id", event_id)
     async with config.db_connect(row_factory = False) as db:
         # 1. Get all available options
         async with db.execute("SELECT camera_name FROM cameras") as c:
@@ -129,13 +158,14 @@ async def handle_manage_view(request):
         async with db.execute("SELECT emailaddr_name FROM emailaddr") as e:
             all_emails = [r[0] for r in await e.fetchall()]
         # 2. Get currently linked options
-        async with db.execute("SELECT camera_name FROM cameras_in_events WHERE events_name=?", (event_name,)) as c:
+        async with db.execute("SELECT camera_name FROM cameras_in_events WHERE event_id=?", (event_id,)) as c:
             linked_cameras = [r[0] for r in await c.fetchall()]
-        async with db.execute("SELECT emailaddr_name FROM emailaddr_in_events WHERE events_name=?", (event_name,)) as e:
+        async with db.execute("SELECT emailaddr_name FROM emailaddr_in_events WHERE event_id=?", (event_id,)) as e:
             linked_emails = [r[0] for r in await e.fetchall()]
 
     return {
-        'event_name':       event_name,
+        'events_name':      events_name,
+        'event_id':         event_id,
         'all_cameras':      all_cameras,
         'all_emails':       all_emails,
         'linked_cameras':   linked_cameras,
@@ -145,7 +175,9 @@ async def handle_manage_view(request):
 
 async def handle_update_links(request):
     data = await request.post()
-    event_name = data.get('events_name')
+    events_name = data.get('events_name')
+    event_id = data.get('event_id')
+    print("handle_update_links event_id", event_id)
     # getall returns multiple values for the same key (checkboxes)
     selected_cameras = data.getall('cameras', [])
     selected_emails =  data.getall('emails', [])
@@ -157,9 +189,10 @@ async def handle_update_links(request):
         for c in selected_cameras:
             await db.execute("INSERT INTO cameras_in_events VALUES (?, ?)", (event_id, c))
         for e in selected_emails:
+            print("selected_cameras:",e)
             await db.execute("INSERT INTO emailaddr_in_events VALUES (?, ?)", (event_id, e))
         await db.commit()
-    raise web.HTTPFound('/events')
+    raise web.HTTPFound('/')
 
 
 # here we go !
@@ -185,4 +218,6 @@ app.add_routes([
 
 # 4. Start the server
 if __name__ == '__main__':
+    import database
+    database.load_test_data()
     web.run_app(app, port=OUR_PORT)

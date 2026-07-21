@@ -12,21 +12,28 @@
         <input type="text" name="events_name" placeholder="Event Name" value="{{ query.get('refill_name', '') }}" required><br>
         {% if query.get('refill_topic', None) %} 
         <input type="text" name="mqtt_topic" placeholder="Topic" value="{{ query.get('refill_topic', '') }}"><br>
+        <input type="text" name="default_refill_feature_id" placeholder="Topic" value="{{ query.get('default_refill_feature_id', '') }}"><br>
         {% endif %}
-        <select name="feature" size="10">
-              {% for row in features %}
-                  <option value="{{row.mqtt_feature_id }}">
-                 "{{ row.friendly_name }}"&nbsp; 
-                  {{ row.topic }}&nbsp;[{{ row.true_value }}/{{ row.false_value }}]
-                  </option>
-              {% endfor %}
-        </select><br>
+        <select name="refill_topic_id" size="10"> 
+          {% for row in features %} 
+            <option value="{{ row.mqtt_feature_id }}" {% if row.mqtt_feature_id|string == query.get('default_refill_feature_id',"")|string %}selected{% endif %}> 
+              "{{ row.friendly_name }}"&nbsp; {{ row.topic }}&nbsp;[{{ row.true_value }}/{{ row.false_value }}] 
+            </option> 
+          {% endfor %} 
+        </select>
+        <br>
         <label>on or off?</label>
         <input type="radio" id="notify-on" name="on_or_off" value="on" checked>
         <label for="notify-on">On</label>
         <input type="radio" id="notify-off" name="on_or_off" value="off">
         <label for="notify-off">Off</label>
-        <br><br>
+        <br>
+        <label>Send emails only when payload changes?</label>
+        <input type="radio" id="only_on_change_of_payload-on" name="only_on_change_of_payload" value="1" checked>
+        <label for="notify-on">Only on change</label>
+        <input type="radio" id="only_on_change_of_payload-off" name="only_on_change_of_payload" value="0">
+        <label for="only_on_change_of_payload-off">All messages</label>
+        <br>
         <input type="text" name="subject" placeholder="Email Subject" value="{{ query.get('refill_subj', '') }}" style="width: 100%;">
         <br><br>
         <textarea name="body" placeholder="Email Body" style="width: 100%; height: 60px;">{{ query.get('refill_body', '') }}</textarea>
@@ -41,14 +48,15 @@
     {% for data in events %}
     <tr>
         <td>{{ data['events_name'] }}</td>
-        <td>{{ data['mqtt_topic'] }}</td>
+        <td>{{ data['topic'] }}</td>
         <td>{{ data['matching_payload'] }}</td>
         <td>
             <form action="/events/delete" method="post" style="display:inline;">
                 <input type="hidden" name="event_id" value="{{  data['event_id']  }}">
+                <input type="hidden" name="events_name" value="{{  data['events_name']  }}">
                 <button type="submit">Delete & Edit</button>
             </form>
-            <a href="/manage?event_id={{ data['event_id'] }}"><button>Link Assets</button></a>
+            <a href="/manage?event_id={{ data['event_id'] }}&events_name={{ data['events_name'] }}"><button>Link Assets</button></a>
         </td>
     </tr>
     {% endfor %}
