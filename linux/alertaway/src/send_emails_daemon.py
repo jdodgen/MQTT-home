@@ -22,7 +22,7 @@ from PIL import Image
 import io
 from queue import Empty
 import config_send_emails as cse
-from mqtt_manager import mqtt_manager
+#from mqtt_manager import mqtt_manager
 import message
 import http_common as config
 
@@ -129,8 +129,8 @@ def main():
     emailer_q = multiprocessing.Queue(10)
     emailer = multiprocessing.Process(target=send_email_task, args=(emailer_q,))
     emailer.start()
-    
-    client = mqtt_manager(mqtt_q)
+    client = message.message(mqtt_q, my_parent=my_name)
+    #client = mqtt_manager(mqtt_q)
     toggle_list = {"topic":  "payload",}
     last_publish = 0
     while True:
@@ -140,23 +140,29 @@ def main():
         # MAIN LOOP
         #
         try:
-            topic, payload_raw = mqtt_q.get(block=True, timeout=config.PCN_INTERVAL)
+            command, topic, payload_raw = mqtt_q.get(block=True, timeout=config.PCN_INTERVAL)
         except Empty:
             # send PCN alive now
             try:
-                client.publish_command(PCN_TOPIC,"up")
+                client.publish(PCN_TOPIC,"up")
+                #client.publish_command(PCN_TOPIC,"up")
                 last_publish = time.time()
             except Exception as e:
                 print(f"main publish up failed {e}")
             if not emailer.is_alive():
                 print("main emailer process dead")
             continue
+        print(f"command {command} topic {topic} payload_raw {payload_raw}")
+        if command == "connected":
+            continue
         now = time.time()
         if last_publish+config.PCN_INTERVAL < now:
             # send PCN alive now
-            client.publish_command(PCN_TOPIC,"up")
+            client.publish(PCN_TOPIC,"up")
+            #client.publish_command(PCN_TOPIC,"up")
             last_publish = now
-        payload = payload_raw.decode('utf-8')
+        
+        payload = payload_raw.decode('utf-8') if payload_raw != None else None
         this_topic = cse.TOPICS.get(topic, None)
         print("main from mqtt_q:message topic[%s], payload[%s] " % (topic, payload))
         if not this_topic:  # just checking 

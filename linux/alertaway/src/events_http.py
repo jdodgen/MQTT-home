@@ -218,6 +218,6 @@ app.add_routes([
 
 # 4. Start the server
 if __name__ == '__main__':
-    import database
-    database.load_test_data()
+    #import database
+    #database.load_test_data()
     web.run_app(app, port=OUR_PORT)
