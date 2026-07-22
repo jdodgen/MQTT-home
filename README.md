@@ -7,7 +7,7 @@ smaller are using microcontrollers that support [micropython](https://micropytho
 
 # Some things inside:
 ### linux:         
-[home-broker A mqtt,zigbee and wemo server](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker)       
+[alertaway](https://github.com/jdodgen/MQTT-home/tree/main/linux/alertaway)  A lightweight home automation system      
 [Tankless water heater recirculation system](https://github.com/jdodgen/MQTT-home/tree/main/linux/hot-water-recirc)       
 [basicNVR simple low overhead NVR](https://github.com/jdodgen/MQTT-home/tree/main/linux/basicNVR)       
 ### Micropython:          
@@ -28,14 +28,11 @@ Currently ESP32-S2 projects. Anything else using micropython goes here.
 library of shared code specific to micropython devices
 
 # Operational Notes
-[home-broker](https://github.com/jdodgen/MQTT-home/tree/main/linux/home-broker) runs the show:    
+[alertaway](https://github.com/jdodgen/MQTT-home/tree/main/linux/alertaway) Corrdinates the show:    
 It integrates [fauxmo](https://github.com/n8henrie/fauxmo), [zigbee2mqtt](https://github.com/Koenkk/zigbee2mqtt), [mosquitto](https://github.com/eclipse/mosquitto) (MQTT Broker).  
 It has a protocol to let the IP devices report their configuration similar to how z2m works  
 Zigbee and IP devices are stored in a sqlite3 database in a common format.  
-home-broker publishes a compressed JSON of all devices and features. for use of other MQTT devices.   
-Home-broker is only a "configuration manager"
-
-
+alertaway publishes a compressed JSON of all devices and features. for use of other MQTT devices.   
 
 ## MQTT-home/micropython
 Currently ESP32-S2 projects. Anything else using micropython goes here.
@@ -66,12 +63,3 @@ This allows pretty much unlimited coverage for wired and well as wired devices.
 Simple end user setup.  
 save the ssid and password in [network.json](https://github.com/jdodgen/MQTT-home/network.json)
 to be shared as needed for install scripts.
-
-
-
-
-
-
-
-
-
