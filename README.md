@@ -17,16 +17,6 @@ smaller are using microcontrollers that support [micropython](https://micropytho
 Larger/more complex are using linux on small devices like a "Raspberry pi"
 smaller are using microcontrollers that support [micropython](https://micropython.org/)   
 
-# Directory organization
-## MQTT-home/Library
-Code shared by both micropython and linux
-## MQTT-home/linux
-Linux IoT, typically RPI servers, linux projects live here
-## MQTT-home/micropython
-Currently ESP32-S2 projects. Anything else using micropython goes here.
-### MQTT-home/micropython/library
-library of shared code specific to micropython devices
-
 # Operational Notes
 [alertaway](https://github.com/jdodgen/MQTT-home/tree/main/linux/alertaway) Corrdinates the show:    
 It integrates [fauxmo](https://github.com/n8henrie/fauxmo), [zigbee2mqtt](https://github.com/Koenkk/zigbee2mqtt), [mosquitto](https://github.com/eclipse/mosquitto) (MQTT Broker).  
