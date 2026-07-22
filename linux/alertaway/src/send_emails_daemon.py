@@ -23,6 +23,7 @@ import io
 from queue import Empty
 import config_send_emails as cse
 from mqtt_manager import mqtt_manager
+import message
 import http_common as config
 
 PCN_TOPIC = "home/alertaway/sendemails/power"

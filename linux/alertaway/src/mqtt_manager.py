@@ -1,3 +1,4 @@
+# MIT licence copyright 2026 jim dodgen
 import time
 import paho.mqtt.client as mqtt
 import ssl
@@ -46,7 +47,7 @@ class mqtt_manager:
         self.email_q = email_q
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         #print(f"__init__ db_cfg.user [  {db_cfg["user"]}  ], db_cfg.password [  {db_cfg["password"]}  ]")
-        self.client.username_pw_set(db_cfg["local_broker_ip"], db_cfg["local_broker_port"])
+        #self.client.username_pw_set(db_cfg["local_broker_ip"], db_cfg["local_broker_port"])
         # Configure TLS/SSL settings
         # You can adjust cert_reqs based on your security requirements:
         # ssl.CERT_REQUIRED: Server must provide a valid certificate issued by a trusted CA.
@@ -59,7 +60,7 @@ class mqtt_manager:
         while True:
             print(f"__init__ connecting to [{db_cfg['local_broker_ip']}]-[{db_cfg['local_broker_port']}]")
             try:
-                self.client.connect(db_cfg['local_broker_ip'],db_cfg['local_broker_port'])
+                self.client.connect(db_cfg['local_broker_ip'],db_cfg['local_broker_port'], keepalive=config.MQTT_KEEPALIVE)
                 print ("__init__ connected")
                 break
             except:

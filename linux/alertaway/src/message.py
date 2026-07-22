@@ -78,7 +78,7 @@ class message():
         self.client.user_data_set(self.unacked_publish)
         for x in range(10):
             try:
-                print("attempting mqtt connection ")
+                print(f"attempting mqtt connection {BROKER_IP} {BROKER_PORT}")
                 self.client.connect(BROKER_IP, BROKER_PORT, keepalive=config.MQTT_KEEPALIVE) 
                 break
             except Exception as e:

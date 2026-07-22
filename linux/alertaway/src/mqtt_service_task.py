@@ -1,5 +1,4 @@
 import message
-import multiprocessing
 import queue
 from multiprocessing import Queue 
 import devices_to_json
