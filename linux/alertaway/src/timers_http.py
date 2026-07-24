@@ -126,8 +126,10 @@ async def timer_manager(request):
     context['timed_alerts'] = db.get_all_timers() #cursor.fetchall()
     context["IPaddr"] = MY_IP
     context["style"] = STYLE
+    context["nav_section"] = config.nav_section(raw=True)
 
-    return aiohttp_jinja2.render_template('timers.html', request, context | config.nav_section())
+
+    return aiohttp_jinja2.render_template('timers.html', request, context)
 
 # --- APP ROUTING ---
 app = web.Application()

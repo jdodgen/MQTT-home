@@ -15,7 +15,6 @@ import http_common as config
 MY_IP = config.get_ip() # replaced when forked
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.VOICE_PORT
-NAV = config.nav_section(raw=True) # replaced when forked
 STYLE = config.STYLE
 
 #MAIN_Q=None  #  messages queue
@@ -78,7 +77,7 @@ async def refresh_page(request):
         'devices_for_voice': devices_for_voice,
         'query': dict(form_data),
         "style": STYLE,
-        "nav_section": NAV
+        "nav_section"] = config.nav_section(raw=True)
     }
 
 

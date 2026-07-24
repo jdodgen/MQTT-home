@@ -1,17 +1,7 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>{{ style|safe }}</style>
-    <title>Voice</title>
-</head>
-{{ nav_section|safe }}
-<div class="refill-area">
-<body>
-</head>
-<body>
-  <table style="border: none;">
-  </table>
-  <table>
+{% extends "base.html" %}
+{% block title %}Voice{% endblock %}
+{% block content %}  <!-- put body here without <body> -->
+  <table class="outer-table">
     <tr>
       <td>
         <form action="/create_voice" method="post">
@@ -117,6 +107,5 @@
       </td>
     </tr>
  </tr>
-  </table>
-</body>
-</html>
+</table>
+{% endblock %}

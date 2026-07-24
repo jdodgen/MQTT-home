@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>{{ style|safe }}</style>
-    <title>Cameras</title>
-</head>
-{{ nav_section|safe }}
-<div class="refill-area">
-<body>
+{% extends "base.html" %}
+{% block title %}Cameras{% endblock %}
+{% block content %}  <!-- put body here without <body> -->
     <h2>Managed Cameras</h2>
     <table border="1">
     <tr>
@@ -105,5 +99,4 @@
             }
         }
     </script>
-</body>
-</html>
+{% endblock %}

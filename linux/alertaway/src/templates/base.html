@@ -22,6 +22,14 @@
             flex-direction: column; 
         }
         iframe { flex-grow: 1; width: 100%; border: none; }
+
+          /* The magic line: Strips everything from the outer container table */
+          .outer-table, .outer-table td { border: none !important; }
+
+          /* Normal rules for your real tables */
+          .inner-table { border-collapse: collapse; width: 100%; }
+          .inner-table td, .inner-table th { border: 1px solid #ddd; padding: 8px; }
+</style>
     </style>
     <title>{% block title %}AlertAway Toolbox{% endblock %}</title>
 </head>

@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>{{ style|safe }}</style>
-    <title>Events</title>
-</head>
-{{ nav_section|safe }}
-<div class="refill-area">
-<body>
+{% extends "base.html" %}
+{% block title %}Devices{% endblock %}
+{% block content %}  <!-- put body here without <body> -->
     <h2>Add / Edit Event</h2>
     <form action="/events/add" method="post">
         <input type="text" name="events_name" placeholder="Event Name" value="{{ query.get('refill_name', '') }}" required><br>
@@ -61,7 +55,5 @@
     </tr>
     {% endfor %}
 </table>
-</body>
-</div>
-</html>
+{% endblock %}
 

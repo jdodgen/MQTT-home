@@ -1,19 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>{{ style|safe }}</style>
-    <title>Devices</title>
-</head>
-{{ nav_section|safe }}
-<div class="refill-area">
-<body>
-</head>
-<body>
-  <table style="border: none;">
-  </table>
-  <table>
+{% extends "base.html" %}
+{% block title %}Devices{% endblock %}
+{% block content %}  
+  <table class="outer-table">
     <tr>
-        <td style="border: none;"><h2>Device Management</h2></td>
+        <td style="border: none;"><h2>Devices</h2></td>
     </tr>
     <tr>
       <td>
@@ -21,9 +11,11 @@
           <h2>Manual Creation of IP Devices</h2>
           <table class="leftright">
             <tr>
-              <td rowspan=3>
+              <td colspan="100%">
                   <button type="submit" name=action value="create_wifi/0">Create IP Device</button>
               </td>
+            </tr>
+            <tr>
               <th><label for="IP_frendly_name">Friendly Name:</label>
                 <input type="text" id="IP_frendly_name" name="IP_frendly_name"><br>
               </th>
@@ -129,5 +121,5 @@
       </td>
     </tr>
   </table>
-</body>
-</html>
+{% endblock %}
+

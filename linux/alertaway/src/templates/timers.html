@@ -1,19 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>{{ style|safe }}</style>
-    <title>Timers</title>
-</head>
-{{ nav_section|safe }}
+{% extends "base.html" %}
+{% block title %}Timers{% endblock %}
+{% block content %}  <!-- put body here without <body> -->
 <form action="/set_timer" method="post">
-<body>
-<div id="{{ timers_here }}"  class="refill-area">
-    <table class="tbody">
+    <table class="outer-table"> <!-- class="tbody"> -->
         </tr>
         <tr class="tnone">
             <th colspan="100%" align="center">
                 {{ debug }}
-                <font size="+3" color="gray">Maintain Timers {{ time_now }}</font>
+                <font size="+3" color="gray">Maintain Timers: Current time {{ time_now }}</font>
             </th>
         </tr>
         <tr>
@@ -194,9 +188,7 @@
             </table>
         </tr>
     </table>
-</div>
-</body>
-</form>
+{% endblock %}
 <script>
 function start_fixed_date() {
    document.getElementById("starthidefixed").style.display = '';
@@ -215,5 +207,4 @@ function stop_dawn() {
    document.getElementById("stophidefixed").style.display = 'none';
 }
 </script>
-</body>
-</html>
+

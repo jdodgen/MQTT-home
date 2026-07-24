@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>{{ style|safe }}</style>
-    <title>Cameras</title>
-</head>
-{{ nav_section|safe }}
-<div class="refill-area">
-<body>
+{% extends "base.html" %}
+{% block title %}email {% endblock %}
+{% block content %}  <!-- put body here without <body> -->
     <h2>Email Addresses</h2>
     <table border="1">
         <tr>
@@ -35,5 +29,4 @@
         <button type="submit">Add</button>
     </form>
     <br>
-</body>
-</html>
+{% endblock %}

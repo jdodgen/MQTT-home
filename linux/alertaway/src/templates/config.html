@@ -1,12 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>{{ style|safe }}</style>
-    <title>Config</title>
-</head>
-{{ nav_section|safe }}
-<div class="refill-area">
-<body>
+{% extends "base.html" %}
+{% block title %}Cameras {% endblock %}
+{% block content %}  <!-- put body here without <body> -->
     <h2>Configuration</h2>
     <form action="/update" method="post">
         <hr>
@@ -111,6 +105,4 @@
         <hr>
         <button type="submit">Update Configuration</button>
     </form>
-</body>
-</div>
-</html>
+ {% endblock %}

@@ -1,14 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <style>{{ style|safe }}</style>
-    <title>Triggers</title>
-</head>
-{{ nav_section|safe }}
-<div id="{{ triggers_here }}" class="refill-area">
-<body>
-	<form action="/set_trigger" method="post">
-    <table   >
+{% extends "base.html" %}
+{% block title %}Triggers{% endblock %}
+{% block content %}  <!-- put body here without <body> -->
+<form action="/set_trigger" method="post">
+    <table   class="outer-table" >
         <tr>
             <th colspan="100%" align="center">
                 <font size="+3" color="gray">Maintain Triggers </font>
@@ -43,9 +37,6 @@
                 </table>
             </td>
         </tr>
-        <tr   >
-            <th>&nbsp;</th>
-        </tr>
         <tr>
             <td>
                 <table> <!-- </table> class="tbody"> -->
@@ -69,16 +60,10 @@
             </td>
         </tr>
         <tr   >
-            <th>&nbsp;</th>
-        </tr>
-        <tr   >
             <td>
                 <button type="submit" name=action value="Create trigger">Create Trigger</button>
                 <button type="submit" name=action value="Restart trigger Process">Restart trigger Subprocess</button>
             </td>
-        </tr>
-        <tr   >
-            <th>&nbsp;</th>
         </tr>
         <tr>
             <table class="center">
@@ -116,9 +101,7 @@
         </tr>
     </table>
     </form>
-    </body>
-    </div>
-</html>
+ {% endblock %}
 
 
 

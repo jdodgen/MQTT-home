@@ -1,10 +1,6 @@
-<!DOCTYPE html>
-<html>
-    <style>{{ style|safe }}</style>
-<body>
-<div class="refill-area">
-<h2>[{{ events_name }}] Cameras and Email addresses</h2>
-
+{% extends "base.html" %}
+{% block title %}Triggers{% endblock %}
+{% block content %}  <!-- put body here without <body> -->
 <form action="/update-links" method="post">
     <input type="hidden" name="event_id" value="{{ event_id }}">
     <input type="hidden" name="events_name" value="{{ events_name }}">
@@ -27,6 +23,4 @@
     <br>
     <button type="submit">Save Changes</button>
 </form>
-</div)
-</body>
-</html>
+{% endblock %}

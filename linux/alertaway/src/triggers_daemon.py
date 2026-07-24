@@ -56,15 +56,17 @@ def task():
         if item[0] == "callback":
             topic = item[1]
             payload = item[2]
-            process_request(topic, payload)
+            process_request(msg, triggers, topic, payload)
 
-def process_request():
+def process_request(msg, triggers, topic, payload):
     if topic in triggers: # subscribed payload
         if payload in triggers[topic]: # payload we want, ignore others
             print("processing", topic, payload)
             things_to_pub = triggers[topic][payload]
-            for pub_topic, pub_payload in things_to_pub.items():
-                print(f"publishing: {pub_topic}...{pub_payload}")
+            print(f"things to pub {things_to_pub}")
+            for pub_topic, pub_payload in things_to_pub:
+               
+                print(f"publishing: [{pub_topic}]...[{pub_payload}]")
                 msg.client.publish(pub_topic,pub_payload)
     else:
         print(f"Error: unknown topic?:{topic}...{payload}")

@@ -95,8 +95,9 @@ async def trigger_manager(request):
     pprint.pprint(f"\ncurrent_triggers:{[dict(row) for row in cur_triggers]}\n")
     context["IPaddr"] = config.get_ip()
     context["style"] = STYLE
+    context["nav_section"] = config.nav_section(raw=True)
 
-    return aiohttp_jinja2.render_template('trigger.html', request, context | config.nav_section())
+    return aiohttp_jinja2.render_template('trigger.html', request, context)
 
 
 
