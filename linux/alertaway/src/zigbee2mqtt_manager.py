@@ -1,5 +1,15 @@
 # zigbee2mqtt_manager
 # Copyright 2023 by James E Dodgen Jr.  All rights reserved.
+#serial:
+'''
+ls -l /dev/serial/by-id/
+total 0
+lrwxrwxrwx 1 root root 13 Jul 17 10:53 usb-1a86_USB_Serial-if00-port0 -> ../../ttyUSB0
+
+'''
+#  port: /dev/serial/by-id/usb-1a86_USB_Serial-if00-port0
+#  adapter: zstack
+
 import subprocess
 import time
 import multiprocessing
