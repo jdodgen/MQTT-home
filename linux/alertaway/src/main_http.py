@@ -10,14 +10,9 @@ import restart_service
 from fauxmo_manager import build_cfg
 import http_common as config
 
-NAV =       config.nav_section(raw=False)
-STYLE =     config.STYLE
-
 MY_IP = config.get_ip() # replaced when forked
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.HTTP_MAIN_PORT
-NAV = config.nav_section() # replaced when forked
-STYLE = config.STYLE
 
 #MAIN_Q=None  #  messages queue
 
@@ -56,15 +51,14 @@ async def render_response(request, error): #,  manIP_rowid=None): # update_ip=Fa
         #"get_devices_for_wemo": DB.get_devices_for_wemo(),
         #"all_wemo": DB.get_all_wemo(),
         "manual_device_names": DB.get_all_manual_device_names(),
-        "style": STYLE
+        "nav_section": config.nav_section(raw=True)
     }
 
-    return aiohttp_jinja2.render_template('main.html', request, context | NAV)
+    return aiohttp_jinja2.render_template('main.html', request, context)
 
 # 2. Define Route Handlers
 async def render_index(request):
     print("getting main.html")
-    # return aiohttp_jinja2.render_template(main.html', request, {})
     return await render_response(request, "")
     
 async def create_IP_device(request):
@@ -118,8 +112,14 @@ async def create_IP_device(request):
     # return await render_response(request, error_msg)  
 
 async def z2m_page(request):
-    print("z2m_page")
-    return aiohttp_jinja2.render_template('zigbee2mqtt.html', request, {"IPaddr": MY_IP})
+    context = {
+        "IPaddr": MY_IP, 
+        "nav_section": config.nav_section(raw=True)
+    }
+    # Force direct dictionary rendering
+    return aiohttp_jinja2.render_template('zigbee2mqtt.html', request, context=context)
+
+
 
 async def whoareyou(request):
     myhost = os.uname()[1]
@@ -240,7 +240,6 @@ def task(fauxmo):
     
     MY_IP = config.get_ip() # replaced when forked
     DB_NAME =   config.DB_NAME
-    NAV = config.nav_section() # replaced when forked
  #   MAIN_Q = queue.Queue() 
     
 #    msg = message.message(MAIN_Q, my_parent=my_name)

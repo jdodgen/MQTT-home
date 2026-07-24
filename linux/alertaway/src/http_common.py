@@ -72,18 +72,6 @@ def ports():
     "http_main_port": HTTP_MAIN_PORT,
     }
 
-STYLE = '''
-body { font-family: sans-serif; margin: 20px; line-height: 1.6; }
-nav { background: #334; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
-nav a { color: white; text-decoration: none; margin-right: 15px; padding: 5px 10px; }
-nav a:hover { background: #555; border-radius: 3px; }
-.active { background: #007bff; border-radius: 3px; }
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-th { background-color: #f4f4f4; }
-.refill-area { background: #f9f9f9; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
-'''
-
 def get_db_config():
     """Retrieves all configuration fields as a dictionary."""
     try:

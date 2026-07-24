@@ -9,4 +9,4 @@ def restart(service_name):
         print(f"[restart_service] Error restarting service: {e}")
 
 if __name__ == '__main__':
-    restart_service("zigbee2mqtt")
+    restart("alertaway-triggers-daemon")

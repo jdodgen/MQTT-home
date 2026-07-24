@@ -78,7 +78,7 @@ async def update_config(db_path, data):
 @aiohttp_jinja2.template("config.html")
 async def handle_index(request):
     config_row = await get_config(request.app['db_path'])
-    return {"config": config_row, "style": config.STYLE} | config.nav_section()
+    return {"config": config_row, "nav_section": config.nav_section(raw=True)}
 
 async def handle_update(request):
     # Retrieve form data from POST

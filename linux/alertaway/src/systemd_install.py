@@ -4,7 +4,7 @@
 # see z2m_mosquitto.py for terminal commands
 #
 import os
-TESTING = True
+TESTING = False
 PYTHON_FILES = os.getcwd()
 DATA_FILES = PYTHON_FILES
 #
@@ -14,8 +14,8 @@ systemd_path = "/etc/systemd/system"
 modules = [
     
     ("alertaway-main_http",                 "main_http.py",         "HTTP Server & UI", 10),
-    ("alertaway-timers-http",               "timers_httl.py",       "Maintain timers", 1),
-    ("alertaway-voice-http",                "voice_httl.py",        "Maintain Voices", 1),
+    ("alertaway-timers-http",               "timers_http.py",       "Maintain timers", 1),
+    ("alertaway-voice-http",                "voice_http.py",        "Maintain Voices", 1),
     ("alertaway-events_http",               "events_http.py",       "Maintain email events", 10),
     ("alertaway-triggers-http",             "triggers_http.py",      "Maintain triggers", 10),
     ("alertaway-config-http",                "config_http.py",      "Maintain configuration", 10),
@@ -43,7 +43,7 @@ WantedBy=multi-user.target
     if TESTING:
         print(target_content)
     else:
-        with open(target_name, "w") as f:
+        with open(f"{systemd_path}/{target_name}", "w") as f:
             f.write(target_content)
         print(f"Created: {target_name}")
 

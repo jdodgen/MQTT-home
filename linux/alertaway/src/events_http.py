@@ -13,8 +13,7 @@ import http_common as config
 
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.EVENTS_PORT
-NAV =       config.nav_section() # boot static, fork safe
-STYLE =     config.STYLE
+
 #
 # --- EVENT HANDLERS ---
 #
@@ -38,8 +37,8 @@ async def handle_list_events(request):
             'events': event_rows,
             "features": feature_rows,
             'query': request.query,
-            "style": STYLE,
-            }|NAV
+            "nav_section": config.nav_section(raw=True)
+            }
 
 async def handle_add_event(request):
     data = await request.post()
@@ -170,9 +169,8 @@ async def handle_manage_view(request):
         'all_emails':       all_emails,
         'linked_cameras':   linked_cameras,
         'linked_emails':    linked_emails,
-        "style":STYLE
-    } | NAV
-
+        "nav_section": config.nav_section(raw=True)
+    }
 async def handle_update_links(request):
     data = await request.post()
     events_name = data.get('events_name')

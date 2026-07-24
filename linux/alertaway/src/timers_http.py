@@ -15,7 +15,6 @@ import http_common as config
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.TIMERS_PORT
 NAV =       config.nav_section() # static
-STYLE =     config.STYLE
 MY_IP = config.get_ip()
 
 watch_dog_queue = None
@@ -125,7 +124,6 @@ async def timer_manager(request):
     # cursor = db.execute("SELECT rowid, * FROM timed_events")
     context['timed_alerts'] = db.get_all_timers() #cursor.fetchall()
     context["IPaddr"] = MY_IP
-    context["style"] = STYLE
     context["nav_section"] = config.nav_section(raw=True)
 
 

@@ -17,7 +17,7 @@ async def handle_list(request):
         db.row_factory = aiosqlite.Row 
         async with db.execute("SELECT * FROM cameras order by camera_name") as cursor:
             rows = await cursor.fetchall()
-            return {'cameras': rows, 'edit_data': request.query, "style": config.STYLE} | config.nav_section()
+            return {'cameras': rows, 'edit_data': request.query, "nav_section": config.nav_section(raw=True)}
 
 async def handle_edit_redirect(request):
     """Fetches data and redirects to form WITHOUT deleting from DB"""
