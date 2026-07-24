@@ -7,7 +7,6 @@ import load_IP_device_data
 import sys
 import zlib
 import time
-#import const
 import mqtt_hello
 import database
 import http_common as config

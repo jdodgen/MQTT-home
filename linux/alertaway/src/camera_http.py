@@ -10,7 +10,7 @@ OUR_PORT =  config.CAM_PORT
 
 # --- HANDLERS ---
 
-@aiohttp_jinja2.template('cameras.html')
+@aiohttp_jinja2.template('camera.html')
 async def handle_list(request):
     async with aiosqlite.connect(DB_NAME) as db:
         # This allows you to use camera['url'] or camera['camera_name'] in Jinja
