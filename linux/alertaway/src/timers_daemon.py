@@ -7,8 +7,6 @@ import datetime
 from dateutil import tz
 import asyncio
 import multiprocessing
-# import cfg
-# import mqtt_manager
 import message
 import paho.mqtt.publish as publish
 import database
