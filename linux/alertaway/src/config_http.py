@@ -75,7 +75,6 @@ async def update_config(db_path, data):
         ))
         await db.commit()
 
-
 # --- Handlers ---
 @aiohttp_jinja2.template("config.html")
 async def handle_index(request):
