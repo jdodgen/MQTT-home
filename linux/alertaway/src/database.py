@@ -160,42 +160,6 @@ class database:
         cur.close()
         return all
 
-    # def cook_devices_features_for_html(self):
-        # all = self.get_all_devices_features()
-        # last_friendly_name = ""
-        # new_all = []
-        # for d in all:
-            # access = d["access"]
-            # xprint(access)
-            # new = list(d)
-            # print(all,new)
-            # if d[1] == last_friendly_name:
-                # new[1] = ''
-                # new[2] = ''
-                # new[3] = ''
-                # cooked_address=""
-            # else:
-                # try:
-                    # new[3] = time.strftime("%d %b %H:%M %Y", time.localtime(float(new[3])))
-                    # #'Thu, 28 Jun 2001 14:17:15 +0000
-                # except:
-                    # new[3] = ''
-                # cooked_address = " ".join(wrap(d[1],width=9))
-            # last_friendly_name = d[1]
-            # print("access [%s]" % (access,))
-            # new.append(True if access == "sub" else False)
-            # #   new.append(True)
-            # # else:
-            # #   new.append(False)
-            # i = 0
-            # for x in d:
-                # xprint(f"[{i}] {x}")
-                # i += 1
-            # new.append(cooked_address)
-            # new_all.append(tuple(new))
-        # print(new_all)
-        # return new_all
-
     def get_manIP_device(self, rowid):
         if rowid == None:
             return None
@@ -393,90 +357,6 @@ class database:
             print("upsert_feature Failure: No rows were inserted.")
         self.con.commit()
 
-    # def old_upsert_feature(self,
-            # friendly_name,
-            # property,
-            # description,
-            # type,
-            # access,
-            # topic,
-            # true_value,
-            # false_value
-            # ):
-        # # first check to see if we have a change
-        # # notifiers may need this to reduce MQTT traffic
-        # #
-        # cur = self.con.cursor()
-        # cur.execute("""
-            # select
-            # friendly_name
-            # from mqtt_feature
-            # where friendly_name = ?
-            # and property = ?
-            # and description = ?
-            # and type = ?
-            # and access = ?
-            # and topic = ?
-            # and true_value = ?
-            # and false_value  = ?
-        # """, (friendly_name, property, description, type, access, topic, true_value, false_value))
-        # exists = True if cur.fetchone() else False
-        # cur.close()
-        # if exists:
-            # return True
-        # cur = self.con.cursor()
-        # try:
-            # cur.execute("""insert or replace into mqtt_feature
-                # (friendly_name,
-                # property,
-                # description,
-                # type,
-                # access,
-                # topic,
-                # true_value,
-                # false_value
-                # )
-                # values (?,?,?,?,?,?,?,?)""",
-                # (friendly_name,
-                # property,
-                # description,
-                # type,
-                # access,
-                # topic,
-                # true_value,
-                # false_value,))
-        # except:
-            # pass
-        # cur.close()
-        # self.con.commit()
-
-    # def get_feature(self, friendly_name, property, topic):
-        # cur = self.con.cursor()
-        # cur.execute("""
-        # select
-            # mqtt_device.rowid,
-            # mqtt_device.friendly_name,
-            # mqtt_device.description,
-            # mqtt_device.source,
-            # mqtt_feature.rowid,
-            # mqtt_feature.property,
-            # mqtt_feature.description,
-            # mqtt_feature.type,
-            # mqtt_feature.access,
-            # mqtt_feature.topic,
-            # mqtt_feature.true_value,
-            # mqtt_feature.false_value,
-            # from mqtt_feature
-            # join mqtt_device on mqtt_device.friendly_name = mqtt_feature.friendly_name
-            # where mqtt_feature.friendly_name = ?
-            # AND   mqtt_feature.property = ?
-            # AND   mqtt_feature.topic = ?
-        # """, (friendly_name, property, topic))
-        # rec = cur.fetchone()
-        # cur.close()
-        # print("get_feature returned [%s]" % (rec,))
-        # return rec
-
     def get_feature_mqtt(self, rowid):
         cur = self.con.cursor()
         cur.execute("""
@@ -597,7 +477,11 @@ class database:
             false_value
         from mqtt_feature
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
-        where  mqtt_feature.access = 'pub' 
+        where  mqtt_feature.access = 'pub'
+        and (
+        (mqtt_device.source = "ZB" and property = "state" and type = "binary" )
+         or
+         mqtt_device.source != "ZB") 
         order by topic desc
         """)
         all = cur.fetchall()
@@ -619,7 +503,11 @@ class database:
             false_value
         from mqtt_feature
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
-        where  mqtt_feature.access = 'sub' 
+        where  mqtt_feature.access = 'sub'
+        and (
+        (mqtt_device.source = "ZB" and property = "state" and type = "binary" )
+         or
+         mqtt_device.source != "ZB")
         order by topic desc
         """)
         all = cur.fetchall()
@@ -983,7 +871,8 @@ CREATE TABLE IF NOT EXISTS config ( -- this is a singleton
     cloud_broker_mqtt_keepalive INTEGER default 120,
     --- 
     gmail_password  TEXT DEFAULT NULL,
-    gmail_user  TEXT DEFAULT NULL
+    gmail_user  TEXT DEFAULT NULL,
+    lat_long TEXT DEFAULT "34.205784113638906, -117.14381968362446"
 );
 INSERT or ignore INTO config (id) VALUES (0);  -- this is a singleton
 PRAGMA foreign_keys = ON;
