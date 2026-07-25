@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Cameras {% endblock %}
+{% block title %}Config {% endblock %}
 {% block content %}  <!-- put body here without <body> -->
     <h2>Configuration</h2>
     <form action="/update" method="post">
@@ -80,7 +80,12 @@
               pattern="[0-9]*" 
               oninput="this.value = this.value.replace(/[^0-9]/g, '')"
             >
-       
+            
+        <hr>
+        <h3>Latitude, longitude (from google maps)</h3>
+        <label>Lat,Long:</label>
+        <input type="text" name="lat_long" value="{{ config.lat_long }}" size=40><br>
+
         <hr>
         <h3>Gmail Service Settings</h3>
         <label>User:</label>
@@ -100,9 +105,7 @@
               inputmode="numeric" 
               pattern="[0-9]*" 
               oninput="this.value = this.value.replace(/[^0-9]/g, '')"
-            >
-            
+            ><br>
         <hr>
-        <button type="submit">Update Configuration</button>
     </form>
  {% endblock %}

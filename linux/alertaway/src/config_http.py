@@ -44,7 +44,8 @@ async def update_config(db_path, data):
                     cloud_broker_mqtt_keepalive = ?,
                     --- 
                     gmail_password = ?,
-                    gmail_user =?
+                    gmail_user = ?,
+                    lat_long = ?
                  WHERE id = 0"""
         # In aiosqlite, .execute() and .commit() must be awaited
         await db.execute(sql, (
@@ -69,7 +70,8 @@ async def update_config(db_path, data):
                                 data['cloud_broker_mqtt_keepalive'],
                                 #
                                 data['gmail_password'],
-                                data['gmail_user']
+                                data['gmail_user'],
+                                data['lat_long'],
         ))
         await db.commit()
 
