@@ -1,6 +1,24 @@
 {% extends "base.html" %}
 {% block title %}Timers{% endblock %}
 {% block content %}  <!-- put body here without <body> -->
+<script>
+function start_fixed_date() {
+   document.getElementById("starthidefixed").style.display = '';
+   document.getElementById("starthidedawn").style.display = 'none';
+}
+function start_dawn() {
+   document.getElementById("starthidedawn").style.display = '';
+   document.getElementById("starthidefixed").style.display = 'none';
+}
+function stop_fixed_date() {
+   document.getElementById("stophidefixed").style.display = '';
+   document.getElementById("stophidedawn").style.display = 'none';
+}
+function stop_dawn() {
+   document.getElementById("stophidedawn").style.display = '';
+   document.getElementById("stophidefixed").style.display = 'none';
+}
+</script>
 <form action="/set_timer" method="post">
     <table class="outer-table"> <!-- class="tbody"> -->
         </tr>
@@ -189,22 +207,4 @@
         </tr>
     </table>
 {% endblock %}
-<script>
-function start_fixed_date() {
-   document.getElementById("starthidefixed").style.display = '';
-   document.getElementById("starthidedawn").style.display = 'none';
-}
-function start_dawn() {
-   document.getElementById("starthidedawn").style.display = '';
-   document.getElementById("starthidefixed").style.display = 'none';
-}
-function stop_fixed_date() {
-   document.getElementById("stophidefixed").style.display = '';
-   document.getElementById("stophidedawn").style.display = 'none';
-}
-function stop_dawn() {
-   document.getElementById("stophidedawn").style.display = '';
-   document.getElementById("stophidefixed").style.display = 'none';
-}
-</script>
 
