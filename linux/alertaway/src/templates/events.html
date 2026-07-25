@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Devices{% endblock %}
+{% block title %}Events{% endblock %}
 {% block content %}  <!-- put body here without <body> -->
     <h2>Add / Edit Event</h2>
     <form action="/events/add" method="post">
@@ -34,7 +34,6 @@
         <br><br>
         <button type="submit" style="background: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer;">Save Event</button>
     </form>
-</div>
 
 <table>
     <tr><th>Name</th><th>Topic</th><th>Payload</th><th>Action</th></tr>
@@ -55,5 +54,6 @@
     </tr>
     {% endfor %}
 </table>
+
 {% endblock %}
 
