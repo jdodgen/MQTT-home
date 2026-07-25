@@ -7,11 +7,12 @@ import datetime
 from dateutil import tz
 import asyncio
 import multiprocessing
-import cfg
+# import cfg
 # import mqtt_manager
 import message
 import paho.mqtt.publish as publish
 import database
+import http_common as config
 
 xprint = print # copy print
 my_name = "[timers_daemon]"
@@ -69,15 +70,15 @@ def seconds_to_event(event_time):
     #print("event_time",event_time/60/60, "seconds left", local_time_seconds_since_midnight/60/60) 
     return seconds
 
-async  def wait_and_send(time_type, hour, minute, offset, topic, payload): 
+async  def wait_and_send(lat_long, time_type, hour, minute, offset, topic, payload): 
     print("[[async task starting", time_type, hour, minute, offset, topic, payload, "]]")
     match time_type:
         case "Sunset":
-            (x, since_midnight) = get_sunset_sunrise(cfg.lat_long)
+            (x, since_midnight) = get_sunset_sunrise(lat_long)
             print("sunset at this hour",  since_midnight/60/60)
             seconds = seconds_to_event(since_midnight + (int(offset) * 60))
         case "Sunrise":
-            (since_midnight, x) = get_sunset_sunrise(cfg.lat_long)
+            (since_midnight, x) = get_sunset_sunrise(lat_long)
             print("sunrise at this hour", since_midnight/60/60)
             seconds = seconds_to_event(since_midnight + (int(offset) * 60)) 
         case _: # default must be just a time in 24 hour format
@@ -96,7 +97,7 @@ async  def wait_and_send(time_type, hour, minute, offset, topic, payload):
     else:
         print("[[async task late_startup, not sleeping, exiting [",  topic,"][" ,payload, "] ]]\n")
         
-async def process_timer(atime):
+async def process_timer(lat_long, atime):
     topic =         atime["topic"]
     true_value =    atime["true_value"]
     false_value =   atime["false_value"]
@@ -109,13 +110,13 @@ async def process_timer(atime):
     stop_hour =     atime["stop_hour"]
     stop_minute =   atime["stop_minute"]
     stop_offset =   atime["stop_offset"]
-    asyncio.create_task(wait_and_send(start_type, start_hour, start_minute, start_offset, topic, true_value)) #  ON
-    asyncio.create_task(wait_and_send(stop_type,  stop_hour,  stop_minute,  stop_offset,  topic, false_value)) # OFF
+    asyncio.create_task(wait_and_send(lat_long, start_type, start_hour, start_minute, start_offset, topic, true_value)) #  ON
+    asyncio.create_task(wait_and_send(lat_long, stop_type,  stop_hour,  stop_minute,  stop_offset,  topic, false_value)) # OFF
    
-async def start_timers(times):
+async def start_timers(lat_long, times):
     for atime in times:
         print("start_timers starting:", atime["topic"])
-        await process_timer(atime)
+        await process_timer(lat_long, atime)
         #asyncio.create_task(process_timer(atime, "start", cfg.timer[t]["start"]))
         #asyncio.create_task(wait_and_send(atime, "stop",  cfg.timer[t]["stop"]))
     
@@ -135,10 +136,10 @@ async def main():
     db = database.database(row_factory=True)
     #publish.single(cfg.id_topic, cfg.id_payload, hostname=message.our_ip_address())
     #message.publish_single(cfg.id_topic, cfg.id_payload, my_parent="main")
-    await start_timers(db.get_timers_for_today())
+    await start_timers(config.get_db_config()["lat_long"], db.get_timers_for_today())
     while True:
         await sleep_until_one_second_after_midnight()
-        await start_timers(db.get_timers_for_today())
+        await start_timers(config.get_db_config()["lat_long"], db.get_timers_for_today())
         await asyncio.sleep(1)
 
 if __name__ == "__main__":
