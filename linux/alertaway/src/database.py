@@ -870,12 +870,8 @@ CREATE TABLE timers (
 DROP TABLE IF EXISTS triggers;
 CREATE TABLE triggers (
     sub_mqtt_feature_id INTEGER,
-    -- sub_topic TEXT NOT NULL,   -- trigger_daemon subscribes to this
-    -- sub_true_value TEXT NOT NULL,
     sub_payload TEXT NOT NULL, -- if it matches this true_value...
     pub_mqtt_feature_id INTEGER,
-    -- pub_topic TEXT NOT NULL,   -- ...it publishes to this topic
-    -- pub_true_value TEXT NOT NULL,
     pub_payload TEXT NOT NULL, -- ...with this true_value payload
     PRIMARY KEY (sub_mqtt_feature_id, sub_payload, pub_mqtt_feature_id, pub_payload)
     FOREIGN KEY (sub_mqtt_feature_id) 
