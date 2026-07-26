@@ -12,6 +12,8 @@ import paho.mqtt.publish as publish
 import database
 import http_common as config
 
+IP = config.get_ip()
+
 xprint = print # copy print
 my_name = "[timers_daemon]"
 def print(*args, **kwargs): # replace print
@@ -88,7 +90,7 @@ async  def wait_and_send(lat_long, time_type, hour, minute, offset, topic, paylo
         print("[[async task sleeping [", topic,"][", payload, "] ]]\n")
         await asyncio.sleep(seconds) # we are sleeping until timer starts or stops
         # client.publish(topic, payload)
-        publish.single(topic, payload, hostname=message.our_ip_address())
+        publish.single(topic, payload, hostname = IP)
         #message.publish_single(topic, payload, my_parent="timers_daemon")
         print("task time now [%s] sleep done and plublished" % (datetime.datetime.now()))
         print("[[async task done sleeping and sending [", topic,"][", payload, "] ]]\n")
