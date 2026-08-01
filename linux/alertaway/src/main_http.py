@@ -10,7 +10,7 @@ import restart_service
 from fauxmo_manager import build_cfg
 import http_common as config
 
-MY_IP = config.get_ip() # replaced when forked
+
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.HTTP_MAIN_PORT
 
@@ -113,7 +113,7 @@ async def create_IP_device(request):
 
 async def z2m_page(request):
     context = {
-        "IPaddr": MY_IP, 
+        "IPaddr": config.get_ip()
         "nav_section": config.nav_section(raw=True)
     }
     # Force direct dictionary rendering
@@ -238,7 +238,6 @@ def task(fauxmo):
 
     DB=database.database()
     
-    MY_IP = config.get_ip() # replaced when forked
     DB_NAME =   config.DB_NAME
  #   MAIN_Q = queue.Queue() 
     
