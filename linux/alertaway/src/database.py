@@ -518,8 +518,11 @@ class database:
         cur = self.con.cursor()
         cur.execute("""
         select
-            rowid,
-            topic,
+            timer_id,
+            timers.mqtt_feature_id as mqtt_feature_id,
+            mqtt_feature.topic as topic,
+            mqtt_feature.true_value as true_value,
+            mqtt_feature.false_value as false_value,
             days,
             start_type,
             start_hour,
@@ -528,8 +531,10 @@ class database:
             stop_type,
             stop_hour,
             stop_minute,
-            stop_offset
+            stop_offset,
+            invert
             from timers
+            join mqtt_feature on mqtt_feature.mqtt_feature_id = timers.mqtt_feature_id
             order by topic
         """)
         all = cur.fetchall()
@@ -576,8 +581,24 @@ class database:
         cur = self.con.cursor()
         cur.execute("""
         select
-            *
+            timer_id,
+            mqtt_feature.mqtt_feature_id as mqtt_feature_id,
+            mqtt_feature.topic as topic,
+            mqtt_feature.true_value as true_value,
+            mqtt_feature.false_value as false_value,
+            days,
+            start_type,
+            start_hour,
+            start_minute,
+            start_offset,
+            stop_type,
+            stop_hour,
+            stop_minute,
+            stop_offset,
+            invert,
+            state
             from timers
+            join mqtt_feature on mqtt_feature.mqtt_feature_id = timers.mqtt_feature_id
             WHERE days LIKE strftime('%%%w%%','now' ,'localtime')
         """)
         all = cur.fetchall()
@@ -733,10 +754,9 @@ DROP TABLE IF EXISTS timers;
 CREATE TABLE timers (
     timer_id INTEGER PRIMARY KEY AUTOINCREMENT,
     mqtt_feature_id INTEGER NOT NULL,
-    topic TEXT NOT NULL,
-    true_value TEXT NOT NULL,  
-       
-    false_value TEXT,    
+    --topic TEXT NOT NULL,
+    --true_value TEXT NOT NULL,  
+    --false_value TEXT,    
     days TEXT,                    
     start_type TEXT,              
     start_hour INTEGER,           
@@ -748,7 +768,8 @@ CREATE TABLE timers (
     stop_offset INTEGER,          
     time_to_stop TEXT,            
     time_to_start TEXT,           
-    seconds_from_midnight INTEGER, 
+    seconds_from_midnight INTEGER,
+    invert INTEGER DEFAULT 0,
     state INTEGER DEFAULT 0,
     FOREIGN KEY (mqtt_feature_id) 
         REFERENCES mqtt_feature (mqtt_feature_id) 

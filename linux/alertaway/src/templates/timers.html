@@ -158,6 +158,8 @@ function stop_dawn() {
                     </tr>
                     <tr>
                         <td>
+                            <label for="invert">Invert, turn off then on</label>
+                            <input type="checkbox" id="invert" name="TIMED:invert" value="1"><br>
                             <input type="submit" name="state" value="Create timer">&nbsp;<input type="submit" name="state" value="Restart Timer Process">
                         </td>
                     </tr>
@@ -173,6 +175,7 @@ function stop_dawn() {
                     <th  rowspan=2>&nbsp;</th>
                     <th  rowspan=2>topic</th>
                     <th  rowspan=2>days sun=0</th>
+                    <th  rowspan=2>Invert</th>
                     <th colspan=4 >start</th>
                     <th colspan=4 >stop</th>
                 </tr>
@@ -193,6 +196,7 @@ function stop_dawn() {
                     </td>
                     <td>{{ timer.topic }}</td>
                     <td>{{ timer.days }}</td>
+                    <td>{{ timer.invert }}</td>
                     <td>{{ timer.start_type }}</td>
                     <td>{{ timer.start_hour }}</td>
                     <td>{{ timer.start_minute }}</td>

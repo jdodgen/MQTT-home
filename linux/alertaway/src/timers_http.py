@@ -42,6 +42,7 @@ async def close_db(app):
 async def timer_manager(request):
     watch_dog_queue
     db = request.app['db']
+    result = ""
     context = {
         "timers_here": "here",
         "timer_msg": "",
@@ -57,23 +58,23 @@ async def timer_manager(request):
         # Logic for "Set timer"
         if state == "Create timer":
             mqtt_feature_id = form.get("mqtt_feature_id")
-            print("row_id", mqtt_feature_id)
+            # print(f"create timer mqtt_feature_id {mqtt_feature_id}")
             days_list = form.getall("TIMED:days", [])
             days_str = ",".join(days_list)
-            print("processing new timer\ndays_list[%s] rowid[%s]" % (days_str, mqtt_feature_id))
+            print(f"processing new timer: days_list[{days_str} mqtt_feature_id[{mqtt_feature_id}]")
             
             if mqtt_feature_id and days_str:
                 # Setup time logic
                 is_start_fixed = form.get("TIMED:start") == "Fixed"
                 is_stop_fixed = form.get("TIMED:stop") == "Fixed"
-                (topic, true_value, false_value) = db.get_device_info(mqtt_feature_id)
-                print("[%s][%s]{%s]" % (topic, true_value, false_value))
+                #(topic, true_value, false_value) = db.get_device_info(mqtt_feature_id)
+                #print("[%s][%s]{%s]" % (topic, true_value, false_value))
                 db.con.execute("""
                     INSERT INTO timers (
                         mqtt_feature_id, 
-                        topic, 
-                        true_value, 
-                        false_value, 
+                        --topic, 
+                        --true_value, 
+                        --false_value, 
                         days, 
                         start_type, 
                         stop_type, 
@@ -82,14 +83,15 @@ async def timer_manager(request):
                         start_offset, 
                         stop_hour, 
                         stop_minute, 
-                        stop_offset, 
+                        stop_offset,
+                        invert, 
                         state
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     mqtt_feature_id,
-                    topic, 
-                    true_value, 
-                    false_value, 
+                    #topic, 
+                    #true_value, 
+                    #false_value, 
                     days_str, 
                     form.get("TIMED:start"), 
                     form.get("TIMED:stop"),
@@ -99,6 +101,7 @@ async def timer_manager(request):
                     form.get("TIMED:stophour") if is_stop_fixed else 0,
                     form.get("TIMED:stopminute") if is_stop_fixed else 0,
                     form.get("TIMED:stopoffset") if not is_stop_fixed else 0,
+                    int(form.get("TIMED:invert", "0")),
                     form.get("TIMED:state")
                 ))
                 db.con.commit()
@@ -112,7 +115,7 @@ async def timer_manager(request):
                 db.con.execute("DELETE FROM timers WHERE rowid = ?", (target_id,))
                 db.con.commit()
         elif state == "Restart Timer Process":
-            restart_service.restart("alertaway-timers-daemon")
+            result = restart_service.restart("alertaway-timers-daemon")
            #  watch_dog_queue.put(["restarttimertask", "restart"])
 
     # 2. Fetch Data for the UI (Always happens for GET and after POST)
@@ -124,6 +127,7 @@ async def timer_manager(request):
     # cursor = db.execute("SELECT rowid, * FROM timed_events")
     context['timed_alerts'] = db.get_all_timers() #cursor.fetchall()
     context["IPaddr"] = MY_IP
+    context["timer_msg"] = result
     context["nav_section"] = config.nav_section(raw=True)
 
 

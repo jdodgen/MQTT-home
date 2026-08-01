@@ -110,8 +110,11 @@ async def process_timer(lat_long, atime):
     stop_hour =     atime["stop_hour"]
     stop_minute =   atime["stop_minute"]
     stop_offset =   atime["stop_offset"]
-    asyncio.create_task(wait_and_send(lat_long, start_type, start_hour, start_minute, start_offset, topic, true_value)) #  ON
-    asyncio.create_task(wait_and_send(lat_long, stop_type,  stop_hour,  stop_minute,  stop_offset,  topic, false_value)) # OFF
+    invert =        atime["invert"] #  if True/1 then off followed by on turn device off for a period of time
+    start_value = false_value if invert else true_value
+    stop_value =  true_value  if invert else false_value
+    asyncio.create_task(wait_and_send(lat_long, start_type, start_hour, start_minute, start_offset, topic, start_value)) #  ON typicaly
+    asyncio.create_task(wait_and_send(lat_long, stop_type,  stop_hour,  stop_minute,  stop_offset,  topic, stop_value)) # OFF
    
 async def start_timers(lat_long, times):
     for atime in times:
