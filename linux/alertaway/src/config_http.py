@@ -86,6 +86,7 @@ async def handle_update(request):
     data = await request.post()
     # print(data)
     await update_config(request.app['db_path'], data)
+    restart_service.restart("alertaway.target")
     # Redirect back to home after update
     return web.HTTPFound('/')
 
