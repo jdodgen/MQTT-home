@@ -9,10 +9,10 @@ import asyncio
 import multiprocessing
 import message
 import paho.mqtt.publish as publish
-import database
+#import database
 import http_common as config
 
-IP = config.get_ip()
+BROKER_IP = config.get_db_config()["broker"]
 
 xprint = print # copy print
 my_name = "[timers_daemon]"
@@ -90,7 +90,7 @@ async  def wait_and_send(lat_long, time_type, hour, minute, offset, topic, paylo
         print("[[async task sleeping [", topic,"][", payload, "] ]]\n")
         await asyncio.sleep(seconds) # we are sleeping until timer starts or stops
         # client.publish(topic, payload)
-        publish.single(topic, payload, hostname = IP)
+        publish.single(topic, payload, hostname = BROKER_IP)
         #message.publish_single(topic, payload, my_parent="timers_daemon")
         print("task time now [%s] sleep done and plublished" % (datetime.datetime.now()))
         print("[[async task done sleeping and sending [", topic,"][", payload, "] ]]\n")
@@ -134,9 +134,8 @@ async def main():
     # print("sunrise at this hour", srise/60/60)
     # print("sunset at this hour",  sset/60/60)
     # end
-    
     # client = mqtt_manager.mqtt_manager()
-    db = database.database(row_factory=True)
+    #db = database.database(row_factory=True)
     #publish.single(cfg.id_topic, cfg.id_payload, hostname=message.our_ip_address())
     #message.publish_single(cfg.id_topic, cfg.id_payload, my_parent="main")
     await start_timers(config.get_db_config()["lat_long"], db.get_timers_for_today())
