@@ -113,7 +113,7 @@ async def create_IP_device(request):
 
 async def z2m_page(request):
     context = {
-        "IPaddr": config.get_ip()
+        "IPaddr": config.get_ip(),
         "nav_section": config.nav_section(raw=True)
     }
     # Force direct dictionary rendering
