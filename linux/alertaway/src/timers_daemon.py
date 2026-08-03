@@ -11,8 +11,7 @@ import message
 import paho.mqtt.publish as publish
 #import database
 import http_common as config
-
-BROKER_IP = config.get_db_config()["broker"]
+CFG = config.get_db_config()
 
 xprint = print # copy print
 my_name = "[timers_daemon]"
@@ -34,7 +33,7 @@ async def sleep_until_one_second_after_midnight():
     wait_seconds = (target - now).total_seconds()
     print(f"[sleep_until_one_second_after_midnight]Current time: {now.strftime('%H:%M:%S')}")
     print(f"[sleep_until_one_second_after_midnight]Sleeping until: {target.strftime('%Y-%m-%d %H:%M:%S')} ({wait_seconds:.2f} seconds)\n")
-    #print("[sleep_until_one_second_after_midnight]sleep_until_one_second_after_midnight hours", wait_seconds/60/60) 
+    #print("[sleep_until_one_second_after_midnight]sleep_until_one_second_after_midnight hours", wait_seconds/60/60)
     await asyncio.sleep(wait_seconds)
     print("[sleep_until_one_second_after_midnight]Waking up! It is now 0:01")
 
@@ -43,7 +42,7 @@ def get_sunset_sunrise(lat_long):
     sun = suntime.Sun(float(lat), float(lon))
     todays_date = datetime.date.today()
     todays_datetime = datetime.datetime.combine(todays_date, datetime.time(0, 0))
-    local_tz = tz.gettz() 
+    local_tz = tz.gettz()
     sunrise = sun.get_local_sunrise_time(todays_datetime, local_tz)
     sunset =  sun.get_local_sunset_time(todays_datetime, local_tz)
     #print("sunrise",  sunrise)
@@ -60,17 +59,17 @@ def get_sunset_sunrise(lat_long):
     sunset_since_midnight =       sunset.timestamp()  - unix_timestamp_at_midnight
     #print("sunset at this hour",  sunset_since_midnight/60/60)
     return(sunrise_since_midnight, sunset_since_midnight)
-    
+
 
 def seconds_to_event(event_time):
     local_time = time.localtime()
     local_time_seconds_since_midnight = local_time.tm_hour * 3600 + local_time.tm_min * 60 + local_time.tm_sec
     #print("hours since midnight", local_time_seconds_since_midnight/60/60)
     seconds = event_time - local_time_seconds_since_midnight
-    #print("event_time",event_time/60/60, "seconds left", local_time_seconds_since_midnight/60/60) 
+    #print("event_time",event_time/60/60, "seconds left", local_time_seconds_since_midnight/60/60)
     return seconds
 
-async  def wait_and_send(lat_long, time_type, hour, minute, offset, topic, payload): 
+async  def wait_and_send(lat_long, time_type, hour, minute, offset, topic, payload):
     print("[[async task starting", time_type, hour, minute, offset, topic, payload, "]]")
     match time_type:
         case "Sunset":
@@ -80,7 +79,7 @@ async  def wait_and_send(lat_long, time_type, hour, minute, offset, topic, paylo
         case "Sunrise":
             (since_midnight, x) = get_sunset_sunrise(lat_long)
             print("sunrise at this hour", since_midnight/60/60)
-            seconds = seconds_to_event(since_midnight + (int(offset) * 60)) 
+            seconds = seconds_to_event(since_midnight + (int(offset) * 60))
         case _: # default must be just a time in 24 hour format
             since_midnight = (int(minute) * 60) + (int(hour) * 3600) #time_string_to_seconds(time)
             print("hours since_midnight [", since_midnight/60/60, "]")
@@ -90,13 +89,15 @@ async  def wait_and_send(lat_long, time_type, hour, minute, offset, topic, paylo
         print("[[async task sleeping [", topic,"][", payload, "] ]]\n")
         await asyncio.sleep(seconds) # we are sleeping until timer starts or stops
         # client.publish(topic, payload)
-        publish.single(topic, payload, hostname = BROKER_IP)
+        publish.single(topic, payload,
+            hostname = CFG["local_broker_ip"],
+            port =  CCFG["local_broker_port"])
         #message.publish_single(topic, payload, my_parent="timers_daemon")
         print("task time now [%s] sleep done and plublished" % (datetime.datetime.now()))
         print("[[async task done sleeping and sending [", topic,"][", payload, "] ]]\n")
     else:
         print("[[async task late_startup, not sleeping, exiting [",  topic,"][" ,payload, "] ]]\n")
-        
+
 async def process_timer(lat_long, atime):
     topic =         atime["topic"]
     true_value =    atime["true_value"]
@@ -115,14 +116,12 @@ async def process_timer(lat_long, atime):
     stop_value =  true_value  if invert else false_value
     asyncio.create_task(wait_and_send(lat_long, start_type, start_hour, start_minute, start_offset, topic, start_value)) #  ON typicaly
     asyncio.create_task(wait_and_send(lat_long, stop_type,  stop_hour,  stop_minute,  stop_offset,  topic, stop_value)) # OFF
-   
+
 async def start_timers(lat_long, times):
     for atime in times:
         print("start_timers starting:", atime["topic"])
         await process_timer(lat_long, atime)
-        #asyncio.create_task(process_timer(atime, "start", cfg.timer[t]["start"]))
-        #asyncio.create_task(wait_and_send(atime, "stop",  cfg.timer[t]["stop"]))
-    
+
 async def main():
     # debugging  stuff
     # event_time_string = "21:00"
@@ -136,8 +135,6 @@ async def main():
     # end
     # client = mqtt_manager.mqtt_manager()
     #db = database.database(row_factory=True)
-    #publish.single(cfg.id_topic, cfg.id_payload, hostname=message.our_ip_address())
-    #message.publish_single(cfg.id_topic, cfg.id_payload, my_parent="main")
     await start_timers(config.get_db_config()["lat_long"], db.get_timers_for_today())
     while True:
         await sleep_until_one_second_after_midnight()
