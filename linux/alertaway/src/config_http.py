@@ -91,10 +91,12 @@ async def handle_update(request):
     data = await request.post()
     # print(data)
     await update_config(request.app['db_path'], data)
-    msg =  restart_service.restart("alertaway-timers-daemon")
-    msg +=  restart_service.restart("alertaway-send_emails_daemon")
-    msg +=  restart_service.restart("alertaway-fauxmo_manager")
-    msg +=  restart_service.restart("alertaway-mqtt_service_task")
+    msg = [
+    restart_service.restart("alertaway-timers-daemon"),
+    restart_service.restart("alertaway-send_emails_daemon"),
+    restart_service.restart("alertaway-fauxmo_manager"),
+    restart_service.restart("alertaway-mqtt_service_task"),
+    ]
 
     print(f"restart {msg}")
     # Redirect back to home after update
