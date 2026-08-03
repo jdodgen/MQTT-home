@@ -4,8 +4,9 @@ import aiohttp_jinja2
 import jinja2
 import aiosqlite
 import http_common as config
+import restart_service
 
-
+msg = ""
 async def get_config(db_path):
     # 'async with' handles opening and automatically closing the connection
     async with aiosqlite.connect(db_path) as db:
@@ -79,14 +80,16 @@ async def update_config(db_path, data):
 @aiohttp_jinja2.template("config.html")
 async def handle_index(request):
     config_row = await get_config(request.app['db_path'])
-    return {"config": config_row, "nav_section": config.nav_section(raw=True)}
+    return {"config": config_row, 
+            "nav_section": config.nav_section(raw=True), 
+            "config_msg": msg}
 
 async def handle_update(request):
     # Retrieve form data from POST
     data = await request.post()
     # print(data)
     await update_config(request.app['db_path'], data)
-    restart_service.restart("alertaway.target")
+    msg =  restart_service.restart("alertaway.target")
     # Redirect back to home after update
     return web.HTTPFound('/')
 
