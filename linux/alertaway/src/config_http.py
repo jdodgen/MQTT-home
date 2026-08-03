@@ -79,17 +79,24 @@ async def update_config(db_path, data):
 # --- Handlers ---
 @aiohttp_jinja2.template("config.html")
 async def handle_index(request):
+    global msg
     config_row = await get_config(request.app['db_path'])
     return {"config": config_row, 
             "nav_section": config.nav_section(raw=True), 
             "config_msg": msg}
 
 async def handle_update(request):
+    global msg
     # Retrieve form data from POST
     data = await request.post()
     # print(data)
     await update_config(request.app['db_path'], data)
-    msg =  restart_service.restart("alertaway.target")
+    msg =  restart_service.restart("alertaway-timers-daemon")
+    msg +=  restart_service.restart("alertaway-send_emails_daemon")
+    msg +=  restart_service.restart("alertaway-fauxmo_manager")
+    msg +=  restart_service.restart("alertaway-mqtt_service_task")
+
+    print(f"restart {msg}")
     # Redirect back to home after update
     return web.HTTPFound('/')
 
@@ -105,8 +112,9 @@ async def init_app():
     ])
     return app
 
-def main():
+def main():    
     web.run_app(init_app(), port=config.CONFIG_PORT)
+        
 
 def start_daemon():
     p = multiprocessing.Process(target=main)
