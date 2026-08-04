@@ -96,6 +96,7 @@ async def handle_update(request):
     restart_service.restart("alertaway-send_emails_daemon"),
     restart_service.restart("alertaway-fauxmo_manager"),
     restart_service.restart("alertaway-mqtt_service_task"),
+    restart_service.restart("mosquitto"),
     ]
 
     print(f"restart {msg}")

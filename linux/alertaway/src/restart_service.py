@@ -1,6 +1,7 @@
 # you must set this up change jim to the user running the systemd processes
 #sudo visudo -f /etc/sudoers.d/python-restart
 #jim ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart alertaway*
+#jim ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart mosquitto
 
 import subprocess
 
