@@ -81,9 +81,12 @@ async def update_config(db_path, data):
 async def handle_index(request):
     global msg
     config_row = await get_config(request.app['db_path'])
-    return {"config": config_row, 
+    stuff = {"config": config_row, 
             "nav_section": config.nav_section(raw=True), 
             "config_msg": msg}
+    msg = ""
+    return stuff
+    
 
 async def handle_update(request):
     global msg
