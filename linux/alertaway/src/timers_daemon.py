@@ -9,7 +9,6 @@ import asyncio
 import multiprocessing
 import message
 import paho.mqtt.publish as publish
-#import database
 import http_common as config
 CFG = config.get_db_config()
 
@@ -70,33 +69,32 @@ def seconds_to_event(event_time):
     return seconds
 
 async  def wait_and_send(lat_long, time_type, hour, minute, offset, topic, payload):
-    print("[[async task starting", time_type, hour, minute, offset, topic, payload, "]]")
+    print(f"task starting '{time_type}' {hour}:{minute} or {offset} [{topic}][{payload}]")
     match time_type:
         case "Sunset":
             (x, since_midnight) = get_sunset_sunrise(lat_long)
-            print("sunset at this hour",  since_midnight/60/60)
+            print(f"sunset at this hour {since_midnight/60/60}")
             seconds = seconds_to_event(since_midnight + (int(offset) * 60))
         case "Sunrise":
             (since_midnight, x) = get_sunset_sunrise(lat_long)
-            print("sunrise at this hour", since_midnight/60/60)
+            print(f"sunrise at this hour {since_midnight/60/60}")
             seconds = seconds_to_event(since_midnight + (int(offset) * 60))
         case _: # default must be just a time in 24 hour format
             since_midnight = (int(minute) * 60) + (int(hour) * 3600) #time_string_to_seconds(time)
-            print("hours since_midnight [", since_midnight/60/60, "]")
+            print(f"hours since_midnight [{since_midnight/60/60}]")
             seconds = seconds_to_event(since_midnight)
-    print("hours until event [", seconds/60/60, "]")
+    print(f"hours until event [{seconds/60/60}]")
     if seconds > 0:
-        print("[[async task sleeping [", topic,"][", payload, "] ]]\n")
+        print(f"async task sleeping [{topic}][{payload}]")
         await asyncio.sleep(seconds) # we are sleeping until timer starts or stops
         # client.publish(topic, payload)
         publish.single(topic, payload,
             hostname = CFG["local_broker_ip"],
-            port =  CCFG["local_broker_port"])
+            port =  CFG["local_broker_port"])
         #message.publish_single(topic, payload, my_parent="timers_daemon")
-        print("task time now [%s] sleep done and plublished" % (datetime.datetime.now()))
-        print("[[async task done sleeping and sending [", topic,"][", payload, "] ]]\n")
+        print(f"task time now [{datetime.datetime.now()}] sleep done, sent [{topic}][{payload}]")
     else:
-        print("[[async task late_startup, not sleeping, exiting [",  topic,"][" ,payload, "] ]]\n")
+        print(f"late_startup, not sleeping, exiting [{topic}][{payload}]")
 
 async def process_timer(lat_long, atime):
     topic =         atime["topic"]
@@ -134,7 +132,8 @@ async def main():
     # print("sunset at this hour",  sset/60/60)
     # end
     # client = mqtt_manager.mqtt_manager()
-    #db = database.database(row_factory=True)
+    import database
+    db = database.database(row_factory=True)
     await start_timers(config.get_db_config()["lat_long"], db.get_timers_for_today())
     while True:
         await sleep_until_one_second_after_midnight()

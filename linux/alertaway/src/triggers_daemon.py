@@ -47,9 +47,6 @@ def task():
     q = queue.Queue()  
     triggers = make_trigger_structure(db)
     msg = message.message(q, my_parent=my_name)
-    for sub in list(triggers):
-        print("sub",sub)
-        msg.client.subscribe(sub, 0)
     while True:
         item = q.get(timeout=None)
         print("raw q", item)
@@ -57,6 +54,10 @@ def task():
             topic = item[1]
             payload = item[2]
             process_request(msg, triggers, topic, payload)
+        elif item[0] == "connected":
+            for sub in list(triggers):
+                print(f"subscribing to: [{sub}]")
+                msg.client.subscribe(sub, 0)  # needs to move to on_subscribe
 
 def process_request(msg, triggers, topic, payload):
     if topic in triggers: # subscribed payload

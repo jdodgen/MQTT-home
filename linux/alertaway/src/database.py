@@ -504,10 +504,18 @@ class database:
         from mqtt_feature
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
         where  mqtt_feature.access = 'sub'
-        and (
-        (mqtt_device.source = "ZB" and property = "state" and type = "binary" )
-         or
-         mqtt_device.source != "ZB")
+        and 
+        (
+            (
+                mqtt_device.source = "ZB" and property = "state" 
+                AND 
+                type = "binary" 
+                AND 
+                topic like "%/set"
+            )
+            OR
+            mqtt_device.source != "ZB"
+        )
         order by topic desc
         """)
         all = cur.fetchall()
