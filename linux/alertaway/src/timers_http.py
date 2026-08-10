@@ -135,11 +135,18 @@ async def timer_manager(request):
 
 # --- APP ROUTING ---
 app = web.Application()
+
+# common stuff 
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
 
 app.on_startup.append(init_db)
 app.on_cleanup.append(close_db)
 
+# this is the default
+app.router.add_static('/static/', path='static', name='static')
+app.router.add_route('GET', '/favicon.ico','static/favicon.ico')
+
+# local stuff 
 app.add_routes([
     web.get('/', timer_manager),
     web.post('/set_timer', timer_manager)
