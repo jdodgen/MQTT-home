@@ -688,8 +688,8 @@ INSERT INTO "emailaddr" ("emailaddr_name","email_address") VALUES ('Jim','jim@do
 INSERT INTO "voice_device" ("mqtt_feature_id","voice_name","port","topic","true_value", "handler") 
     VALUES (3, "light down the hall", '55555','home/hall light/state',"1","wemo");
     
-INSERT INTO "timers" ("mqtt_feature_id", "topic","true_value","false_value","days","start_type","start_hour","start_minute","start_offset","stop_type","stop_hour","stop_minute","stop_offset","time_to_stop","time_to_start","seconds_from_midnight","state") 
-    VALUES (2,'home/hall light/state','1','0','0,1,2,3,4,5,6','Sunrise',0,0,'0','Sunrise',0,0,'30',NULL,NULL,NULL,NULL);
+INSERT INTO "timers" ("mqtt_feature_id", "days","start_type","start_hour","start_minute","start_offset","stop_type","stop_hour","stop_minute","stop_offset","time_to_stop","time_to_start","seconds_from_midnight","state") 
+    VALUES (2,'0,1,2,3,4,5,6','Sunrise',0,0,'0','Sunrise',0,0,'30',NULL,NULL,NULL,NULL);
 
 INSERT INTO "triggers" ("sub_mqtt_feature_id", "sub_payload", "pub_mqtt_feature_id", "pub_payload") 
     VALUES (6, 'pressed', 3, 'on');

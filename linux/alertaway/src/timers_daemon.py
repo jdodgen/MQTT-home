@@ -10,6 +10,7 @@ import multiprocessing
 import message
 import paho.mqtt.publish as publish
 import http_common as config
+import timers_tools
 CFG = config.get_db_config()
 
 xprint = print # copy print
@@ -31,33 +32,33 @@ async def sleep_until_one_second_after_midnight():
     # Calculate the number of seconds to wait
     wait_seconds = (target - now).total_seconds()
     print(f"[sleep_until_one_second_after_midnight]Current time: {now.strftime('%H:%M:%S')}")
-    print(f"[sleep_until_one_second_after_midnight]Sleeping until: {target.strftime('%Y-%m-%d %H:%M:%S')} ({wait_seconds:.2f} seconds)\n")
+    print(f"[sleep_until_one_second_after_midnight]Sleeping  ({wait_seconds/60/60:.2f} hours) until: {target.strftime('%Y-%m-%d %H:%M:%S')}\n")
     #print("[sleep_until_one_second_after_midnight]sleep_until_one_second_after_midnight hours", wait_seconds/60/60)
     await asyncio.sleep(wait_seconds)
     print("[sleep_until_one_second_after_midnight]Waking up! It is now 0:01")
 
-def get_sunset_sunrise(lat_long):
-    (lat, lon) = lat_long.split(",")
-    sun = suntime.Sun(float(lat), float(lon))
-    todays_date = datetime.date.today()
-    todays_datetime = datetime.datetime.combine(todays_date, datetime.time(0, 0))
-    local_tz = tz.gettz()
-    sunrise = sun.get_local_sunrise_time(todays_datetime, local_tz)
-    sunset =  sun.get_local_sunset_time(todays_datetime, local_tz)
-    #print("sunrise",  sunrise)
-    if sunset < sunrise: # fix a bug in suntime
-            sunset += datetime.timedelta(days=1)
-    #print("sunset",  sunset)
-    today_date = datetime.date.today()
-    #print("date.today", today_date)
-    midnight_utc = datetime.datetime.combine(today_date, datetime.time.min, tzinfo=local_tz)
-    #print("midnight_utc", midnight_utc)
-    unix_timestamp_at_midnight = midnight_utc.timestamp()
-    sunrise_since_midnight =      sunrise.timestamp() - unix_timestamp_at_midnight
-    #print("sunrise at this hour", sunrise_since_midnight/60/60)
-    sunset_since_midnight =       sunset.timestamp()  - unix_timestamp_at_midnight
-    #print("sunset at this hour",  sunset_since_midnight/60/60)
-    return(sunrise_since_midnight, sunset_since_midnight)
+# def get_sunset_sunrise(lat_long):
+    # (lat, lon) = lat_long.split(",")
+    # sun = suntime.Sun(float(lat), float(lon))
+    # todays_date = datetime.date.today()
+    # todays_datetime = datetime.datetime.combine(todays_date, datetime.time(0, 0))
+    # local_tz = tz.gettz()
+    # sunrise = sun.get_local_sunrise_time(todays_datetime, local_tz)
+    # sunset =  sun.get_local_sunset_time(todays_datetime, local_tz)
+    # #print("sunrise",  sunrise)
+    # if sunset < sunrise: # fix a bug in suntime
+            # sunset += datetime.timedelta(days=1)
+    # #print("sunset",  sunset)
+    # today_date = datetime.date.today()
+    # #print("date.today", today_date)
+    # midnight_utc = datetime.datetime.combine(today_date, datetime.time.min, tzinfo=local_tz)
+    # #print("midnight_utc", midnight_utc)
+    # unix_timestamp_at_midnight = midnight_utc.timestamp()
+    # sunrise_since_midnight =      sunrise.timestamp() - unix_timestamp_at_midnight
+    # #print("sunrise at this hour", sunrise_since_midnight/60/60)
+    # sunset_since_midnight =       sunset.timestamp()  - unix_timestamp_at_midnight
+    # #print("sunset at this hour",  sunset_since_midnight/60/60)
+    # return(sunrise_since_midnight, sunset_since_midnight)
 
 
 def seconds_to_event(event_time):
@@ -68,17 +69,15 @@ def seconds_to_event(event_time):
     #print("event_time",event_time/60/60, "seconds left", local_time_seconds_since_midnight/60/60)
     return seconds
 
-async  def wait_and_send(lat_long, time_type, hour, minute, offset, topic, payload):
+async  def wait_and_send(sunrize_seconds,sunset_seconds,lat_long, time_type, hour, minute, offset, topic, payload):
     print(f"task starting '{time_type}' {hour}:{minute} or {offset} [{topic}][{payload}]")
     match time_type:
         case "Sunset":
-            (x, since_midnight) = get_sunset_sunrise(lat_long)
-            print(f"sunset at this hour {since_midnight/60/60}")
-            seconds = seconds_to_event(since_midnight + (int(offset) * 60))
+            print(f"sunset at this hour {sunset_seconds/60/60}")
+            seconds = seconds_to_event(sunset_seconds + (int(offset) * 60))
         case "Sunrise":
-            (since_midnight, x) = get_sunset_sunrise(lat_long)
-            print(f"sunrise at this hour {since_midnight/60/60}")
-            seconds = seconds_to_event(since_midnight + (int(offset) * 60))
+            print(f"sunrise at this hour {sunrize_seconds/60/60}")
+            seconds = seconds_to_event(sunrize_seconds + (int(offset) * 60))
         case _: # default must be just a time in 24 hour format
             since_midnight = (int(minute) * 60) + (int(hour) * 3600) #time_string_to_seconds(time)
             print(f"hours since_midnight [{since_midnight/60/60}]")
@@ -96,7 +95,7 @@ async  def wait_and_send(lat_long, time_type, hour, minute, offset, topic, paylo
     else:
         print(f"late_startup, not sleeping, exiting [{topic}][{payload}]")
 
-async def process_timer(lat_long, atime):
+async def process_timer(sunrize_seconds, sunset_seconds,lat_long, atime):
     topic =         atime["topic"]
     true_value =    atime["true_value"]
     false_value =   atime["false_value"]
@@ -112,13 +111,16 @@ async def process_timer(lat_long, atime):
     invert =        atime["invert"] #  if True/1 then off followed by on turn device off for a period of time
     start_value = false_value if invert else true_value
     stop_value =  true_value  if invert else false_value
-    asyncio.create_task(wait_and_send(lat_long, start_type, start_hour, start_minute, start_offset, topic, start_value)) #  ON typicaly
-    asyncio.create_task(wait_and_send(lat_long, stop_type,  stop_hour,  stop_minute,  stop_offset,  topic, stop_value)) # OFF
+    
+    asyncio.create_task(wait_and_send(sunrize_seconds, sunset_seconds, lat_long, start_type, start_hour, start_minute, start_offset, topic, start_value)) #  ON typicaly
+    asyncio.create_task(wait_and_send(sunrize_seconds, sunset_seconds, lat_long, stop_type,  stop_hour,  stop_minute,  stop_offset,  topic, stop_value)) # OFF
 
 async def start_timers(lat_long, times):
+    timetools = timers_tools.tools()
+    (sunrize_seconds, sunset_seconds) = timetools.get_sunset_sunrise_since_midnight()
     for atime in times:
         print("start_timers starting:", atime["topic"])
-        await process_timer(lat_long, atime)
+        await process_timer(sunrize_seconds, sunset_seconds, lat_long, atime)
 
 async def main():
     # debugging  stuff
