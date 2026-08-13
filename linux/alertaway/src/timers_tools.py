@@ -22,8 +22,29 @@ class tools:
             except (ValueError, AttributeError):
                 raise ValueError("invalid: no timezone") 
         except (ValueError, AttributeError):
-                raise ValueError("invalid: expected format 'lat, lon'.")  
-            
+                raise ValueError("invalid: expected format 'lat, lon'.") 
+                 
+    def get_sunrise_sunset_str(self):
+        today = datetime.datetime.now()
+        sunrise_utc = self.sun.get_sunrise_time(today)
+        sunset_utc =  self.sun.get_sunset_time(today)
+        sunrise_local = sunrise_utc.astimezone(self.local_tz)
+        sunset_local =  sunset_utc.astimezone(self.local_tz)
+        # local_date =  sunrise_local.date()
+        # midnight_local = datetime.datetime.combine(local_date, datetime.time.min, tzinfo=self.local_tz)
+        # # The modulo % 86400 instantly turns negative offsets into a positive 24-hour count
+        # seconds_in_a_day = 24 * 60 * 60  # 86400
+        
+        # sunrise_seconds = int((sunrise_local - midnight_local).total_seconds()) % seconds_in_a_day
+        # sunset_seconds = int((sunset_local - midnight_local).total_seconds()) % seconds_in_a_day
+        # #print(f"sunrise Hours since midnight: {sunrise_seconds / 3600:.2f}")
+        # #print(f"sunset Hours since midnight: {sunset_seconds / 3600:.2f}")
+        
+        sunrise_str = sunrise_local.strftime('%H:%M')
+        print(f"[timers_tools]Sunrise:  {sunrise_str}")
+        sunset_str = sunset_local.strftime('%H:%M')
+        print(f"[timers_tools]Sunset:   {sunset_str}")
+        return(sunrise_str,sunset_str)
 
     def get_sunset_sunrise_since_midnight(self):
             today = datetime.datetime.now()
@@ -41,10 +62,10 @@ class tools:
             #print(f"sunrise Hours since midnight: {sunrise_seconds / 3600:.2f}")
             #print(f"sunset Hours since midnight: {sunset_seconds / 3600:.2f}")
             
-            self.sunrise_str = sunrise_local.strftime('%H:%M')
-            print(f"[timers_tools]Sunrise:  {self.sunrise_str}")
-            self.sunset_str = sunset_local.strftime('%H:%M')
-            print(f"[timers_tools]Sunset:   {self.sunset_str}")
+            sunrise_str = sunrise_local.strftime('%H:%M')
+            print(f"[timers_tools]Sunrise:  {sunrise_str}")
+            sunset_str = sunset_local.strftime('%H:%M')
+            print(f"[timers_tools]Sunset:   {sunset_str}")
             return(sunrise_seconds,sunset_seconds)
         
     # def get_sunset_sunrise_since_midnight(self):
@@ -142,8 +163,11 @@ class tools:
 
 if __name__ == "__main__":
    timetools = tools()
-   (srise, sset) =timetools.get_sunset_sunrise_since_midnight()
-   print(f"today: aftermidnight hours\n sunrises: {srise/60/60}\n and sets: {sset/60/60}")
+   (sunrise_seconds, sunset_seconds) = timetools.get_sunset_sunrise_since_midnight()
+   print(f"today: aftermidnight hours\n sunrises: {sunrise_seconds/60/60}\n and sets: {sunset_seconds/60/60}")
    print(f"timetools.timezone_str '{timetools.timezone_str}'")
-   print(f"timetools.sunrise_str '{timetools.sunrise_str}'")
-   print(f"timetools.sunset_str '{timetools.sunset_str}'")
+   
+   (sunrise_str, sunset_str) = timetools.get_sunrise_sunset_str()
+   
+   print(f"sunrise_str '{sunrise_str}'")
+   print(f"sunset_str '{sunset_str}'")
