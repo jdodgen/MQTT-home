@@ -11,6 +11,7 @@ import database
 # import const
 import restart_service
 import http_common as config
+import timers_tools
 
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.TIMERS_PORT
@@ -43,9 +44,13 @@ async def timer_manager(request):
     watch_dog_queue
     db = database.database(row_factory=True) 
     result = ""
+    timetools = timers_tools.tools()
+    (sunrise_str, sunset_str) = timetools.get_sunrise_sunset_str()
     context = {
         "timers_here": "here",
         "timer_msg": "",
+        "sunrise_str": sunrise_str,
+        "sunset_str": sunset_str,
         "time_now": datetime.now().strftime("%H:%M"),
         "debug": ""
     }
@@ -139,13 +144,10 @@ app = web.Application()
 
 # common stuff 
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
+app.router.add_static('/static/', path='static', name='static')
 
 app.on_startup.append(init_db)
 app.on_cleanup.append(close_db)
-
-# this is the default
-app.router.add_static('/static/', path='static', name='static')
-app.router.add_route('GET', '/favicon.ico','static/favicon.ico')
 
 # local stuff 
 app.add_routes([

@@ -48,7 +48,7 @@ WantedBy=multi-user.target
         print(f"Created: {target_name}")
 
     # 2. Generate Individual Service Files
-    for name, script, desc , RestartSec in modules:
+    for name, script, desc, RestartSec in modules:
         addl_services  =  None  if script == "main.py" else "main_py.service"
         service_content = f"""[Unit]
 Description=AlertAway Module: {desc}
@@ -74,6 +74,12 @@ WantedBy=alertaway.target
             with open(file_name, "w") as f:
                 f.write(service_content)
                 print(f"Created: {file_name}")
+                
+def list_of_systemd():
+    lst = []
+    for name, script, desc, RestartSec in modules:
+        lst.append(name)
+    return lst
 
 if __name__ == "__main__":
     generate_files()

@@ -80,7 +80,8 @@ async def trigger_manager(request):
                 db.con.execute("DELETE FROM triggers WHERE rowid = ?", (target_id,))
                 db.con.commit()
         elif action == "Restart trigger Process":
-            restart_service.restart("alertaway-triggers-daemon")
+            result = restart_service.restart("alertaway-triggers-daemon")
+            context["trigger_msg"] = result
             # watch_dog_queue.put(["restarttriggertask", "restart"])
 
     pubbys = db.get_publish_devices() 
@@ -104,7 +105,8 @@ def task(watch_dog_queue_in):
     # --- APP ROUTING ---
     app = web.Application()
     aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
-
+    app.router.add_static('/static/', path='static', name='static')
+    
     app.on_startup.append(init_db)
     app.on_cleanup.append(close_db)
 

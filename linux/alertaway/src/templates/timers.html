@@ -25,7 +25,7 @@ function stop_dawn() {
         <tr class="tnone">
             <th colspan="100%" align="center">
                 {{ debug }}
-                <font size="+3" color="gray">Maintain Timers: Current time {{ time_now }}</font>
+                <font size="+3" color="gray">Timers: Current time: {{ time_now }} sunrise: {{ sunrise_str }} sunset: {{ sunset_str }} </font>
             </th>
         </tr>
         <tr>
@@ -78,8 +78,8 @@ function stop_dawn() {
                     <tr>
                         <td>
                             <input type="radio" onClick="start_fixed_date();" name="TIMED:start" value="Fixed" checked>Start Time<br>
-                            <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunrise">At Sunrise<br>
-                            <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunset">At Sunset
+                            <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunrise">At Sunrise ({{ sunrise_str }} now)<br>
+                            <input type="radio" onClick="start_dawn();" name="TIMED:start" value="Sunset">At Sunset ({{ sunset_str }} now)
                         </td>
                     </tr>
                     <tr class="dark">
@@ -120,8 +120,8 @@ function stop_dawn() {
                     <tr>
                         <td>
                             <input type="radio" onClick="stop_fixed_date();" name="TIMED:stop" value="Fixed" checked>Stop Time<br>
-                            <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunrise">At Sunrise<br> 
-                            <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunset">At Sunset
+                            <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunrise">At Sunrise( {{ sunrise_str }} now)<br> 
+                            <input type="radio" onClick="stop_dawn();" name="TIMED:stop" value="Sunset">At Sunset ({{ sunset_str }} now)
                         </td>
                     </tr>
                     <tr class="dark">

@@ -6,7 +6,7 @@ import aiosqlite
 import http_common as config
 import restart_service
 
-msg = ""
+msg = []
 async def get_config(db_path):
     # 'async with' handles opening and automatically closing the connection
     async with aiosqlite.connect(db_path) as db:
@@ -20,6 +20,7 @@ async def get_config(db_path):
 
 async def update_config(db_path, data):
     # 'async with' ensures the connection is closed even if an error occurs
+    print(f"update_config: {data}")
     async with aiosqlite.connect(db_path) as db:
         # Business logic remains the same
         ssl_val = 1 if 'ssl' in data else 0
@@ -75,6 +76,7 @@ async def update_config(db_path, data):
                                 data['lat_long'],
         ))
         await db.commit()
+    return "Updated"
 
 # --- Handlers ---
 @aiohttp_jinja2.template("config.html")
@@ -84,37 +86,46 @@ async def handle_index(request):
     stuff = {"config": config_row, 
             "nav_section": config.nav_section(raw=True), 
             "config_msg": msg}
-    msg = ""
+    msg = []
     return stuff
     
-
+@aiohttp_jinja2.template("config.html")
 async def handle_update(request):
     global msg
     # Retrieve form data from POST
     data = await request.post()
     # print(data)
-    await update_config(request.app['db_path'], data)
+    action = data.get('action')
+    if action == 'update':
+        msg.append(await update_config(request.app['db_path'], data))
+        print (f"update_config returned {msg}")
+    elif action == 'restart':
+       msg = restart()
+       print (f"restart returned {msg}")
+    elif action == "mosquitto":
+        msg.append(restart_service.restart("mosquitto"))
+    return web.HTTPFound('/')
+    
+def restart():
     msg = [
     restart_service.restart("alertaway-timers-daemon"),
     restart_service.restart("alertaway-send_emails_daemon"),
     restart_service.restart("alertaway-fauxmo_manager"),
     restart_service.restart("alertaway-mqtt_service_task"),
-    restart_service.restart("mosquitto"),
     ]
-
     print(f"restart {msg}")
-    # Redirect back to home after update
-    return web.HTTPFound('/')
+    return msg
 
 # --- App Setup ---
 async def init_app():
     app = web.Application()
+    app.router.add_static('/static/', path='static', name='static') 
     app['db_path'] = 'devices.db'
-    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("templates"))
-    
+    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader("./templates"))
+       
     app.add_routes([
         web.get('/', handle_index),
-        web.post('/update', handle_update) # New POST route
+        web.post('/update', handle_update),
     ])
     return app
 
@@ -122,10 +133,10 @@ def main():
     web.run_app(init_app(), port=config.CONFIG_PORT)
         
 
-def start_daemon():
-    p = multiprocessing.Process(target=main)
-    p.start()
-    return p
+# def start_daemon():
+    # p = multiprocessing.Process(target=main)
+    # p.start()
+    # return p
 
 if __name__ == "__main__":
     main()

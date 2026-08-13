@@ -105,7 +105,8 @@ def run():
     # --- APP SETUP ---
     app = web.Application()
     aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
-
+    app.router.add_static('/static/', path='static', name='static')
+    
     app.add_routes([
         web.get('/', handle_list),
         web.post('/add', handle_add),         # Uses INSERT OR REPLACE
