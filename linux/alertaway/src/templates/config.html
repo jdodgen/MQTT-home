@@ -9,7 +9,10 @@
         {{ msg }}<br>
         {% endfor %}
         </font>
-        <button type="submit">Update Configuration</button>
+        <button type="submit" name="action" value="update">Update Configuration</button> 
+        <button type="submit" name="action" value="restart">Restart some daemons</button>
+        <button type="submit" name="action" value="mosquitto">Restart mosquitto (very slow)</button>
+
         <hr>
         <h3>Local Broker</h3>
         <label>IP:</label>
