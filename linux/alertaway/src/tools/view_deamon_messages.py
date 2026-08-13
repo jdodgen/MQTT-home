@@ -1,14 +1,9 @@
 import sys
 from pathlib import Path
 
-# This line ensures Geany can always find files in the src/ folder
+# This line ensures finding files in  src/ folder aka  simple .. thank you python
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-import systemd_install
-
-# Your original code continues below...
-
-
+import systemd_install # needed for this
 
 import subprocess
 
