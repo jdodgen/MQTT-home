@@ -23,18 +23,18 @@ def print(*args, **kwargs): # replace print
     xprint(my_name, *args, **kwargs) # the copied real print
 
 # --- DATABASE SETUP ---
-async def init_db(app):
-    # Open connection once at startup
-    db = database.database(row_factory=True)
-    app['db'] = db
+# async def init_db(app):
+    # # Open connection once at startup
+    # db = database.database(row_factory=True)
+    # app['db'] = db
     
-async def close_db(app):
-    app['db'].close()
+# async def close_db(app):
+    # app['db'].close()
 
 # --- THE MAIN HANDLER ---
 async def trigger_manager(request):
     global watch_dog_queue
-    db = request.app['db']
+    db = database.database(row_factory=True)
     context = {
         "triggers_here": "here",
         "triggers_msg": "",
@@ -95,7 +95,7 @@ async def trigger_manager(request):
     pprint.pprint(f"\ncurrent_triggers:{[dict(row) for row in cur_triggers]}\n")
     context["IPaddr"] = config.get_ip()
     context["nav_section"] = config.nav_section(raw=True)
-
+    db.close()
     return aiohttp_jinja2.render_template('trigger.html', request, context)
 
 
@@ -107,8 +107,8 @@ def task(watch_dog_queue_in):
     aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
     app.router.add_static('/static/', path='static', name='static')
     
-    app.on_startup.append(init_db)
-    app.on_cleanup.append(close_db)
+    # app.on_startup.append(init_db)
+    # app.on_cleanup.append(close_db)
 
     app.add_routes([
         web.get('/', trigger_manager),
@@ -117,10 +117,10 @@ def task(watch_dog_queue_in):
     watch_dog_queue = watch_dog_queue_in
     web.run_app(app, port=OUR_PORT)
      
-def start_http(watch_dog_queue):
-    p = multiprocessing.Process(target=task,  args=[watch_dog_queue])
-    p.start()
-    return p
+# def start_http(watch_dog_queue):
+    # p = multiprocessing.Process(target=task,  args=[watch_dog_queue])
+    # p.start()
+    # return p
 
 if __name__ == "__main__":
     task(None)
