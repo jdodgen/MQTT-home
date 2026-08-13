@@ -49,7 +49,7 @@ async def handle_delete_email(request):
 # --- ROUTES ---
 app = web.Application()
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
-
+app.router.add_static('/static/', path='static', name='static')
 app.add_routes([
     web.get('/', handle_list_emails),
     web.get('/emails', handle_list_emails),

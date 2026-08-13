@@ -214,7 +214,7 @@ app = web.Application()
 
 # Setup Jinja2 (Points to a folder named 'templates')
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
-
+app.router.add_static('/static/', path='static', name='static')
 app.add_routes([
     web.get('/', render_index),
     web.get('/whoareyou', whoareyou),

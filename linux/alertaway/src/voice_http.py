@@ -75,7 +75,7 @@ async def refresh_page(request):
         'current_voice': current_voice,
         'devices_for_voice': devices_for_voice,
         'query': dict(form_data),
-        "nav_section"] = config.nav_section(raw=True)
+        "nav_section": config.nav_section(raw=True)
     }
 
 
@@ -192,6 +192,7 @@ async def remove_voice(request):
 app = web.Application()
 # Setup Jinja2 (Points to a folder named 'templates')
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
+app.router.add_static('/static/', path='static', name='static')
 
 app.add_routes([
     web.get('/',  refresh_page),

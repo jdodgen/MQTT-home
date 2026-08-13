@@ -201,7 +201,7 @@ app = web.Application()
 
 # 2. Setup Jinja2 (Tells 'app' where your HTML files are)
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
-
+app.router.add_static('/static/', path='static', name='static')
 # 3. Define your routes (Tells 'app' which URL runs which function)
 app.add_routes([
     web.get('/',          handle_list_events),
