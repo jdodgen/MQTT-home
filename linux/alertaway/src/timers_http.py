@@ -29,15 +29,15 @@ def print(*args, **kwargs): # replace print
 
 
 # --- DATABASE SETUP ---
-async def init_db(app):
-    # Open connection once at startup
-    # db = database.database(row_factory=True)
-    #  best to stay with one sqlite instance  not using ### db = await aiosqlite.connect("automation.db")
-    # db.row_factory = aiosqlite.Row  # Access columns by name: row['desc']
-    app['db'] = db
+# async def init_db(app):
+    # # Open connection once at startup
+    # # db = database.database(row_factory=True)
+    # #  best to stay with one sqlite instance  not using ### db = await aiosqlite.connect("automation.db")
+    # # db.row_factory = aiosqlite.Row  # Access columns by name: row['desc']
+    # app['db'] = db
     
-async def close_db(app):
-    app['db'].close()
+# async def close_db(app):
+    # app['db'].close()
 
 # --- THE MAIN HANDLER ---
 async def timer_manager(request):
@@ -136,7 +136,6 @@ async def timer_manager(request):
     context["timer_msg"] = result
     context["nav_section"] = config.nav_section(raw=True)
     db.close()
-
     return aiohttp_jinja2.render_template('timers.html', request, context)
 
 # --- APP ROUTING ---
@@ -146,8 +145,8 @@ app = web.Application()
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
 app.router.add_static('/static/', path='static', name='static')
 
-app.on_startup.append(init_db)
-app.on_cleanup.append(close_db)
+#app.on_startup.append(init_db)
+#app.on_cleanup.append(close_db)
 
 # local stuff 
 app.add_routes([
