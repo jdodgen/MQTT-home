@@ -302,8 +302,8 @@ class database:
                 """,
                     (description, name, source))
             new = True
-        else: # exists, same description
-            cur.execute("update mqtt_device set date = ?", (int(time.time()))
+        else: # exists, timestamp it
+            cur.execute("update mqtt_device set date = unixepoch() where name = ?", (name,))
             new = False
         cur.close()
         self.con.commit()
