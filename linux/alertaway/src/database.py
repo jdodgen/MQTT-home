@@ -288,7 +288,7 @@ class database:
 
     def insert_or_update_device(self, description, name, source):
         cur = self.con.cursor()
-        cur.execute("select description from mqtt_device where name = ?", (name,))
+        cur.execute("select description from mqtt_device where friendly_name = ?", (name,))
         row = cur.fetchone()
         # new or reuse of a name, replace would fire cascade delete
         if row is None or  row["description"] != description:
@@ -303,7 +303,7 @@ class database:
                     (description, name, source))
             new = True
         else: # exists, timestamp it
-            cur.execute("update mqtt_device set date = unixepoch() where name = ?", (name,))
+            cur.execute("update mqtt_device set date = unixepoch() where friendly_name = ?", (name,))
             new = False
         cur.close()
         self.con.commit()
