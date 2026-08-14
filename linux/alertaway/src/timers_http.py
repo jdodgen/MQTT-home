@@ -110,8 +110,9 @@ async def timer_manager(request):
                     form.get("TIMED:state")
                 ))
                 db.con.commit()
+                result = " Don't forget to restart timer process"
             else:
-                context["timer_msg"] = "ERROR:  no device checked or no days checked"
+                result = "ERROR:  no device checked or no days checked"
         # Logic for "Remove Timer"
         elif "Remove Timer:" in state:
             match = re.search(r'Remove Timer:(\d+)', state)
@@ -120,6 +121,7 @@ async def timer_manager(request):
                 
                 db.con.execute("DELETE FROM timers WHERE rowid = ?", (target_id,))
                 db.con.commit()
+                result = " Don't forget to restart timer process"
         elif state == "Restart Timer Process":
             result = restart_service.restart("alertaway-timers-daemon")
            #  watch_dog_queue.put(["restarttimertask", "restart"])
