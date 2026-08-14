@@ -50,7 +50,7 @@ async def render_response(request, error): #,  manIP_rowid=None): # update_ip=Fa
         #"zigbee_devices": DB.cook_devices_features_for_html(source='ZB'),
         #"get_devices_for_wemo": DB.get_devices_for_wemo(),
         #"all_wemo": DB.get_all_wemo(),
-        "manual_device_names": DB.get_all_manual_device_names(),
+        #"manual_device_names": DB.get_all_manual_device_names(),
         "nav_section": config.nav_section(raw=True)
     }
 

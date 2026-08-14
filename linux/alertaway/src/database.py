@@ -330,13 +330,13 @@ class database:
         # get         = True if (access & 4) else False
         # return (published, set, get)
 
-    def get_cursor(self):
-        #try:
-        cur = self.con.cursor()
-        #except:
-        #   self.con = sqlite3.connect(const.DB_NAME)
-        #   cur = self.con.cursor()
-        return cur
+    # def get_cursor(self):
+        # #try:
+        # cur = self.con.cursor()
+        # #except:
+        # #   self.con = sqlite3.connect(const.DB_NAME)
+        # #   cur = self.con.cursor()
+        # return cur
 
     def insert_device_feature(self, data_list):
     # data_list should be a list of tuples or dictionaries
@@ -449,21 +449,21 @@ class database:
         # cur.close()
         # return all
 
-    def get_all_manual_device_names(self):
-        cur = self.con.cursor()
-        cur.execute("""
-        select
-            mqtt_device.friendly_name,
-            mqtt_device.description
-            from mqtt_device
-            where mqtt_device.source = "manIP"
-            order by mqtt_device.friendly_name
-        """)
-        all = cur.fetchall()
-        cur.close()
-        #for e in all:
-        #   print(e)
-        return all
+    # def get_all_manual_device_names(self):
+        # cur = self.con.cursor()
+        # cur.execute("""
+        # select
+            # mqtt_device.friendly_name,
+            # mqtt_device.description
+            # from mqtt_device
+            # where mqtt_device.source = "manIP"
+            # order by mqtt_device.friendly_name
+        # """)
+        # all = cur.fetchall()
+        # cur.close()
+        # #for e in all:
+        # #   print(e)
+        # return all
 
     def get_publish_devices(self):
         cur = self.con.cursor()
@@ -568,22 +568,22 @@ class database:
         cur.close()
         return all
 
-    def get_device_info(self, rowid):
-        cur = self.con.cursor()
-        cur.execute("""
-        select
-            topic,
-            true_value,
-            false_value
-        from mqtt_device
-        join mqtt_feature on mqtt_feature.friendly_name = mqtt_device.friendly_name
-        where
-            mqtt_feature.rowid = ?
-        """, (rowid,))
-        rec = cur.fetchone()
-        cur.close()
-        print("get_device_info returned [%s]" % (rec,))
-        return rec
+    # def get_device_info(self, rowid):
+        # cur = self.con.cursor()
+        # cur.execute("""
+        # select
+            # topic,
+            # true_value,
+            # false_value
+        # from mqtt_device
+        # join mqtt_feature on mqtt_feature.friendly_name = mqtt_device.friendly_name
+        # where
+            # mqtt_feature.rowid = ?
+        # """, (rowid,))
+        # rec = cur.fetchone()
+        # cur.close()
+        # print("get_device_info returned [%s]" % (rec,))
+        # return rec
 
     def get_timers_for_today(self):
         print("get_timers_for_today")
@@ -617,21 +617,17 @@ class database:
         # 1. Split into individual lines to strip inline comments safely
         lines_raw = sql_text.split('\n')
         clean_lines = []
-        
         for line in lines_raw:
             # Split by comment marker and take the left side (the actual SQL code)
             code_part = line.split('--')[0]
             # Only keep it if it contains actual characters
             if code_part.strip():
-                clean_lines.append(code_part.strip())
-                
+                clean_lines.append(code_part.strip())  
         # 2. Join the cleaned lines back together with a space
         #    This safely flattens internal newlines into a single line
         flattened_sql = " ".join(clean_lines)
-        
         # 3. Now it is safe to split into distinct statements by semicolon
         statements = [stmt.strip() for stmt in flattened_sql.split(';') if stmt.strip()]
-        
         return statements
        
     def test_data(self):
