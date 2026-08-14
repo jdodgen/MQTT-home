@@ -38,11 +38,11 @@ def load_IP_device(db, address, payload):
         description = device["desc"]
         features = device["features"]
         print("name[%s] desc[%s]" % (name, description))
-        exists = db.upsert_device(description, name, source)
+        exists = db.insert_or_update_device(description, name, source)
         if not exists:
             change_record_count += 1
     except Exception:
-        print("upsert_device failed [%s]" % (Exception,))
+        print("insert_or_update_device failed [%s]" % (Exception,))
     else:
         for f in features:
             try:
@@ -55,7 +55,7 @@ def load_IP_device(db, address, payload):
             else:
                 topic = f["topic"] if "topic" in f else f["pub_topic"] if "pub_topic" in f else None
                 feature_description = f["desc"] if "desc" in f else None
-                exists = db.upsert_feature(  name, 
+                exists = db.insert_device_feature(  name, 
                                     property,  
                                     feature_description,
                                     type,

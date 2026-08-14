@@ -72,7 +72,7 @@ async def create_IP_device(request):
         access = None #data["IP_access"]  #sub or pub
         print("create_IP_device", name, desc)
         if name and desc: # and access:
-            print("upsert_device")
+            print("insert_or_update_device")
             DB.insert_or_ignore_device(desc, name, "manIP")
             data_list = {
                 "friendly_name": name, 
@@ -84,8 +84,8 @@ async def create_IP_device(request):
                 "true_value": data["IP_true"],
                 "false_value": data["IP_false"],
             }
-            print("upsert_feature")
-            DB.upsert_feature(data_list)
+            print("insert_device_feature")
+            DB.insert_device_feature(data_list)
         else:
             error_msg = "Both name description, and access needed"  
     return await render_response(request, error_msg)  

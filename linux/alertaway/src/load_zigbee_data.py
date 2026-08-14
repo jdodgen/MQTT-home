@@ -85,70 +85,70 @@ def load_database_from_zigbee(zigbee2mqtt_devices):
         #print("definition", definition)
         description = definition["description"]   
         print("description[%s]  ieee[%s] friendly[%s]" % (description, address, name))
-        db.upsert_device(description, name, "ZB")
+        new = db.insert_or_update_device(description, name, "ZB")
         #print("load_database_from_zigbee rc", rc)
         exposes = definition["exposes"]
-        
-        for e in exposes:
-            #print("exposes:", e) 
-            if 'features' in e:
-                e = e['features'][0] # not sure why 'features' wraps this, so process as normal
-            access = e["access"]
-            if e.get('description') == None:
-                desc=None
-            else:
-                desc = e["description"]
-                del e["description"]
-            property = e["property"]
-            type= e["type"]
-            #  now create the topics
-            true_value = None
-            false_value = None
-       
-            if type == 'binary':
-                true_value = '{"%s": "%s"}' % (property, e["value_on"])
-                false_value = '{"%s": "%s"}' % (property, e["value_off"])
-            elif type == 'enum':
-                true_value = '{"%s": "%s"}' % (property, "on")
-                false_value = '{"%s": "%s"}' % (property, "off")
-            elif type == 'numeric':
-                true_value = '{"%s": "%s"}' % (property, "number")
+        if new:
+            for e in exposes:
+                #print("exposes:", e) 
+                if 'features' in e:
+                    e = e['features'][0] # not sure why 'features' wraps this, so process as normal
+                access = e["access"]
+                if e.get('description') == None:
+                    desc=None
+                else:
+                    desc = e["description"]
+                    del e["description"]
+                property = e["property"]
+                type= e["type"]
+                #  now create the topics
+                true_value = None
                 false_value = None
+           
+                if type == 'binary':
+                    true_value = '{"%s": "%s"}' % (property, e["value_on"])
+                    false_value = '{"%s": "%s"}' % (property, e["value_off"])
+                elif type == 'enum':
+                    true_value = '{"%s": "%s"}' % (property, "on")
+                    false_value = '{"%s": "%s"}' % (property, "off")
+                elif type == 'numeric':
+                    true_value = '{"%s": "%s"}' % (property, "number")
+                    false_value = None
 
-            can_published, can_set, can_get = parse_access_flags(access)
-            print("name[%s] property[%s] access[%s] published[%s] set[%s] get[%s]" % (name, property, access, can_published, can_set, can_get,))
-            data_list = {
-                "friendly_name": name, 
-                "property": property,
-                "description": desc,
-                "type": type,
-                "true_value": true_value,
-                "false_value": false_value,
-                 }
-            if can_set:
-                data_list["topic"] = "zigbee2mqtt/%s/set" %  (name)
-                data_list["access"] = "sub"
-                db.upsert_feature(data_list)
-                                # name, 
-                                # property,  
-                                # desc,
-                                # type,
-                                # pubsub,
-                                # topic,
-                                # true_value,
-                                # false_value,
-                                # )
-                #print("did set")
-            if can_get:
-                data_list["topic"] = "zigbee2mqtt/%s/get" %  (name)
-                data_list["access"] = "sub"
-                db.upsert_feature(data_list)
-                #print("did get")
-            if can_published:
-                data_list["topic"] = "zigbee2mqtt/%s" % name
-                data_list["access"] = "pub"    
-                db.upsert_feature(data_list)
-                #print("did publish")
+                can_published, can_set, can_get = parse_access_flags(access)
+                print("name[%s] property[%s] access[%s] published[%s] set[%s] get[%s]" % (name, property, access, can_published, can_set, can_get,))
+                data_list = {
+                    "friendly_name": name, 
+                    "property": property,
+                    "description": desc,
+                    "type": type,
+                    "true_value": true_value,
+                    "false_value": false_value,
+                     }
+                if can_set:
+                    data_list["topic"] = "zigbee2mqtt/%s/set" %  (name)
+                    data_list["access"] = "sub"
+                    db.insert_device_feature(data_list)
+                                    # name, 
+                                    # property,  
+                                    # desc,
+                                    # type,
+                                    # pubsub,
+                                    # topic,
+                                    # true_value,
+                                    # false_value,
+                                    # )
+                    #print("did set")
+                if can_get:
+                    data_list["topic"] = "zigbee2mqtt/%s/get" %  (name)
+                    data_list["access"] = "sub"
+                    db.insert_device_feature(data_list)
+                    #print("did get")
+                if can_published:
+                    data_list["topic"] = "zigbee2mqtt/%s" % name
+                    data_list["access"] = "pub"    
+                    db.insert_device_feature(data_list)
+                    #print("did publish")
 
 def parse_access_flags(access):
     published = True if (access & 1) else False

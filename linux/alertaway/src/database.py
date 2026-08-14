@@ -271,7 +271,7 @@ class database:
         #
         # we always update atleast for date
         #
-        print("upsert_device:", description, name, source)
+        print("insert_or_ignore_device:", description, name, source)
         cur = self.con.cursor()
         cur.execute(
             """
@@ -286,27 +286,28 @@ class database:
         self.con.commit()
         return
 
-    def upsert_device(self, description, name, source):
-        # first check to see if we have a major change
-        # notifiers may need this to reduce MQTT traffic
-        #
-        #
-        # we always update atleast for date
-        #
-        print("upsert_device:", description, name, source)
+    def insert_or_update_device(self, description, name, source):
         cur = self.con.cursor()
-        cur.execute(
-            """
-            insert or replace into mqtt_device
-                (description,
-                friendly_name,
-                source)
-            values (?,?,?)
-            """,
-                (description, name, source))
+        cur.execute("select description from mqtt_device where name = ?", (name,))
+        row = cur.fetchone()
+        # new or reuse of a name, replace would fire cascade delete
+        if row is None or  row["description"] != description:
+            cur.execute(
+                """
+                insert or replace into mqtt_device
+                    (description,
+                    friendly_name,
+                    source)
+                values (?,?,?)
+                """,
+                    (description, name, source))
+            new = True
+        else: # exists, same description
+            cur.execute("update mqtt_device set date = ?", (int(time.time()))
+            new = False
         cur.close()
         self.con.commit()
-        return
+        return new
 
     def get_all_devices(self):
         cur = self.con.cursor()
@@ -337,11 +338,11 @@ class database:
         #   cur = self.con.cursor()
         return cur
 
-    def upsert_feature(self, data_list):
+    def insert_device_feature(self, data_list):
     # data_list should be a list of tuples or dictionaries
         cur = self.con.cursor()
         query = """
-            INSERT or REPLACE INTO mqtt_feature (
+            INSERT INTO mqtt_feature (
                 friendly_name, property, description, type,
                 access, topic, true_value, false_value
             ) VALUES (
@@ -352,9 +353,9 @@ class database:
     # Use executemany for bulk performance
         cur.execute(query, data_list)
         if cur.rowcount > 0:
-            print(f"upsert_feature Success! Inserted row with ID: {cur.lastrowid}")
+            print(f"insert_device_feature Success! Inserted row with ID: {cur.lastrowid}")
         else:
-            print("upsert_feature Failure: No rows were inserted.")
+            print("insert_device_feature Failure: No rows were inserted.")
         self.con.commit()
 
     def get_feature_mqtt(self, rowid):
@@ -937,10 +938,10 @@ if __name__ == "__main__":
     #pprint.pprint(f"{[dict(row) for row in all]}")
     # print(db.cook_devices_features_for_html())
     # print(db.delete_device(13))
-    # rc = db.upsert_device("no addr test", "foobar", "IP")
+    # rc = db.insert_or_update_device("no addr test", "foobar", "IP")
     # print(rc)
 
-    # rc = database.upsert_feature(
+    # rc = database.insert_device_feature(
     #   "foobar",
     #   "state",
     #   "relay1",
@@ -960,7 +961,7 @@ if __name__ == "__main__":
     #input()
     #db.initialize(create_test_data=True)
     #print(db.get_all_wemo())
-    # db.upsert_device("water")
+    # db.insert_or_update_device("water")
     # db.create_broker([server1])
     # row = [0,"server", "server.local","", "", "" ]
     # db.update_broker(row)
@@ -972,9 +973,9 @@ if __name__ == "__main__":
     # """rowid,device_name, topic, payload_on, payload_off,payload_state,
     #       broker_name, client_id """
 
-    # db.upsert_device("a foo device", "foo", "IP")
+    # db.insert_or_update_device("a foo device", "foo", "IP")
 
-    # db.upsert_device(row)
+    # db.insert_or_update_device(row)
     # devices = db.get_all_devices()
     # for row in devices:
     #   print(row)
