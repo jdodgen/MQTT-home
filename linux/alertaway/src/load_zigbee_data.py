@@ -87,8 +87,8 @@ def load_database_from_zigbee(zigbee2mqtt_devices):
         print("description[%s]  ieee[%s] friendly[%s]" % (description, address, name))
         new = db.insert_or_update_device(description, name, "ZB")
         #print("load_database_from_zigbee rc", rc)
-        exposes = definition["exposes"]
-        if new:
+        exposes = definition["exposes"]  # features
+        if new:  # ignore existing devices
             for e in exposes:
                 #print("exposes:", e) 
                 if 'features' in e:
