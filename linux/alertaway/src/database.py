@@ -105,8 +105,7 @@ class database:
             qos,
             retain
         from voice_device
-        join mqtt_feature on mqtt_feature.topic = voice_device.topic
-            and mqtt_feature.true_value = voice_device.true_value
+        join mqtt_feature on mqtt_feature.mqtt_feature_id = voice_device.mqtt_feature_id
         where voice_device.handler = "wemo"
         """)
         all = cur.fetchall()
