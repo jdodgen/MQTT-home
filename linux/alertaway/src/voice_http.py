@@ -78,7 +78,6 @@ async def refresh_page(request):
         "nav_section": config.nav_section(raw=True)
     }
 
-
 @aiohttp_jinja2.template('voice.html')        
 async def create_voice(request):
     error_msg = ''
@@ -91,6 +90,8 @@ async def create_voice(request):
             restart_service.restart("alertaway-fauxmo-task")
         elif action == "display":
             cfg = build_cfg() 
+            if !cfg:
+                cfg = "nothing to do"
             # Note: Returning a web.Response bypasses the decorator, which is valid here
             return web.Response(text=f"<pre>{cfg}</pre>", content_type='text/html')
         else: # create
