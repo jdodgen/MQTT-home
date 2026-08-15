@@ -56,7 +56,7 @@ PartOf=alertaway.target
 After=network.target {addl_services}
 
 [Service]
-ExecStart=/usr/bin/python3 {PYTHON_FILES}/{script}
+ExecStart=/usr/bin/python3 -u {PYTHON_FILES}/{script}
 WorkingDirectory={DATA_FILES}
 Restart=always
 RestartSec={RestartSec}
