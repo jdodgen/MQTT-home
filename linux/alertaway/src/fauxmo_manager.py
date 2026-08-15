@@ -22,7 +22,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 '''
-#import os
+import os
 #import subprocess
 import time
 # import fauxmo.cli
@@ -168,10 +168,12 @@ def task():
                         # ])
                 os.execl("/usr/local/bin/fauxmo", "-c " + config.FAUXMO_CONFIG_FILE_PATH, "-vv")
                 # for testing  /usr/local/bin/fauxmo -c /etc/fauxmo/config.json   "
-            except:
+            except Exception as e:
+                print(f"ERROR: /usr/local/bin/fauxmo failed [{e}]")
                 pass
             # only returns if it fails
-            print("ERROR: faxmo exited, waiting and restarting")
+            else:
+                print("ERROR: faxmo exited, waiting and restarting")
         else:
             pass
             print("No fauxmo devices")
