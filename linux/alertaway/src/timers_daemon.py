@@ -1,5 +1,5 @@
-# MIT licence 2025 Jim Dodgen
-version = 0.1
+# MIT licence 2025,2026 Jim Dodgen
+version = 0.2
 
 import time
 import suntime
