@@ -8,7 +8,8 @@ from dateutil import tz
 import asyncio
 import multiprocessing
 import message
-import paho.mqtt.publish as publish
+#import paho.mqtt.publish as publish
+from aiomqtt import Client
 import http_common as config
 import timers_tools
 CFG = config.get_db_config()
@@ -87,9 +88,11 @@ async  def wait_and_send(sunrize_seconds,sunset_seconds,lat_long, time_type, hou
         print(f"async task sleeping [{topic}][{payload}]")
         await asyncio.sleep(seconds) # we are sleeping until timer starts or stops
         # client.publish(topic, payload)
-        publish.single(topic, payload,
-            hostname = CFG["local_broker_ip"],
-            port =  CFG["local_broker_port"])
+        async with Client(hostname=CFG["local_broker_ip"], port=CFG["local_broker_port"]) as client:
+            await client.publish(topic, payload)
+        # publish.single(topic, payload,
+            # hostname = CFG["local_broker_ip"],
+            # port =  CFG["local_broker_port"])
         #message.publish_single(topic, payload, my_parent="timers_daemon")
         print(f"task time now [{datetime.datetime.now()}] sleep done, sent [{topic}][{payload}]")
     else:
