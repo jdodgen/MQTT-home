@@ -88,13 +88,21 @@ async  def wait_and_send(sunrize_seconds,sunset_seconds,lat_long, time_type, hou
         print(f"async task sleeping [{topic}][{payload}]")
         await asyncio.sleep(seconds) # we are sleeping until timer starts or stops
         # client.publish(topic, payload)
-        async with Client(hostname=CFG["local_broker_ip"], port=CFG["local_broker_port"]) as client:
-            await client.publish(topic, payload)
-        # publish.single(topic, payload,
-            # hostname = CFG["local_broker_ip"],
-            # port =  CFG["local_broker_port"])
-        #message.publish_single(topic, payload, my_parent="timers_daemon")
-        print(f"task time now [{datetime.datetime.now()}] sleep done, sent [{topic}][{payload}]")
+        max_attempts = 6
+        for attempt in range(1, max_attempts + 1):
+            try:
+                async with Client(hostname=CFG["local_broker_ip"], port=CFG["local_broker_port"]) as client:
+                    await client.publish(topic, payload)
+                # publish.single(topic, payload,
+                    # hostname = CFG["local_broker_ip"],
+                    # port =  CFG["local_broker_port"])
+                #message.publish_single(topic, payload, my_parent="timers_daemon")
+                print(f"task time now [{datetime.datetime.now()}] sleep done, sent [{topic}][{payload}]")
+                break
+            except Exception as e:
+                # Prevent a network hiccup from crashing the whole daemon
+                print(f"[{datetime.datetime.now()}] Failed to send to {topic}: {e}")
+            await asyncio.sleep(10*attempt)
     else:
         print(f"late_startup, not sleeping, exiting [{topic}][{payload}]")
 
