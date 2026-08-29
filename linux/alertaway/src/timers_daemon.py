@@ -1,4 +1,4 @@
-# MIT licence 2025,2026 Jim Dodgen
+# MIT licence, copyright 2025,2026 Jim Dodgen
 version = 0.2
 
 import time
@@ -38,30 +38,6 @@ async def sleep_until_one_second_after_midnight():
     await asyncio.sleep(wait_seconds)
     print("[sleep_until_one_second_after_midnight]Waking up! It is now 0:01")
 
-# def get_sunset_sunrise(lat_long):
-    # (lat, lon) = lat_long.split(",")
-    # sun = suntime.Sun(float(lat), float(lon))
-    # todays_date = datetime.date.today()
-    # todays_datetime = datetime.datetime.combine(todays_date, datetime.time(0, 0))
-    # local_tz = tz.gettz()
-    # sunrise = sun.get_local_sunrise_time(todays_datetime, local_tz)
-    # sunset =  sun.get_local_sunset_time(todays_datetime, local_tz)
-    # #print("sunrise",  sunrise)
-    # if sunset < sunrise: # fix a bug in suntime
-            # sunset += datetime.timedelta(days=1)
-    # #print("sunset",  sunset)
-    # today_date = datetime.date.today()
-    # #print("date.today", today_date)
-    # midnight_utc = datetime.datetime.combine(today_date, datetime.time.min, tzinfo=local_tz)
-    # #print("midnight_utc", midnight_utc)
-    # unix_timestamp_at_midnight = midnight_utc.timestamp()
-    # sunrise_since_midnight =      sunrise.timestamp() - unix_timestamp_at_midnight
-    # #print("sunrise at this hour", sunrise_since_midnight/60/60)
-    # sunset_since_midnight =       sunset.timestamp()  - unix_timestamp_at_midnight
-    # #print("sunset at this hour",  sunset_since_midnight/60/60)
-    # return(sunrise_since_midnight, sunset_since_midnight)
-
-
 def seconds_to_event(event_time):
     local_time = time.localtime()
     local_time_seconds_since_midnight = local_time.tm_hour * 3600 + local_time.tm_min * 60 + local_time.tm_sec
@@ -93,10 +69,6 @@ async  def wait_and_send(sunrize_seconds,sunset_seconds,lat_long, time_type, hou
             try:
                 async with Client(hostname=CFG["local_broker_ip"], port=CFG["local_broker_port"]) as client:
                     await client.publish(topic, payload)
-                # publish.single(topic, payload,
-                    # hostname = CFG["local_broker_ip"],
-                    # port =  CFG["local_broker_port"])
-                #message.publish_single(topic, payload, my_parent="timers_daemon")
                 print(f"task time now [{datetime.datetime.now()}] sleep done, sent [{topic}][{payload}]")
                 break
             except Exception as e:
@@ -134,17 +106,6 @@ async def start_timers(lat_long, times):
         await process_timer(sunrize_seconds, sunset_seconds, lat_long, atime)
 
 async def main():
-    # debugging  stuff
-    # event_time_string = "21:00"
-    # result = time_string_to_seconds(event_time_string)
-    # print(f"date hh:mm:ss to  {event_time_string}: {result/60/60} hours.")
-    # seconds = seconds_to_event(result)
-    # print("hours until event", seconds/60/60)
-    # (srise, sset) = get_sunset_sunrise("34.206081324130004, -117.14301072256056")
-    # print("sunrise at this hour", srise/60/60)
-    # print("sunset at this hour",  sset/60/60)
-    # end
-    # client = mqtt_manager.mqtt_manager()
     import database
     db = database.database(row_factory=True)
     await start_timers(config.get_db_config()["lat_long"], db.get_timers_for_today())
