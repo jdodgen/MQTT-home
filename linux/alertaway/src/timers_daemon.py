@@ -11,7 +11,7 @@ import message
 from aiomqtt import Client
 import http_common as config
 import timers_tools
-CFG = config.get_db_config()
+
 
 xprint = print 
 my_name = "[timers_daemon]"
@@ -35,7 +35,7 @@ def seconds_to_event(event_time):
     seconds = event_time - local_time_seconds_since_midnight
     return seconds
 
-async def wait_and_send(sunrize_seconds, sunset_seconds, lat_long, time_type, hour, minute, offset, topic, payload):
+async def wait_and_send(sunrize_seconds, sunset_seconds, lat_long, time_type, hour, minute, offset, topic, payload, cfg):
     print(f"task starting '{time_type}' {hour}:{minute} or {offset} [{topic}][{payload}]")
     match time_type:
         case "Sunset":
@@ -63,7 +63,7 @@ async def wait_and_send(sunrize_seconds, sunset_seconds, lat_long, time_type, ho
         max_attempts = 6
         for attempt in range(1, max_attempts + 1):
             try:
-                async with Client(hostname=CFG["local_broker_ip"], port=CFG["local_broker_port"]) as client:
+                async with Client(hostname=cfg["local_broker_ip"], port=cfg["local_broker_port"]) as client:
                     await client.publish(topic, payload)
                 print(f"task time now [{datetime.datetime.now()}] sleep done, sent [{topic}][{payload}]")
                 break
@@ -78,7 +78,7 @@ async def wait_and_send(sunrize_seconds, sunset_seconds, lat_long, time_type, ho
     else:
         print(f"late_startup, not sleeping, exiting [{topic}][{payload}]")
 
-async def process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, task_list):
+async def process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, task_list, cfg):
     topic =         atime["topic"]
     true_value =    atime["true_value"]
     false_value =   atime["false_value"]
@@ -96,16 +96,17 @@ async def process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, task_l
     stop_value =  true_value  if invert else false_value
     
     # CHANGED: Track these tasks so we can destroy them at midnight
-    t1 = asyncio.create_task(wait_and_send(sunrize_seconds, sunset_seconds, lat_long, start_type, start_hour, start_minute, start_offset, topic, start_value))
-    t2 = asyncio.create_task(wait_and_send(sunrize_seconds, sunset_seconds, lat_long, stop_type,  stop_hour,  stop_minute,  stop_offset,  topic, stop_value))
+    t1 = asyncio.create_task(wait_and_send(sunrize_seconds, sunset_seconds, lat_long, start_type, start_hour, start_minute, start_offset, topic, start_value, cfg))
+    t2 = asyncio.create_task(wait_and_send(sunrize_seconds, sunset_seconds, lat_long, stop_type,  stop_hour,  stop_minute,  stop_offset,  topic, stop_value, cfg))
     task_list.extend([t1, t2])
 
 async def start_timers(lat_long, times, task_list):
+    cfg = config.get_db_config()
     timetools = timers_tools.tools()
     (sunrize_seconds, sunset_seconds) = timetools.get_sunset_sunrise_since_midnight()
     for atime in times:
         print("start_timers starting:", atime["topic"])
-        await process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, task_list)
+        await process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, task_list, cfg)
 
 async def main():
     import database
