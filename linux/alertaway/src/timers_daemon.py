@@ -6,9 +6,9 @@ import suntime
 import datetime
 from dateutil import tz
 import asyncio
-import multiprocessing
-import message
 from aiomqtt import Client
+# import multiprocessing
+# import message
 import http_common as config
 import timers_tools
 CFG = config.get_db_config()
