@@ -87,10 +87,10 @@ async def create_voice(request):
         action = data.get("action")
         print("----action---", action)
         if action == "restart":
-            restart_service.restart("alertaway-fauxmo-task")
+            error_msg = restart_service.restart("alertaway-fauxmo_manager")
         elif action == "display":
             cfg = build_cfg() 
-            if !cfg:
+            if not cfg:
                 cfg = "nothing to do"
             # Note: Returning a web.Response bypasses the decorator, which is valid here
             return web.Response(text=f"<pre>{cfg}</pre>", content_type='text/html')

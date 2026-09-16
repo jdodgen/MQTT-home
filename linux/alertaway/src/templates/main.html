@@ -12,6 +12,9 @@
           <table class="leftright">
             <tr>
               <td colspan="100%">
+                  {% if "error_message" %}  
+                    <p style="color: #FF0000;">{{ error_message }}</p>
+                  {% endif %}
                   <button type="submit" name=action value="create_wifi/0">Create IP Device</button>
               </td>
             </tr>

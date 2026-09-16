@@ -8,11 +8,16 @@
           <h2>Voice to Device mapping</h2>
           <table class="leftright">
             <tr>
+              <th colspan="100%", align=left>
+                <button type="submit" name=action value="restart">Restart FauxMo/Hue Processes</button><br>
+                <button type="submit" name=action value="display">Display future FauxMo config</button>
+             </th>
+            <tr>
+            <tr>
               <th>
-                <button type="submit" name=action value="create_voice">Create</button><br>
                 <p style="color: #FF0000;">{{ error_message }}</p>
+                <button type="submit" name=action value="create_voice">Create</button><br>
               </th>
-
             <tr>
               <th>
                 <label>Command words:</label>
@@ -49,12 +54,7 @@
                 </select>
               </th>
             </tr>
-            <tr>
-            <th colspan="100%", align=left>
-                <button type="submit" name=action value="restart">Restart FauxMo/Hue Processes</button><br>
-                <button type="submit" name=action value="display">Display future FauxMo config</button>
-            </th>
-            <tr>
+            
           </table>
         </form>
       </td>

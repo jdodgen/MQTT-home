@@ -1,0 +1,717 @@
+# Inside your main_http.py route definitions:
+app.router.add_get('/description.xml', handle_upnp_xml)
+app.router.add_get('/api/{username}/lights', handle_get_lights)
+app.router.add_put('/api/{username}/lights/{id}/state', handle_state_change)
+
+
+import socket
+from aiohttp import web
+
+async def handle_upnp_xml(request):
+    """
+    Tells Alexa that this server is a physical Philips Hue Bridge.
+    """
+    # Dynamically discover the local IP this request came through
+    host_ip = request.host.split(':')[0]
+    
+    xml_content = f"""<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <URLBase>http://{host_ip}:80/</URLBase>
+  <device>
+    <deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>
+    <friendlyName>AlertAway Bridge ({host_ip})</friendlyName>
+    <manufacturer>Royal Philips Electronics</manufacturer>
+    <manufacturerURL>http://philips.com</manufacturerURL>
+    <modelDescription>Philips hue Personal Wireless Lighting</modelDescription>
+    <modelName>Philips hue bridge 2012</modelName>
+    <modelNumber>929000226503</modelNumber>
+    <modelURL>http://meethue.com</modelURL>
+    <serialNumber>00178825102a</serialNumber>
+    <UDN>uuid:2f402f80-da50-11e1-9b23-00178825102a</UDN>
+    <presentationURL>index.html</presentationURL>
+  </device>
+</root>
+"""
+    # Crucial: Must be served as 'text/xml' or Alexa will ignore it
+    return web.Response(text=xml_content, content_type='text/xml')
+    
+    
+app = web.Application()
+
+# --- Your Existing Routes ---
+# app.router.add_get('/', handle_home_dashboard)
+# app.router.add_get('/all-devices', all_devices)
+
+# --- New Philips Hue Sub-Routes for Alexa ---
+# 1. The UPnP description file you just created
+app.router.add_get('/description.xml', handle_upnp_xml)
+
+# 2. Fake pairing handshake endpoint (Alexa pairs by calling this)
+app.router.add_post('/api', handle_hue_pairing)
+
+# 3. The list of all devices (Alexa asks for this during discovery)
+app.router.add_get('/api/{username}/lights', handle_get_lights)
+
+# 4. State control endpoint (Alexa calls this when turning something ON/OFF)
+app.router.add_put('/api/{username}/lights/{id}/state', handle_set_light_state)
+
+# Run everything together on Port 80
+# web.run_app(app, port=80)
+
+
+How the Complete Ecosystem Flows TogetherDiscovery Request: Alexa sends out a global UDP multicast shoutout on your network. Your Python app (via a background SSDP listener socket) hears it and replies: "Hey! I am a Hue bridge, look at http://<your-ip>:80/description.xml".Sub-Route Hit: Alexa opens a hidden TCP channel directly to http://<your-ip>:80/description.xml.The Handshake: Your handle_upnp_xml function fires instantly. It returns the text payload above. Alexa reads it, sees <modelName>Philips hue bridge 2012</modelName>, and happily proceeds to fetch your device list using the other /api JSON sub-routes.
+
+Using an aiohttp URL Sub-Route means you do not need to create a second web server or worry about port conflicts. Your existing aiohttp web server running on Port 80 can handle both human users and Amazon Echo devices simultaneously.
+When a human opens a browser, your server sends them your HTML dashboard. When an Echo device scans your server, your server detects the specific URL path Alexa is looking for and responds with the required Philips Hue XML or JSON data.
+Here is exactly how to implement the handle_upnp_xml route and structure your aiohttp application to share Port 80.
+------------------------------
+## Step 1: The handle_upnp_xml Route Handler
+Add this function to your main_http.py file. It returns the precise XML schema that Alexa expects when it requests the /description.xml file.
+
+import socketfrom aiohttp import web
+async def handle_upnp_xml(request):
+    """
+    Tells Alexa that this server is a physical Philips Hue Bridge.
+    """
+    # Dynamically discover the local IP this request came through
+    host_ip = request.host.split(':')[0]
+    
+    xml_content = f"""<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+  <specVersion>
+    <major>1</major>
+    <minor>0</minor>
+  </specVersion>
+  <URLBase>http://{host_ip}:80/</URLBase>
+  <device>
+    <deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>
+    <friendlyName>AlertAway Bridge ({host_ip})</friendlyName>
+    <manufacturer>Royal Philips Electronics</manufacturer>
+    <manufacturerURL>http://philips.com</manufacturerURL>
+    <modelDescription>Philips hue Personal Wireless Lighting</modelDescription>
+    <modelName>Philips hue bridge 2012</modelName>
+    <modelNumber>929000226503</modelNumber>
+    <modelURL>http://meethue.com</modelURL>
+    <serialNumber>00178825102a</serialNumber>
+    <UDN>uuid:2f402f80-da50-11e1-9b23-00178825102a</UDN>
+    <presentationURL>index.html</presentationURL>
+  </device>
+</root>"""
+    # Crucial: Must be served as 'text/xml' or Alexa will ignore it
+    return web.Response(text=xml_content, content_type='text/xml')
+
+------------------------------
+## Step 2: Registering the Sub-Routes
+In your main_http.py script where you build your web.Application(), add the new Hue paths right alongside your existing UI routes:
+
+app = web.Application()
+# --- Your Existing Routes ---# app.router.add_get('/', handle_home_dashboard)# app.router.add_get('/all-devices', all_devices)
+# --- New Philips Hue Sub-Routes for Alexa ---# 1. The UPnP description file you just created
+app.router.add_get('/description.xml', handle_upnp_xml)
+# 2. Fake pairing handshake endpoint (Alexa pairs by calling this)
+app.router.add_post('/api', handle_hue_pairing)
+# 3. The list of all devices (Alexa asks for this during discovery)
+app.router.add_get('/api/{username}/lights', handle_get_lights)
+# 4. State control endpoint (Alexa calls this when turning something ON/OFF)
+app.router.add_put('/api/{username}/lights/{id}/state', handle_set_light_state)
+# Run everything together on Port 80# web.run_app(app, port=80)
+
+------------------------------
+## How the Complete Ecosystem Flows Together
+
+   1. Discovery Request: Alexa sends out a global UDP multicast shoutout on your network. Your Python app (via a background SSDP listener socket) hears it and replies: "Hey! I am a Hue bridge, look at http://<your-ip>:80/description.xml".
+   2. Sub-Route Hit: Alexa opens a hidden TCP channel directly to http://<your-ip>:80/description.xml.
+   3. The Handshake: Your handle_upnp_xml function fires instantly. It returns the text payload above. Alexa reads it, sees <modelName>Philips hue bridge 2012</modelName>, and happily proceeds to fetch your device list using the other /api JSON sub-routes.
+
+Would you like the corresponding Python code for the /api/{username}/lights JSON handler so Alexa can successfully parse your list of custom devices?
+
+from aiohttp import web
+
+async def handle_get_lights(request):
+    """
+    Returns a unified JSON dictionary mapping device IDs to Hue-compatible configurations.
+    Alexa reads this dictionary to populate her device list during a discovery scan.
+    """
+    # 1. Fetch the user token passed by Alexa (the `{username}` in the URL)
+    # Note: Hue requires a token, but for a private emulation, you can ignore or log it.
+    username = request.match_info.get('username')
+    print(f"Alexa requested device list using token: {username}")
+
+    # 2. Build the exact payload schema Alexa expects for each device
+    # Tip: "On/Off plug-in unit" is the most robust type for basic generic switches
+    lights_registry = {
+        "1": {
+            "state": {
+                "on": False,         # Current state (True/False)
+                "alert": "none",
+                "reachable": True     # Crucial: Must be True or Alexa says "Unresponsive"
+            },
+            "type": "On/Off plug-in unit",
+            "name": "Living Room Light", # The text name Alexa will speak/show
+            "modelid": "LWB004",         # Classic Philips dimmable bulb footprint
+            "manufacturername": "Philips",
+            "uniqueid": "00:17:88:01:00:ab:cd:01-01", # Fake unique Zigbee MAC endpoint
+            "swversion": "66012366"
+        },
+        "2": {
+            "state": {
+                "on": True,
+                "alert": "none",
+                "reachable": True
+            },
+            "type": "On/Off plug-in unit",
+            "name": "Kitchen Appliance",
+            "modelid": "LWB004",
+            "manufacturername": "Philips",
+            "uniqueid": "00:17:88:01:00:ab:cd:02-01",
+            "swversion": "66012366"
+        }
+    }
+
+    # 3. Return the payload explicitly formatted as application/json
+    return web.json_response(lights_registry)
+
+Alexa Multicast Shout ──> [Your Background UDP Socket Listener]
+                              │
+   Sends URL location <───────┘ (Tells Alexa: "Go look at http://<IP>:80/description.xml")
+          │
+          ▼
+Alexa HTTP GET /description.xml ──> [Your handle_upnp_xml Handler]
+                                        │
+        Sends Hue Hardware Sign <───────┘ (Tells Alexa: "Yes, I am a certified physical Hue bridge")
+          │
+          ▼
+Alexa HTTP GET /api/localuser/lights ──> [Your handle_get_lights Handler]
+                                              │
+         Sends Devices Dictionary <───────────┘ (Alexa loops through "1", "2" and populates her app)
+
+
+
+import json
+from aiohttp import web
+
+async def handle_hue_pairing(request):
+    """
+    Handles Alexa's initial connection handshake.
+    Automatically authenticates the request and issues a fake username token.
+    """
+    try:
+        # Alexa sends JSON data like {"devicetype": "Amazon Echo"}
+        body = await request.json()
+        device_type = body.get("devicetype", "unknown_device")
+        print(f"Pairing request received from: {device_type}")
+    except json.JSONDecodeError:
+        pass
+
+    # The exact JSON array format Alexa expects upon successful registration
+    # "api_token_12345" is a hardcoded token Alexa will use in future requests
+    response_payload = [
+        {
+            "success": {
+                "username": "api_token_12345"
+            }
+        }
+    ]
+    
+    return web.json_response(response_payload)
+
+
+
+async def handle_set_light_state(request):
+    """
+    Fires when Alexa sends a command to turn a device ON or OFF.
+    Extracts the targeted device ID and the desired target state.
+    """
+    # 1. Extract parameters from the Alexa URL string
+    username = request.match_info.get('username')
+    device_id = request.match_info.get('id')
+    
+    # 2. Parse the command payload (e.g., {"on": true} or {"on": false})
+    body = await request.json()
+    target_state = body.get("on") # Returns True or False
+
+    print(f"Alexa using token '{username}' ordered Device ID '{device_id}' to switch to ON={target_state}")
+
+    # 3. INTERCEPT AND SEND TO YOUR BACKEND LOGIC HERE
+    # Example: If device_id == "1", run your Zigbee / MQTT commands
+    # if device_id == "1":
+    #     execute_my_device_toggle(target_state)
+
+    # 4. Return the exact success confirmation structure Alexa requires
+    response_payload = [
+        {
+            "success": {
+                 f"/lights/{device_id}/state/on": target_state
+            }
+        }
+    ]
+    
+    return web.json_response(response_payload)
+
+
+import asyncio
+import socket
+import struct
+
+# Official UPnP Multicast configuration parameters
+MULTICAST_GROUP = "239.255.255.250"
+MULTICAST_PORT = 1900
+
+def get_local_ip() -> str:
+    """Helper function to discover the computer's primary local IP network address."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # Pings a public address (doesn't send actual data) to see which local interface is active
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+    except Exception:
+        local_ip = "127.0.0.1"
+    finally:
+        s.close()
+    return local_ip
+
+async def start_ssdp_listener():
+    """
+    Listens for Alexa's UDP network discovery packets on Port 1900.
+    Replies with the location of your Port 80 /description.xml sub-route.
+    """
+    local_ip = get_local_ip()
+    
+    # 1. Create a UDP socket configured for network multicast reuse
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    
+    # Bind directly to all incoming interfaces on the standard SSDP discovery port
+    sock.bind(("", MULTICAST_PORT))
+    
+    # Join the official UPnP multicast group
+    mreq = struct.pack("4sl", socket.inet_aton(MULTICAST_GROUP), socket.INADDR_ANY)
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    sock.setblocking(False)
+    
+    print(f"SSDP Listener active. Advertising Hue Bridge route via http://{local_ip}:80/description.xml")
+
+    # 2. Build the exact HTTP over UDP response headers Alexa expects
+    ssdp_reply = (
+        "HTTP/1.1 200 OK\r\n"
+        "CACHE-CONTROL: max-age=120\r\n"
+        "EXT:\r\n"
+        f"LOCATION: http://{local_ip}:80/description.xml\r\n"
+        "SERVER: Linux/3.14.0 UPnP/1.0 IpBridge/1.24.0\r\n"
+        "ST: urn:schemas-upnp-org:device:basic:1\r\n"
+        "USN: uuid:2f402f80-da50-11e1-9b23-00178825102a::urn:schemas-upnp-org:device:basic:1\r\n"
+        "\r\n"
+    ).encode('utf-8')
+
+    loop = asyncio.get_running_loop()
+
+    # 3. Process incoming discovery messages without blocking the main event loop
+    while True:
+        try:
+            data, addr = await loop.sock_recvfrom(sock, 1024)
+            message = data.decode('utf-8', errors='ignore')
+            
+            # Alexa triggers a scan by broadcasting an M-SEARCH query packet
+            if "M-SEARCH" in message and ("ssdp:all" in message or "device:basic" in message):
+                # Send the response back directly to the Echo device that requested it
+                await loop.sock_sendto(sock, ssdp_reply, addr)
+                print(f"Responded to Alexa discovery scan from Echo device at {addr[0]}")
+                
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            print(f"SSDP Error: {e}")
+            await asyncio.sleep(1)
+            
+    sock.close()
+
+
+
+-------------------
+
+from aiohttp import web
+
+async def start_background_tasks(app):
+    """Fires automatically when the aiohttp server boots up."""
+    # Create the background task for the SSDP network listener
+    app['ssdp_task'] = asyncio.create_task(start_ssdp_listener())
+
+async def cleanup_background_tasks(app):
+    """Fires automatically when the aiohttp server shuts down."""
+    app['ssdp_task'].cancel()
+    await app['ssdp_task'] = None
+
+def make_app():
+    app = web.Application()
+    
+    # 1. Register all your sub-routes (UI + Hue API)
+    app.router.add_get('/description.xml', handle_upnp_xml)
+    app.router.add_post('/api', handle_hue_pairing)
+    app.router.add_get('/api/{username}/lights', handle_get_lights)
+    app.router.add_put('/api/{username}/lights/{id}/state', handle_set_light_state)
+    
+    # 2. Attach the background server lifecycle events
+    app.on_startup.append(start_background_tasks)
+    app.on_cleanup.append(cleanup_background_tasks)
+    
+    return app
+
+if __name__ == '__main__':
+    app = make_app()
+    web.run_app(app, port=80)
+
+
+Here is the final piece of the puzzle: the asynchronous SSDP (Simple Service Discovery Protocol) background task.
+Alexa continuously listens for or actively broadcasts UDP multicast messages on the local network to find smart home devices. This Python task binds to the official UPnP multicast group, intercepts Alexa's search requests, and tells her to fetch your sub-routes on Port 80.
+------------------------------
+## The Python SSDP Background Code
+Add this code block into your project. You can run start_ssdp_listener() as a background task when your aiohttp web server initializes.
+
+import asyncioimport socketimport struct
+# Official UPnP Multicast configuration parametersMULTICAST_GROUP = "239.255.255.250"MULTICAST_PORT = 1900
+def get_local_ip() -> str:
+    """Helper function to discover the computer's primary local IP network address."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # Pings a public address (doesn't send actual data) to see which local interface is active
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+    except Exception:
+        local_ip = "127.0.0.1"
+    finally:
+        s.close()
+    return local_ip
+async def start_ssdp_listener():
+    """
+    Listens for Alexa's UDP network discovery packets on Port 1900.
+    Replies with the location of your Port 80 /description.xml sub-route.
+    """
+    local_ip = get_local_ip()
+    
+    # 1. Create a UDP socket configured for network multicast reuse
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    
+    # Bind directly to all incoming interfaces on the standard SSDP discovery port
+    sock.bind(("", MULTICAST_PORT))
+    
+    # Join the official UPnP multicast group
+    mreq = struct.pack("4sl", socket.inet_aton(MULTICAST_GROUP), socket.INADDR_ANY)
+    sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+    sock.setblocking(False)
+    
+    print(f"SSDP Listener active. Advertising Hue Bridge route via http://{local_ip}:80/description.xml")
+
+    # 2. Build the exact HTTP over UDP response headers Alexa expects
+    ssdp_reply = (
+        "HTTP/1.1 200 OK\r\n"
+        "CACHE-CONTROL: max-age=120\r\n"
+        "EXT:\r\n"
+        f"LOCATION: http://{local_ip}:80/description.xml\r\n"
+        "SERVER: Linux/3.14.0 UPnP/1.0 IpBridge/1.24.0\r\n"
+        "ST: urn:schemas-upnp-org:device:basic:1\r\n"
+        "USN: uuid:2f402f80-da50-11e1-9b23-00178825102a::urn:schemas-upnp-org:device:basic:1\r\n"
+        "\r\n"
+    ).encode('utf-8')
+
+    loop = asyncio.get_running_loop()
+
+    # 3. Process incoming discovery messages without blocking the main event loop
+    while True:
+        try:
+            data, addr = await loop.sock_recvfrom(sock, 1024)
+            message = data.decode('utf-8', errors='ignore')
+            
+            # Alexa triggers a scan by broadcasting an M-SEARCH query packet
+            if "M-SEARCH" in message and ("ssdp:all" in message or "device:basic" in message):
+                # Send the response back directly to the Echo device that requested it
+                await loop.sock_sendto(sock, ssdp_reply, addr)
+                print(f"Responded to Alexa discovery scan from Echo device at {addr[0]}")
+                
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            print(f"SSDP Error: {e}")
+            await asyncio.sleep(1)
+            
+    sock.close()
+
+------------------------------
+## Step 2: Tie it All Together into aiohttp
+To run this background loop cleanly inside your existing aiohttp framework, hook it into the on_startup application lifecycle event:
+
+from aiohttp import web
+async def start_background_tasks(app):
+    """Fires automatically when the aiohttp server boots up."""
+    # Create the background task for the SSDP network listener
+    app['ssdp_task'] = asyncio.create_task(start_ssdp_listener())
+async def cleanup_background_tasks(app):
+    """Fires automatically when the aiohttp server shuts down."""
+    app['ssdp_task'].cancel()
+    await app['ssdp_task'] = None
+def make_app():
+    app = web.Application()
+    
+    # 1. Register all your sub-routes (UI + Hue API)
+    app.router.add_get('/description.xml', handle_upnp_xml)
+    app.router.add_post('/api', handle_hue_pairing)
+    app.router.add_get('/api/{username}/lights', handle_get_lights)
+    app.router.add_put('/api/{username}/lights/{id}/state', handle_set_light_state)
+    
+    # 2. Attach the background server lifecycle events
+    app.on_startup.append(start_background_tasks)
+    app.on_cleanup.append(cleanup_background_tasks)
+    
+    return app
+if __name__ == '__main__':
+    app = make_app()
+    web.run_app(app, port=80)
+
+## What Happens Now During Use
+
+   1. You turn on the server. The aiohttp site starts on Port 80, and the SSDP listener task spins up silently in the background.
+   2. The user tells their Echo speaker: "Alexa, discover devices."
+   3. The background task hears the query and points Alexa to your Port 80 sub-routes.
+   4. Alexa queries the sub-routes, imports your device registry, and successfully pairs without the user ever touching or needing to know an IP address.
+
+Would you like help mapping your existing application database or device list data structure straight into the format required by the handle_get_lights endpoint?
+
+
+
+--------------------
+# A simulation of your existing application's internal state
+MY_INTERNAL_DEVICES = {
+    "living_room_lamp": {"friendly_name": "Living Room Light", "current_state": "ON"},
+    "kitchen_fan": {"friendly_name": "Kitchen Appliance", "current_state": "OFF"}
+}
+
+------------------
+import hashlib
+from aiohttp import web
+
+def generate_hue_mac(device_key: str) -> str:
+    """
+    Generates a unique, deterministic 16-character pseudo-MAC address for Alexa.
+    This guarantees the device ID stays identical across reboots.
+    """
+    # Create a stable hash based on your internal device string identifier
+    hash_digest = hashlib.md5(device_key.encode('utf-8')).hexdigest()
+    # Format the hash into a standard Philips Hue Zigbee endpoint format
+    mac = ":".join(hash_digest[i:i+2] for i in range(0, 16, 2))
+    return f"{mac}-01"
+
+async def handle_get_lights(request):
+    """
+    Dynamically maps your internal application devices into the 
+    exact JSON dictionary structure required by Alexa.
+    """
+    lights_registry = {}
+    
+    # Enumerate helps us assign strict sequential string IDs ("1", "2", "3")
+    # which the Philips Hue API framework strictly enforces.
+    for index, (device_key, device_data) in enumerate(MY_INTERNAL_DEVICES.items(), start=1):
+        
+        hue_id = str(index)
+        is_on = True if device_data["current_state"] == "ON" else False
+        
+        lights_registry[hue_id] = {
+            "state": {
+                "on": is_on,
+                "alert": "none",
+                "reachable": True  # Crucial: Must be True so Alexa shows it active
+            },
+            "type": "On/Off plug-in unit",
+            "name": device_data["friendly_name"],  # Name the end-user speaks out loud
+            "modelid": "LWB004",
+            "manufacturername": "Philips",
+            "uniqueid": generate_hue_mac(device_key),  # Stable identifier tracking
+            "swversion": "66012366"
+        }
+
+    return web.json_response(lights_registry)
+
+-------
+
+
+async def handle_set_light_state(request):
+    """
+    Translates Alexa's numeric command ID back into your internal logic.
+    """
+    device_id = request.match_info.get('id') # Alexa sends "1", "2", etc.
+    body = await request.json()
+    target_state = body.get("on") # Returns True or False
+
+    # Get a list of your internal keys in the exact order enumerated above
+    internal_keys = list(MY_INTERNAL_DEVICES.keys())
+    
+    try:
+        # Convert Alexa's 1-based string ID back to a 0-based Python list index
+        array_index = int(device_id) - 1
+        matched_device_key = internal_keys[array_index]
+        
+        # 1. Update your local database / runtime memory tracking state
+        new_state_string = "ON" if target_state else "OFF"
+        MY_INTERNAL_DEVICES[matched_device_key]["current_state"] = new_state_string
+        
+        print(f"SUCCESS: Switched {matched_device_key} to {new_state_string}")
+        
+        # 2. TRIGGER YOUR ACTUAL DEVICE HARDWARE CHANGE HERE
+        # e.g., send an MQTT message or run a system command:
+        # await trigger_hardware_toggle(matched_device_key, target_state)
+        
+    except (ValueError, IndexError):
+        print(f"ERROR: Alexa tried to control an invalid device ID: {device_id}")
+        return web.Response(status=404, text="Device Not Found")
+
+    # Confirm success to Alexa using the standard response structure
+    response_payload = [
+        {
+            "success": {
+                 f"/lights/{device_id}/state/on": target_state
+            }
+        }
+    ]
+    return web.json_response(response_payload)
+
+
+--------
+
+async def handle_set_light_state(request):
+    """
+    Translates Alexa's numeric command ID, updates local state, 
+    and publishes the action out over MQTT.
+    """
+    device_id = request.match_info.get('id') 
+    body = await request.json()
+    target_state = body.get("on") # True or False
+
+    internal_keys = list(MY_INTERNAL_DEVICES.keys())
+    
+    try:
+        array_index = int(device_id) - 1
+        matched_device_key = internal_keys[array_index]
+        
+        # 1. Update your local state tracking engine
+        new_state_string = "ON" if target_state else "OFF"
+        MY_INTERNAL_DEVICES[matched_device_key]["current_state"] = new_state_string
+        
+        # 2. CONSTRUCT YOUR TARGET MQTT TOPIC AND PAYLOAD
+        # Example 1: Standard Zigbee2MQTT device topic layout
+        # target_topic = f"zigbee2mqtt/{matched_device_key}/set"
+        # mqtt_payload = json.dumps({"state": new_state_string})
+        
+        # Example 2: Simple state string topic layout
+        target_topic = f"home/actuators/{matched_device_key}/state"
+        mqtt_payload = new_state_string
+        
+        # 3. CHOOSE NON-BLOCKING EXECUTION
+        # Fire-and-forget background execution (Fastest UI response to Alexa)
+        asyncio.create_task(async_mqtt_publish(target_topic, mqtt_payload))
+        
+    except (ValueError, IndexError):
+        print(f"ERROR: Alexa tried to control an invalid device ID: {device_id}")
+        return web.Response(status=404, text="Device Not Found")
+
+    # Confirm success instantly back to Alexa
+    response_payload = [
+        {
+            "success": {
+                 f"/lights/{device_id}/state/on": target_state
+            }
+        }
+    ]
+    return web.json_response(response_payload)
+
+-------
+
+To push the incoming Alexa command straight to your hardware, you can use the paho-mqtt library that we fixed earlier. We will inject an asynchronous MQTT publish function directly inside your PUT handler.
+Since your web server runs inside an asyncio event loop via aiohttp, you shouldn't use publish.single() directly because it is synchronous and would block your web server. Instead, we can wrap it using asyncio.to_thread().
+Here is how to complete the control circuit.
+## Step 1: Add the Asynchronous MQTT Sender
+Add this helper function to your main_http.py script to handle non-blocking MQTT publishing:
+
+import asyncioimport paho.mqtt.publish as publishimport config # Using your existing configuration structure
+async def async_mqtt_publish(topic: str, payload: str):
+    """
+    Executes paho-mqtt in a background thread so it doesn't block 
+    the main aiohttp web server loop.
+    """
+    # Replace with your actual broker IP/Port setup
+    MQTT_BROKER = "127.0.0.1" 
+    MQTT_PORT = 1883
+    
+    # Runs the synchronous publish function inside a worker thread
+    await asyncio.to_thread(
+        publish.single,
+        topic=topic,
+        payload=payload,
+        hostname=MQTT_BROKER,
+        port=MQTT_PORT
+    )
+    print(f"MQTT Broadcast sent to {topic} -> {payload}")
+
+------------------------------
+## Step 2: Integrate into handle_set_light_state
+Now, update your PUT handler to calculate your targeted Zigbee/MQTT topic and dispatch the command payload dynamically:
+
+async def handle_set_light_state(request):
+    """
+    Translates Alexa's numeric command ID, updates local state, 
+    and publishes the action out over MQTT.
+    """
+    device_id = request.match_info.get('id') 
+    body = await request.json()
+    target_state = body.get("on") # True or False
+
+    internal_keys = list(MY_INTERNAL_DEVICES.keys())
+    
+    try:
+        array_index = int(device_id) - 1
+        matched_device_key = internal_keys[array_index]
+        
+        # 1. Update your local state tracking engine
+        new_state_string = "ON" if target_state else "OFF"
+        MY_INTERNAL_DEVICES[matched_device_key]["current_state"] = new_state_string
+        
+        # 2. CONSTRUCT YOUR TARGET MQTT TOPIC AND PAYLOAD
+        # Example 1: Standard Zigbee2MQTT device topic layout
+        # target_topic = f"zigbee2mqtt/{matched_device_key}/set"
+        # mqtt_payload = json.dumps({"state": new_state_string})
+        
+        # Example 2: Simple state string topic layout
+        target_topic = f"home/actuators/{matched_device_key}/state"
+        mqtt_payload = new_state_string
+        
+        # 3. CHOOSE NON-BLOCKING EXECUTION
+        # Fire-and-forget background execution (Fastest UI response to Alexa)
+        asyncio.create_task(async_mqtt_publish(target_topic, mqtt_payload))
+        
+    except (ValueError, IndexError):
+        print(f"ERROR: Alexa tried to control an invalid device ID: {device_id}")
+        return web.Response(status=404, text="Device Not Found")
+
+    # Confirm success instantly back to Alexa
+    response_payload = [
+        {
+            "success": {
+                 f"/lights/{device_id}/state/on": target_state
+            }
+        }
+    ]
+    return web.json_response(response_payload)
+
+## How the full data loop operates now
+
+   1. User Voice Input: You say, "Alexa, turn on the Living Room Light".
+   2. Alexa Request: Your Echo speaker sends a PUT message straight to http://<your_ip>:80/api/api_token_12345/lights/1/state with {"on": true}.
+   3. Sub-Route Conversion: aiohttp catches it, converts ID "1" back into "living_room_lamp", and spins up an async worker.
+   4. MQTT Dispatch: The script constructs the target topic and hands off the message payload smoothly without freezing your web panel.
+   5. Hardware Updates: Zigbee2MQTT (or your target subscriber) intercepts the topic and immediately toggles the physical device.
+
+If you are passing complex JSON command structures to your devices via MQTT (like brightness levels or color data), let me know so we can add those parsing attributes into your payload constructor.
+
+
