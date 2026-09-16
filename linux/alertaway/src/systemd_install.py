@@ -13,9 +13,9 @@ systemd_path = "/etc/systemd/system"
 # alertaway independent processes
 modules = [
     
-    ("alertaway-main_http",                 "main_http.py",         "HTTP Server & UI", 10),
-    ("alertaway-timers-http",               "timers_http.py",       "Maintain timers", 1),
-    ("alertaway-voice-http",                "voice_http.py",        "Maintain Voices", 1),
+    ("alertaway-main_http",                 "main_http.py",         "HTTP Server & UI", 10), # 10 is the restart seconds
+    ("alertaway-timers-http",               "timers_http.py",       "Maintain timers", 10),
+    ("alertaway-voice-http",                "voice_http.py",        "Maintain Voices", 10),
     ("alertaway-events_http",               "events_http.py",       "Maintain email events", 10),
     ("alertaway-triggers-http",             "triggers_http.py",      "Maintain triggers", 10),
     ("alertaway-config-http",                "config_http.py",      "Maintain configuration", 10),
