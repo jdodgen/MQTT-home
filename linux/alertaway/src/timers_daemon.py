@@ -65,7 +65,11 @@ async def wait_and_send(sunrize_seconds, sunset_seconds, lat_long, time_type, ho
             try:
                 async with Client(hostname=CFG["local_broker_ip"], port=CFG["local_broker_port"]) as client:
                     await client.publish(topic, payload)
-                print(f"task time now [{datetime.datetime.now()}] sleep done, sent [{topic}][{payload}]")
+                    await asyncio.sleep(3)
+                    await client.publish(topic, payload)
+                    await asyncio.sleep(3)
+                    await client.publish(topic, payload)
+                    print(f"task time now [{datetime.datetime.now()}] sleep done, sent [{topic}][{payload}]")
                 break
             except Exception as e:
                 print(f"[{datetime.datetime.now()}] Failed to send to {topic}: {e}")
