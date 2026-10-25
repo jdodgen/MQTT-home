@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+"""
+# Stop the mDNS broadcast immediately
+sudo systemctl stop avahi-daemon.service avahi-daemon.socket
+
+# Disable the service so it stays silent if the system reboots
+sudo systemctl disable avahi-daemon.service avahi-daemon.socket
+
+sudo systemctl status avahi-daemon.service
+"""
 import asyncio
 import socket
 from zeroconf import IPVersion, ServiceInfo, Zeroconf
