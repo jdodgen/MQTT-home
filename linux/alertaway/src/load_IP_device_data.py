@@ -73,14 +73,36 @@ def load_IP_device(db, address, payload):
 if __name__ == "__main__":
     valve_payload = '''
 {
-"name": "main_valve",
-"desc": "motor valve controller, with feedback",
-"features":
-[
-{"mqtt": "sub", "property": "toggle", "desc": "supports on and off", "type": "binary", "payload_off": "off", "payload_on": "on", "topic": "home/main_valve/toggle"}
-,{"mqtt": "pub", "property": "state", "desc": "current state on, off or unknown", "type": "binary", "payload_on": "on", "payload_off": "off", "payload_unknown": "unknown", "topic": "home/main_valve/state"}
-,{"mqtt": "pub", "property": "anomaly", "desc": "Text payload describing problems or issues", "type": "text", "topic": "home/main_valve/anomaly"}   
-]
+  "name": "main_valve",
+  "desc": "motor valve controller, with feedback",
+  "features": [
+    {
+      "type": "binary",
+      "property": "toggle",
+      "topic": "home/main_valve/toggle",
+      "payload_off": "off",
+      "mqtt": "sub",
+      "payload_on": "on",
+      "desc": "supports on and off"
+    },
+    {
+      "topic": "home/main_valve/state",
+      "mqtt": "pub",
+      "property": "state",
+      "payload_off": "off",
+      "desc": "current state on, off or unknown",
+      "type": "binary",
+      "payload_on": "on",
+      "payload_unknown": "unknown"
+    },
+    {
+      "property": "anomaly",
+      "type": "text",
+      "topic": "home/main_valve/anomaly",
+      "mqtt": "pub",
+      "desc": "Text payload describing problems or issues"
+    }
+  ]
 }
 '''
    #  topic, payload = _example_home_broker_publish()
