@@ -6,9 +6,9 @@ import suntime
 import datetime
 from dateutil import tz
 import asyncio
-import multiprocessing
-import message
 from aiomqtt import Client
+# import multiprocessing
+# import message
 import http_common as config
 import timers_tools
 
@@ -65,7 +65,11 @@ async def wait_and_send(sunrize_seconds, sunset_seconds, lat_long, time_type, ho
             try:
                 async with Client(hostname=cfg["local_broker_ip"], port=cfg["local_broker_port"]) as client:
                     await client.publish(topic, payload)
-                print(f"task time now [{datetime.datetime.now()}] sleep done, sent [{topic}][{payload}]")
+                    await asyncio.sleep(3)
+                    await client.publish(topic, payload)
+                    await asyncio.sleep(3)
+                    await client.publish(topic, payload)
+                    print(f"task time now [{datetime.datetime.now()}] sleep done, sent [{topic}][{payload}]")
                 break
             except Exception as e:
                 print(f"[{datetime.datetime.now()}] Failed to send to {topic}: {e}")
