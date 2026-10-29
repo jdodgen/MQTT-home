@@ -32,24 +32,28 @@ def systemctl (service_name, start_stop_status):
     except:
         result = "Did not work"
     return result
-
-services = systemd_install.list_of_systemd()
-i = 0
-for s in services:
-    print (f"{i} {s}")
-    i +=1
-print ("pick one")
-one = input()
-service = services[int(one)]
-print (service)
-print("1)journalctl, 2)start, 3)stop, 4)status")
-which = input()
-if which == "1":
-    result = journal(service)
-elif which == "2":
-    result = systemctl(service, "start")
-elif which == "3":
-    result = systemctl(service, "stop")
-elif which == "4":
-    result = systemctl(service, "status")
-print(result)
+while True:
+    services = systemd_install.list_of_systemd()
+    i = 0
+    for s in services:
+        print (f"{i} {s}")
+        i +=1
+    print ("pick one")
+    one = input()
+    try:
+        int_one = int(one)
+    except:
+        break
+    service = services[int_one]
+    print (service)
+    print("1)journalctl, 2)start, 3)stop, 4)status")
+    which = input()
+    if which == "1":
+        result = journal(service)
+    elif which == "2":
+        result = systemctl(service, "start")
+    elif which == "3":
+        result = systemctl(service, "stop")
+    elif which == "4":
+        result = systemctl(service, "status")
+    print(result)
