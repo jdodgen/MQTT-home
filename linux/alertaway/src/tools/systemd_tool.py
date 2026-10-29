@@ -16,6 +16,8 @@ def journal(service_name):
         result = f"{service_name} restarted "
     except subprocess.CalledProcessError as e:
         result = f"Error restarting service: [{service_name}] {e}"
+    except:
+        result = "Did not work"
     return result
 
 def systemctl (service_name, start_stop_status):
@@ -27,6 +29,8 @@ def systemctl (service_name, start_stop_status):
         result = f"{service_name} restarted "
     except subprocess.CalledProcessError as e:
         result = f"Error restarting service: [{service_name}] {e}"
+    except:
+        result = "Did not work"
     return result
 
 services = systemd_install.list_of_systemd()
