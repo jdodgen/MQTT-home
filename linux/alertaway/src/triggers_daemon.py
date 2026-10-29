@@ -1,76 +1,92 @@
-# MIT licence copyright 2026 Jim Dodgen
-# subscribe to things, check payloads, and then publish something
-version = 1
+# MIT License Copyright 2026 Jim Dodgen
 
-import time
-import multiprocessing
-import message
-import queue
-import database
+import asyncio
+import aiomqtt
 
-my_name = "triggers_daemon"
-xprint = print # copy print
-def print(*args, **kwargs): # replace print
-    #return # comment/uncomment to turn print on off
-    try:
-        if isinstance(args, tuple) :
-            area, comment = args[0].split(None,1)
-            comment += " "+" ".join(list(args[1:]))
+xprint = print 
+my_name = "[triggers_daemon]"
+def print(*args, **kwargs): 
+    xprint(my_name, *args, **kwargs) 
+
+class AsyncTriggersDaemon:
+    def __init__(self):
+        self.triggers = {}
+        self.db = None      # Replace with your async DB client
+        self.client = None  # Replace with your async MQTT client
+
+    def load_triggers(self):
+        db = database.database(row_factory=True)
+        raw_triggers = db.get_all_triggers()
+        db.close()
+        self.triggers.clear()
+        for t in raw_triggers:
+            pub_topic = t["ptopic"]
+            pub_payload = t["pub_payload"].encode()
+            sub_topic = t["stopic"]
+            sub_payload = t["sub_payload"].encode()
+            if sub_topic not in self.triggers:
+                self.triggers[sub_topic] = {}
+            if sub_payload not in self.triggers[sub_topic]:
+                self.triggers[sub_topic][sub_payload] = []  
+            self.triggers[sub_topic][sub_payload].append([pub_topic, pub_payload])
+        print(f"Trigger structure updated: {self.triggers}")
+
+    async def handle_message(self, topic: str, payload: bytes):
+        """Processes incoming MQTT messages without blocking other tasks."""
+        if topic not in self.triggers:
+            return
+
+        if payload in self.triggers[topic]:
+            print(f"Processing topic: {topic} with payload: {payload}")
+            things_to_pub = self.triggers[topic][payload]
+            
+            # Publish all target messages concurrently
+            tasks = [
+                self.client.publish(pub_topic, pub_payload) 
+                for pub_topic, pub_payload in things_to_pub
+            ]
+            await asyncio.gather(*tasks)
         else:
-            area, comment = args[0].split(None,1)    
-        xprint("["+my_name+"/"+area+"]",comment, **kwargs)
-    except:
-        xprint(f"[{my_name}]", *args, **kwargs) # the copied real print
+            print(f"Unknown payload for topic {topic}: {payload}")
 
-def make_trigger_structure(db):
-    triggers = {}
-    raw_triggers = db.get_all_triggers()
-    #import pprint
-    #pprint.pprint(f"\ncurrent_triggers:{[dict(row) for row in raw_triggers]}\n")
-    for t in raw_triggers:
-        #print(F"t[1] = {t[1]} T['ptopic'] {t['ptopic']}")
-        pub_topic =   t["ptopic"]
-        pub_payload = t["pub_payload"].encode()
-        sub_topic =   t["stopic"]
-        sub_payload = t["sub_payload"].encode()
-        # subscribe to
-        if sub_topic not in triggers:
-            triggers[sub_topic] = {}
-        if sub_payload not in triggers[sub_topic]:
-            triggers[sub_topic][sub_payload] = []
-        triggers[sub_topic][sub_payload].append([pub_topic, pub_payload])
-    print(f"trigger_structure: {triggers}")
-    return triggers
+    async def mqtt_loop(self):
+        reconnect_delay = 1  # Start with a 1-second delay on disconnect
+        while True:
+            try:
+                print("Connecting to MQTT broker...")
+                async with aiomqtt.Client("localhost") as client:
+                    self.client = client
+                    self.load_triggers()
+                    
+                    for sub_topic in self.triggers:
+                        await client.subscribe(sub_topic)
+                    
+                    # Connection successful, reset the backoff delay
+                    reconnect_delay = 1
+                    print("MQTT connection established and topics subscribed.")
 
-def task():
-    db = database.database(row_factory=True)
-    q = queue.Queue()  
-    triggers = make_trigger_structure(db)
-    msg = message.message(q, my_parent=my_name)
-    while True:
-        item = q.get(timeout=None)
-        print("raw q", item)
-        if item[0] == "callback":
-            topic = item[1]
-            payload = item[2]
-            process_request(msg, triggers, topic, payload)
-        elif item[0] == "connected":
-            for sub in list(triggers):
-                print(f"subscribing to: [{sub}]")
-                msg.client.subscribe(sub, 0)  # needs to move to on_subscribe
+                    async for message in client.messages:
+                        try:
+                            # Inner try/except: A bad message shouldn't drop the connection
+                            await self.handle_message(message.topic.value, message.payload)
+                        except Exception as msg_err:
+                            print(f"Error processing message on {message.topic}: {msg_err}", exc_info=True)
+            except aiomqtt.MqttError as net_err:
+                # Handle expected network/broker drops
+                print(f"MQTT connection lost: {net_err}. Retrying in {reconnect_delay}s...")
+                await asyncio.sleep(reconnect_delay)
+                reconnect_delay = min(reconnect_delay * 2, 60)  # Exponential backoff up to 1 minute
+            except Exception as critical_err:
+                # Handle completely unexpected bugs (e.g., database failures during load_triggers)
+                print(f"Unexpected daemon error: {critical_err}", exc_info=True)
+                await asyncio.sleep(5)  # Safe delay before trying to boot up again
 
-def process_request(msg, triggers, topic, payload):
-    if topic in triggers: # subscribed payload
-        if payload in triggers[topic]: # payload we want, ignore others
-            print("processing", topic, payload)
-            things_to_pub = triggers[topic][payload]
-            print(f"things to pub {things_to_pub}")
-            for pub_topic, pub_payload in things_to_pub:
-               
-                print(f"publishing: [{pub_topic}]...[{pub_payload}]")
-                msg.client.publish(pub_topic,pub_payload)
-    else:
-        print(f"Error: unknown topic?:{topic}...{payload}")
+async def main():
+    daemon = AsyncTriggersDaemon()
+    await daemon.mqtt_loop()
 
 if __name__ == "__main__":
-    task()
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Daemon stopped safely.")
