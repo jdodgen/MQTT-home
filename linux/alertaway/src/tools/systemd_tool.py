@@ -46,7 +46,7 @@ while True:
         break
     service = services[int_one]
     print (service)
-    print("1)journalctl, 2)start, 3)stop, 4)status")
+    print("1)journalctl, 2)start, 3)stop, 4)status, 5)restart")
     which = input()
     if which == "1":
         result = journal(service)
@@ -56,4 +56,6 @@ while True:
         result = systemctl(service, "stop")
     elif which == "4":
         result = systemctl(service, "status")
+    elif which == "5":
+        result = systemctl(service, "restart")
     print(result)
