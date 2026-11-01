@@ -99,9 +99,11 @@
             {% for d in devices %}
             <tr>
               <th align="center">
-                <button type="submit" name=action value="delete/{{ d['mqtt_feature_id'] }}/{{ d['friendly_name'] }}">
-                    Delete
-                </button>
+                {% if loop.changed(d['friendly_name']) %}
+                    <button type="submit" name=action value="delete/{{ d['mqtt_feature_id'] }}/{{ d['friendly_name'] }}">
+                        Delete
+                    </button>
+                {% endif %}
                 {{d['friendly_name']}}
               </th>
               <td> {{ d['device_description'] }}</td>
