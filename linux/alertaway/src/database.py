@@ -251,15 +251,13 @@ class database:
         cur.close()
         self.con.commit()
 
-    def delete_feature(self, id, friendly_name):
-        xprint(f"delete_device = {id}")
+    def delete_device(self,friendly_name):
+        xprint(f"delete_feature = {friendly_name}")
         cur = self.con.cursor()
         try:
-            cur.execute("delete from mqtt_feature where mqtt_feature_id = ?", (id,))
-            cur.execute("""delete from mqtt_device where friendly_name = ?
-                and friendly_name not in (select friendly_name from mqtt_feature)""", (friendly_name,))
+            cur.execute("delete from mqtt_device where friendly_name = ?", (friendly_name,))
         except:
-            print(f"problem deleting {id}")
+            print(f"problem deleting {friendly_name}")
         cur.close()
         self.con.commit()
 

@@ -21,7 +21,7 @@ DB=None # built per process
 #msg=None   # built per process from message.message
 # conditional print
 import os 
-my_name = "http_server"
+my_name = "main_http"
 xprint = print # copy print
 def print(*args, **kwargs): # replace print
     #return
@@ -73,7 +73,7 @@ async def create_IP_device(request):
         access = None #data["IP_access"]  #sub or pub
         print("create_IP_device", name, desc)
         if name and desc: # and access:
-            print("insert_or_update_device")
+            print("insert_or_ignore_device")
             DB.insert_or_ignore_device(desc, name, "manIP")
             data_list = {
                 "friendly_name": name, 
@@ -124,27 +124,6 @@ async def whoareyou(request):
     myhost = os.uname()[1]
     return web.Response(text=f"iam/{myhost}")
     
-# async def create_voice(request):
-    # error_msg = ''
-    # # aiohttp requires awaiting the form data
-    # if request.method == "POST":
-        # data = await request.post()
-        # action = data.get("action")
-        # if action == "restart":
-            # # do a systemd restart to pick up the fresh config
-             # restart_service.restart("alertaway-fauxmo-task")
-             # # pre systemd watch_dog_queue.put(["startfauxmotask", "start"])
-        # elif action == "display":
-            # cfg = build_cfg()  #"fauxmo_cfg_placeholder" # Replace with your manager call
-            # return web.Response(text=f"<pre>{cfg}</pre>", content_type='text/html')
-        # else:
-            # print(f"Voice[{data}]")
-            # if "voice_name" in data and "voice_device" in data:
-                # DB.create_voice(data["voice_name"], data.get("port"), data["voice_device"])
-            # else:
-                # error_msg = 'Both Voice name and device required'
-    # return await render_response(request, error_msg)
-    
 def send_mqtt_publish(feature_rowid, true_or_false):
     print(f"send_mqtt_publish rowid[{feature_rowid}] [{true_or_false}]")
     (access, 
@@ -185,7 +164,7 @@ async def all_devices(request):
             publish.single(mqtt_hello.hello_request_topic) 
             error="Auto IP devices refreshed"
         elif parts[0] == 'delete':
-            DB.delete_feature(parts[1],parts[2])
+            DB.delete_device(parts[2])
         # elif parts[0] == "manIP":
             # update_IP = True
             # rowid = parts[1]
@@ -220,10 +199,6 @@ app.add_routes([
     web.get('/whoareyou', whoareyou),
     web.get('/create_IP_device', create_IP_device),
     web.post('/create_IP_device', create_IP_device),
-    # web.get('/create_voice', create_voice),
-    # web.post('/create_voice', create_voice),
-    #web.get('/remove_voice', remove_voice),
-    #web.post('/remove_voice', remove_voice),
     web.get('/all_devices', all_devices),
     web.post('/all_devices', all_devices),
     web.get('/zigbee2mqtt', z2m_page),
