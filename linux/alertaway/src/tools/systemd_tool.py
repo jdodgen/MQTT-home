@@ -24,7 +24,7 @@ def systemctl (service_name, start_stop_status):
     try:
         # Calls: sudo systemctl restart your_service.service
 
-        subprocess.run(['/usr/bin/sudo', '/usr/bin/systemctl ', start_stop_status, service_name], check=True)
+        subprocess.run(['/usr/bin/sudo', '/usr/bin/systemctl', start_stop_status, service_name], check=True)
         # sudo journalctl -u alertaway-timers-daemon
         result = f"{service_name} restarted "
     except subprocess.CalledProcessError as e:

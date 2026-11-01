@@ -27,6 +27,7 @@ modules = [
     ("alertaway-send_emails_daemon",        "send_emails_daemon.py","Email Notifications", 10),
     ("alertaway-fauxmo_manager",            "fauxmo_manager.py",    "Runs fauxmo/WeMo", 10),
     ("alertaway-mqtt_service_task",         "mqtt_service_task.py", "MQTT Integration", 10), 
+    ("alertaway-mdns_multi_host_responder", "mdns_multi_host_responder.py", "Publish home-broker.local and alertaway.local mDNS Aliases", 10), 
 ]
 
 def generate_files():
@@ -56,6 +57,7 @@ PartOf=alertaway.target
 After=network.target {addl_services}
 
 [Service]
+Type=simple
 ExecStart=/usr/bin/python3 -u {PYTHON_FILES}/{script}
 WorkingDirectory={DATA_FILES}
 Restart=always
@@ -74,12 +76,13 @@ WantedBy=alertaway.target
             with open(file_name, "w") as f:
                 f.write(service_content)
                 print(f"Created: {file_name}")
-                
+
 def list_of_systemd():
     lst = []
     for name, script, desc, RestartSec in modules:
         lst.append(name)
     return lst
+    
 
 if __name__ == "__main__":
     generate_files()

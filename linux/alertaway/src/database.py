@@ -337,9 +337,10 @@ class database:
 
     def insert_device_feature(self, data_list):
     # data_list should be a list of tuples or dictionaries
+        print("insert_device_feature:")
         cur = self.con.cursor()
         query = """
-            INSERT INTO mqtt_feature (
+            INSERT OR IGNORE INTO mqtt_feature (
                 friendly_name, property, description, type,
                 access, topic, true_value, false_value
             ) VALUES (
@@ -354,6 +355,7 @@ class database:
         else:
             print("insert_device_feature Failure: No rows were inserted.")
         self.con.commit()
+        return cur.rowcount
 
     def get_feature_mqtt(self, rowid):
         cur = self.con.cursor()

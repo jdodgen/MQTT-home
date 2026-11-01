@@ -55,15 +55,18 @@ def load_IP_device(db, address, payload):
             else:
                 topic = f["topic"] if "topic" in f else f["pub_topic"] if "pub_topic" in f else None
                 feature_description = f["desc"] if "desc" in f else None
-                exists = db.insert_device_feature(  name, 
+                print(f"topic: {topic}, feature_description {feature_description}")
+                feat_list = [  
+                                    name, 
                                     property,  
                                     feature_description,
                                     type,
                                     access,
                                     topic,
                                     f["payload_on"]  if "payload_on"  in f else None,
-                                    f["payload_off"] if "payload_off" in f else None,
-                                )
+                                    f["payload_off"] if "payload_off" in f else None,]
+                print("feat list", feat_list)                
+                exists = db.insert_device_feature(feat_list)
                 if not exists:
                     change_record_count += 1
         if change_record_count > 0:
@@ -73,7 +76,7 @@ def load_IP_device(db, address, payload):
 if __name__ == "__main__":
     valve_payload = '''
 {
-  "name": "main_valve",
+  "name": "test_main_valve",
   "desc": "motor valve controller, with feedback",
   "features": [
     {
@@ -106,23 +109,24 @@ if __name__ == "__main__":
 }
 '''
    #  topic, payload = _example_home_broker_publish()
+    db = database.database()
     device =json.loads(valve_payload)
     print("device [%s]" % (device,))
-    load_IP_device(valve_payload)
+    load_IP_device(db, "999", valve_payload)
 
-    door_bell_payload = '''
-{
-"name": "door_bell",
-"desc": "Four different chimes",
-"features":
-[
-{"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/ding_ding"}
-,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/ding_dong"}
-,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/westminster_abby"}
-,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/three_chimes"}
-,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/button"}
-]
-}'''
-    device =json.loads(door_bell_payload)
-    print("device [%s]" % (device,))
-    load_IP_device(door_bell_payload)
+    # door_bell_payload = '''
+# {
+# "name": "door_bell",
+# "desc": "Four different chimes",
+# "features":
+# [
+# {"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/ding_ding"}
+# ,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/ding_dong"}
+# ,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/westminster_abby"}
+# ,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/three_chimes"}
+# ,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/button"}
+# ]
+# }'''
+    # device =json.loads(door_bell_payload)
+    # print("device [%s]" % (device,))
+    # load_IP_device(door_bell_payload)
