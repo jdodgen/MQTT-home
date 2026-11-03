@@ -34,6 +34,7 @@ def systemctl (service_name, start_stop_status):
     return result
 while True:
     services = systemd_install.list_of_systemd()
+    services.append("alertaway.target")
     i = 0
     for s in services:
         print (f"{i} {s}")

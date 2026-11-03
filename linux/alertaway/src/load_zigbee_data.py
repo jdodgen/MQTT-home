@@ -32,27 +32,27 @@ def print(*args, **kwargs): # replace print
     # p.join()
     # p.close()
 
-class ZigbeeDeviceRefresher():
-    def __init__(self):
-        self.db = database.database()
-        q = queue.Queue()  
-        self.msg = message.message(q, my_parent=my_name)
-        self.msg.client.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES, 0)
-        while True:
-            try:
-                item = q.get(timeout=20)
-            except queue.Empty:
-                print("ZigbeeDeviceRefresher empty sleeping")
-                time.sleep(1)
-                continue
-            if item is None:
-                print("ZigbeeDeviceRefresher: no reply from ")
-                break
-            print("ZigbeeDeviceRefresher item[0] [%s]" % (item[0],))
-            if item[0] == "callback":
-                if item[1] == const.zigbee2mqtt_bridge_devices: # reply topic
-                    load_database_from_zigbee(item[2])
-                    ##  break
+# class ZigbeeDeviceRefresher():
+    # def __init__(self):
+        # self.db = database.database()
+        # q = queue.Queue()  
+        # self.msg = message.message(q, my_parent=my_name)
+        # self.msg.client.subscribe(config.ZIGBEE2MQTT_BRIDGE_DEVICES, 0)
+        # while True:
+            # try:
+                # item = q.get(timeout=20)
+            # except queue.Empty:
+                # print("ZigbeeDeviceRefresher empty sleeping")
+                # time.sleep(1)
+                # continue
+            # if item is None:
+                # print("ZigbeeDeviceRefresher: no reply from ")
+                # break
+            # print("ZigbeeDeviceRefresher item[0] [%s]" % (item[0],))
+            # if item[0] == "callback":
+                # if item[1] == const.zigbee2mqtt_bridge_devices: # reply topic
+                    # load_database_from_zigbee(item[2])
+                    # ##  break
 
 def load_database_from_zigbee(zigbee2mqtt_devices):
     #print("\n\n",zigbee2mqtt_devices,"\n\n")
@@ -157,7 +157,7 @@ def parse_access_flags(access):
     return (published, set, get)
 
 if __name__ == "__main__":
-    d=ZigbeeDeviceRefresher()
+    #d=ZigbeeDeviceRefresher()
     time.sleep(10)
     #import sample_zigbee2mqtt_bridge_devices
     #load_database_from_zigbee(sample_zigbee2mqtt_bridge_devices.sample_zigbee2mqtt_bridge_devices)
