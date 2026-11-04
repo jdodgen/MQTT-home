@@ -11,7 +11,7 @@ def journal(service_name):
     try:
         # Calls: sudo systemctl restart your_service.service
 
-        subprocess.run(['/usr/bin/sudo', '/usr/bin/journalctl', '-u', service_name], check=True)
+        subprocess.run(['/usr/bin/sudo', '/usr/bin/journalctl', '-u', service_name, "--since",  "1 hour ago"], check=True)
         # sudo journalctl -u alertaway-timers-daemon
         result = f"{service_name} restarted "
     except subprocess.CalledProcessError as e:
