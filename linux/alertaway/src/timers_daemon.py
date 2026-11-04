@@ -12,6 +12,7 @@ from aiomqtt import Client
 import http_common as config
 import timers_tools
 
+TWO_HOURS_IN_SECONDS = 7200
 
 xprint = print 
 my_name = "[timers_daemon]"
@@ -82,7 +83,7 @@ async def wait_and_send(sunrize_seconds, sunset_seconds, lat_long, time_type, ho
     else:
         print(f"late_startup, not sleeping, exiting [{topic}][{payload}]")
 
-async def process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, task_list, cfg):
+async def process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, current_day_tasks, cfg):
     topic =         atime["topic"]
     true_value =    atime["true_value"]
     false_value =   atime["false_value"]
@@ -102,15 +103,15 @@ async def process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, task_l
     # CHANGED: Track these tasks so we can destroy them at midnight
     t1 = asyncio.create_task(wait_and_send(sunrize_seconds, sunset_seconds, lat_long, start_type, start_hour, start_minute, start_offset, topic, start_value, cfg))
     t2 = asyncio.create_task(wait_and_send(sunrize_seconds, sunset_seconds, lat_long, stop_type,  stop_hour,  stop_minute,  stop_offset,  topic, stop_value, cfg))
-    task_list.extend([t1, t2])
+    current_day_tasks.extend([t1, t2])
 
-async def start_timers(lat_long, times, task_list):
+async def start_timers(lat_long, times, current_day_tasks):
     cfg = config.get_db_config()
     timetools = timers_tools.tools()
     (sunrize_seconds, sunset_seconds) = timetools.get_sunset_sunrise_since_midnight()
     for atime in times:
         print("start_timers starting:", atime["topic"])
-        await process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, task_list, cfg)
+        await process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, current_day_tasks, cfg)
 
 async def main():
     import database
@@ -124,19 +125,21 @@ async def main():
     
     while True:
         await sleep_until_one_second_after_midnight()
-        
-        # CHANGED: Cancel all lingering sleeps from yesterday before pulling fresh rows
         print("Midnight reached. Purging yesterday's lingering scheduled tasks...")
         for task in current_day_tasks:
             if not task.done():
                 task.cancel()
-        
-        # Clear out our tracker cache
         current_day_tasks.clear()
-        
+        timers_for_today = db.get_timers_for_today()
         # Load up fresh configs and spin up new clean tasks
-        await start_timers(config.get_db_config()["lat_long"], db.get_timers_for_today(), current_day_tasks)
-        await asyncio.sleep(1)
+        await start_timers(config.get_db_config()["lat_long"], timers_for_today, current_day_tasks)
+        await asyncio.sleep(TWO_HOURS_IN_SECONDS)
+        for task in current_day_tasks:
+            if not task.done():
+                task.cancel()
+        current_day_tasks.clear()
+        await start_timers(config.get_db_config()["lat_long"], timers_for_today, current_day_tasks)
+
 
 if __name__ == "__main__":
     asyncio.run(main())
