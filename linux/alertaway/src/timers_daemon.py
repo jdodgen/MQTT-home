@@ -35,9 +35,9 @@ def seconds_to_event(event_time):
     local_time_seconds_since_midnight = local_time.tm_hour * 3600 + local_time.tm_min * 60 + local_time.tm_sec
     seconds = event_time - local_time_seconds_since_midnight
     return seconds
-
-async def wait_and_send(sunrize_seconds, sunset_seconds, lat_long, time_type, hour, minute, offset, topic, payload, cfg):
-    print(f"task starting '{time_type}' {hour}:{minute} or {offset} [{topic}][{payload}]")
+    
+def calc_seconds(sunrize_seconds, sunset_seconds, lat_long, time_type, hour, minute, offset):
+    print(f"calc_seconds '{time_type}' {hour}:{minute} or {offset}")
     match time_type:
         case "Sunset":
             print(f"sunset at this hour {sunset_seconds/3600}")
@@ -49,10 +49,11 @@ async def wait_and_send(sunrize_seconds, sunset_seconds, lat_long, time_type, ho
             since_midnight = (int(minute) * 60) + (int(hour) * 3600) 
             print(f"hours since_midnight [{since_midnight/3600}]")
             seconds = seconds_to_event(since_midnight)
-            
     print(f"hours until event [{seconds/3600}]")
+    return seconds
     
-    # CHANGED: >= 0 handles immediate/near-immediate execution better
+async def wait_and_send(seconds, topic, payload, cfg):
+    print(f"task starting '[{topic}][{payload}]")
     if seconds >= 0:
         print(f"async task sleeping [{topic}][{payload}]")
         try:
@@ -60,7 +61,6 @@ async def wait_and_send(sunrize_seconds, sunset_seconds, lat_long, time_type, ho
         except asyncio.CancelledError:
             print(f"Task for [{topic}] cancelled because day changed.")
             raise
-
         max_attempts = 6
         for attempt in range(1, max_attempts + 1):
             try:
@@ -74,7 +74,6 @@ async def wait_and_send(sunrize_seconds, sunset_seconds, lat_long, time_type, ho
                 break
             except Exception as e:
                 print(f"[{datetime.datetime.now()}] Failed to send to {topic}: {e}")
-                # FIXED: Move backoff sleep inside the exception block and check threshold
                 if attempt < max_attempts:
                     try:
                         await asyncio.sleep(10 * attempt)
@@ -100,9 +99,11 @@ async def process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, curren
     start_value = false_value if invert else true_value
     stop_value =  true_value  if invert else false_value
     
-    # CHANGED: Track these tasks so we can destroy them at midnight
-    t1 = asyncio.create_task(wait_and_send(sunrize_seconds, sunset_seconds, lat_long, start_type, start_hour, start_minute, start_offset, topic, start_value, cfg))
-    t2 = asyncio.create_task(wait_and_send(sunrize_seconds, sunset_seconds, lat_long, stop_type,  stop_hour,  stop_minute,  stop_offset,  topic, stop_value, cfg))
+    start_seconds = calc_seconds(sunrize_seconds, sunset_seconds, lat_long, start_type, start_hour, start_minute, start_offset)
+    stop_seconds = calc_seconds(sunrize_seconds, sunset_seconds, lat_long, stop_type,  stop_hour,  stop_minute,  stop_offset)
+    if stop_seconds > start_seconds: # DST some times causes stop time to have passed after sunrise/or sunset
+        t1 = asyncio.create_task(wait_and_send(start_seconds, topic, start_value, cfg))
+        t2 = asyncio.create_task(wait_and_send(stop_seconds,  topic, stop_value, cfg))
     current_day_tasks.extend([t1, t2])
 
 async def start_timers(lat_long, times, current_day_tasks):
