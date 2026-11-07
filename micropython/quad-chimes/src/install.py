@@ -31,7 +31,23 @@ from pathlib import Path
 import datetime
 import tomllib
 import sys
+import json
 
+
+raw_doorbell_payload = '''
+    {
+    "name": "{name}",
+    "desc": "Four different chimes",
+    "features":
+    [
+    {"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/ding_ding"}
+    ,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/ding_dong"}
+    ,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/westminster_abby"}
+    ,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/three_chimes"}
+    ,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/button"}
+    ]
+    }
+    '''
 ###### modify these as needed ######
 mp_lib_offset="../../library/"  # micropython specific
 all_lib_offset="../../../library/" # both linux and micropython
@@ -170,6 +186,8 @@ publish_button = "%s"
 publish_button_payload = "%s"
 cluster_id = "%s"
 location = "%s"
+hello_topic = "home/%s/hello"
+hello_payload = '''%s'''
 """
         now = datetime.datetime.now()
         cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
@@ -190,6 +208,8 @@ location = "%s"
             self.cluster["cluster_id"],
             #self.cluster["send_email"],
             self.location,
+            self.location,
+            raw_doorbell_payload.format(name=self.location)
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))

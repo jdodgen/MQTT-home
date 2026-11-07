@@ -15,22 +15,7 @@
 #
 
 VERSION = (0, 4, 1)
-import json
-door_bell_payload = '''
-{
-"name": "door_bell",
-"desc": "Four different chimes",
-"features":
-[
-{"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/ding_ding"}
-,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/ding_dong"}
-,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/westminster_abby"}
-,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/three_chimes"}
-,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/button"}
-]
-}'''
-device =json.loads(door_bell_payload)
-print(device)
+
 
 import umail
 import alert_handler
@@ -83,20 +68,6 @@ xprint = print # copy print
 def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
     xprint("[run]", *args, **kwargs) # the copied real print
-
-# async def send_email(subject, body, cluster_id_only=False):
-    # if cfg.send_email:
-        # try:
-            # smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
-            # smtp.login(cfg.gmail_user, cfg.gmail_password)
-            # smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-            # id = cfg.cluster_id+"/"+cfg.location
-            # print("our id [%s]" % (id,))
-            # smtp.write("CC: %s\nSubject:[quad_chimes %s] %s\n\n%s\n" % (cfg.cc_string, id, subject, body,))
-            # smtp.send()
-            # smtp.quit()
-        # except Exception as e:
-            # print("email failed", e)
 
 async def raw_messages(client,error_queue):  # Process all incoming messages
     global led
@@ -188,33 +159,6 @@ async def problem_reporter(error_queue):
                     continue
                 else:
                     break
-
-def make_email_body():
-    body = '''\
-[cluster]
- name = "%s"
-[sensor]\n''' %  (cfg.cluster_id,)
-    #i = 0
-    for topic in current_watched_sensors:
-        name = topic.split("/")[2]
-        try:
-            parts = name.split(" ",1)
-            if len(parts) == 1:
-                parts.append("")
-        except:
-            parts = [name, ""]
-        body += ''' [sensor.%s]\n  desc = "%s"\n  state = %s\n''' % (parts[0], parts[1], "false  #\t\t<>>>> \""+name+"\" is OFF <<<<>" if current_watched_sensors[topic][PUBLISH_CYCLES_WITHOUT_A_MESSAGE] > cfg.other_message_threshold else "true # on")
-        #i += 1
-    name = cfg.publish.split("/")[2]
-    try:
-        parts = name.split(" ",1)
-        if len(parts) == 1:
-            parts.append("")
-    except:
-        parts = [name, ""]
-    body += ''' [sensor.%s] # reporting sensor\n  desc = "%s"\n  on = true''' % (parts[0], parts[1],)
-    print(body)
-    return body
 
 async def up_so_subscribe(client, error_queue):
     wildcard_subscribe = feature_quad_chimes.feature(cfg.cluster_id, location="+")
