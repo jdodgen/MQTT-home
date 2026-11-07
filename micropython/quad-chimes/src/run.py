@@ -13,7 +13,25 @@
 # example is "switch" option monitoring a gpio line to detect a swich or button:
 # quad_chimes is both a sensor, the button. An actuator which is doing one of the four chimes
 #
-VERSION = (0, 3, 4)
+
+VERSION = (0, 4, 1)
+import json
+door_bell_payload = '''
+{
+"name": "door_bell",
+"desc": "Four different chimes",
+"features":
+[
+{"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/ding_ding"}
+,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/ding_dong"}
+,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/westminster_abby"}
+,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/three_chimes"}
+,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary", "payload_on": "pressed", "topic": "home/door_bell/button"}
+]
+}'''
+device =json.loads(door_bell_payload)
+print(device)
+
 import umail
 import alert_handler
 from mqtt_as import MQTTClient, config
@@ -42,6 +60,7 @@ pin_play_all.value(1)
 pin_ding_dong.value(1)
 pin_ding_ding.value(1)
 pin_west.value(1)
+
 # end of quad-chimes  stuff
 
 #our_status = feature_power.feature(cfg.cluster_id+"/"+cfg.publish, publish=True)   # publisher
@@ -65,19 +84,19 @@ def print(*args, **kwargs): # replace print
     #return # comment/uncomment to turn print on off
     xprint("[run]", *args, **kwargs) # the copied real print
 
-async def send_email(subject, body, cluster_id_only=False):
-    if cfg.send_email:
-        try:
-            smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
-            smtp.login(cfg.gmail_user, cfg.gmail_password)
-            smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
-            id = cfg.cluster_id+"/"+cfg.location
-            print("our id [%s]" % (id,))
-            smtp.write("CC: %s\nSubject:[quad_chimes %s] %s\n\n%s\n" % (cfg.cc_string, id, subject, body,))
-            smtp.send()
-            smtp.quit()
-        except Exception as e:
-            print("email failed", e)
+# async def send_email(subject, body, cluster_id_only=False):
+    # if cfg.send_email:
+        # try:
+            # smtp = umail.SMTP('smtp.gmail.com', 465, ssl=True)
+            # smtp.login(cfg.gmail_user, cfg.gmail_password)
+            # smtp.to(cfg.send_messages_to, mail_from=cfg.gmail_user)
+            # id = cfg.cluster_id+"/"+cfg.location
+            # print("our id [%s]" % (id,))
+            # smtp.write("CC: %s\nSubject:[quad_chimes %s] %s\n\n%s\n" % (cfg.cc_string, id, subject, body,))
+            # smtp.send()
+            # smtp.quit()
+        # except Exception as e:
+            # print("email failed", e)
 
 async def raw_messages(client,error_queue):  # Process all incoming messages
     global led
@@ -207,8 +226,8 @@ async def up_so_subscribe(client, error_queue):
         print('doing subscribes', wild_topic)
         error_queue.put(0)
         await client.subscribe(wild_topic)
-        print("emailing startup")
-        await send_email("Starting", "")
+        #print("emailing startup")
+        #await send_email("Starting", "")
 
 async def down_report_outage(client, error_queue):
     while True:
@@ -228,7 +247,7 @@ async def main():
     config['server'] = cfg.broker
     config["user"] = cfg.user
     config["password"] = cfg.password
-    config["ssl"] = True
+    config["ssl"] = cfg.ssl
     config["ssl_params"] = {'server_hostname': cfg.broker}
     config["queue_len"] = 10  # Use event interface with default queue size
     config["response_time"] = 30

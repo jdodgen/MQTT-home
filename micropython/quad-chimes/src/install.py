@@ -35,7 +35,7 @@ import sys
 ###### modify these as needed ######
 mp_lib_offset="../../library/"  # micropython specific
 all_lib_offset="../../../library/" # both linux and micropython
-cluster_lib = str(Path.home())+"/Dropbox/wip/pcn_clusters"
+cluster_lib = str(Path.home())+"/Dropbox/wip/clusters" 
 
 if os.name == 'nt':
     serial_port = "COM3"
@@ -69,7 +69,10 @@ def load_cluster(cluster_file_name):
         print("Error: ",cluster_toml," File not found")
         sys.exit()
     except tomllib.TOMLDecodeError as e:
-        print("Error: Invalid TOML format in {file_path}: {e}")
+        print(f"Invalid TOML format!")
+        print(f"Error Message: {e}")
+        print(f"Line number: {e.lineno}")
+        print(f"Column number: {e.colno}")
         sys.exit()
 
 class create_cfg:
@@ -83,7 +86,7 @@ class create_cfg:
         self.quad_chimes_feature = feature_quad_chimes.feature(self.cluster["cluster_id"], location=self.location, publish=True)
         print(self.quad_chimes_feature.topic())
         self.get_button_chime()
-        self.email_addresses()
+        #self.email_addresses()
         self.write_cfg()
 
     def get_location(self):
@@ -119,13 +122,13 @@ class create_cfg:
             print("invalid responce")
         print("Chime selected", self.payload)
 
-    def email_addresses(self):
-        self.cc_string = ''
-        for addr in self.cluster["email"]["to_list"]:
-            self.cc_string += "<%s>," % (addr,)
-        self.cc_string = self.cc_string.rstrip(",")
-        print(self.cc_string)
-        return self.cc_string
+    # def email_addresses(self):
+        # self.cc_string = ''
+        # for addr in self.cluster["email"]["to_list"]:
+            # self.cc_string += "<%s>," % (addr,)
+        # self.cc_string = self.cc_string.rstrip(",")
+        # print(self.cc_string)
+        # return self.cc_string
 
 # this is the cfg.py template uses % to pass in stuff
     def write_cfg(self):
@@ -161,23 +164,11 @@ ssl = %s # true or false
 user = '%s'
 password = '%s'
 #
-# a python list of one or more email addresses ["9095551212@tmomail.net", "you@gmail.com"]
-send_messages_to = %s # a python list
-#
-# gmail account to send emails through
-#
-gmail_password = "%s" # gmail generates this and it can change it in the future
-gmail_user = "%s"
-cc_string = "%s"  # a smtp Cc: string
-# a python list of one or more email addresses ["9095551212@tmomail.net", "you@gmail.com"]
-send_messages_to = %s # a python list
-
 
 PCN_publish_power = "%s"
 publish_button = "%s"
 publish_button_payload = "%s"
 cluster_id = "%s"
-send_email =  %s
 location = "%s"
 """
         now = datetime.datetime.now()
@@ -185,19 +176,19 @@ location = "%s"
             self.cluster["network"]["ssid"],
             self.cluster["network"]["wifi_password"],
             self.cluster["mqtt_broker"]["broker"],
-            self.cluster["mqtt_broker"]["ssl"],
-            self.cluster["mqtt_broker"]["user"],
-            self.cluster["mqtt_broker"]["password"],
-            self.cluster["email"]["to_list"],
-            self.cluster["email"]["gmail_password"],
-            self.cluster["email"]["gmail_user"],
-            self.cc_string,
-            self.cluster["email"]["to_list"],
+            self.cluster["mqtt_broker"].get("ssl",False),
+            self.cluster["mqtt_broker"].get("user", None),
+            self.cluster["mqtt_broker"].get("password", None),
+            # self.cluster["email"]["to_list"],
+            # self.cluster["email"]["gmail_password"],
+            # self.cluster["email"]["gmail_user"],
+            #self.cc_string,
+            #self.cluster["email"]["to_list"],
             self.power_feature.topic(),
             self.quad_chimes_feature.topic(),
             self.payload,
             self.cluster["cluster_id"],
-            self.cluster["send_email"],
+            #self.cluster["send_email"],
             self.location,
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
