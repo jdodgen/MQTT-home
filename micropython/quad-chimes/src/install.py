@@ -40,14 +40,18 @@ raw_doorbell_payload = '''
     "desc": "Four different chimes",
     "features":
     [
-    {"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/ding_ding"}
-    ,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/ding_dong"}
-    ,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/westminster_abby"}
-    ,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/three_chimes"}
-    ,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/button"}
+    {"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{cluster}/ding_ding"}
+    ,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{cluster}/ding_dong"}
+    ,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{cluster}/westminster_abby"}
+    ,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "payload_on": "pressed", "topic": "home/{cluster}/three_chimes"}
+    ,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary", "payload_on": "pressed", "topic": "home/{cluster}/button"}
     ]
     }
     '''
+
+#foo = raw_doorbell_payload.replace("{name}", "XX").replace("{cluster}", "YYY")
+#print(foo)
+
 ###### modify these as needed ######
 mp_lib_offset="../../library/"  # micropython specific
 all_lib_offset="../../../library/" # both linux and micropython
@@ -94,6 +98,7 @@ def load_cluster(cluster_file_name):
 class create_cfg:
     def __init__(self, cluster):
         self.cluster = cluster
+        
         self.payload = ""
         self.location = "nowhere"
         self.get_location()
@@ -115,7 +120,7 @@ class create_cfg:
         print("select one (case insensitive): ", end="")
         loc_selected = input().upper()
         self.location = locations[int(loc_selected)-1]
-        print("Location:", loc_selected, self.location)
+        print(f"Location: {loc_selected}, [{self.location}]")
 
     def get_button_chime(self):
         print("Button publishes:")
@@ -209,10 +214,11 @@ hello_payload = '''%s'''
             #self.cluster["send_email"],
             self.location,
             self.location,
-            raw_doorbell_payload.format(name=self.location)
+            raw_doorbell_payload.replace("{name}",self.location).replace("{cluster}",self.cluster["cluster_id"])
             )
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))
+        
         with open('cfg.py', 'w') as f:
             f.write(cfg_text)
         print("created cfg.py")
