@@ -40,11 +40,11 @@ raw_doorbell_payload = '''
     "desc": "Four different chimes",
     "features":
     [
-    {"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{cluster}/ding_ding"}
-    ,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{cluster}/ding_dong"}
-    ,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "pressed", "topic": "home/{cluster}/westminster_abby"}
-    ,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "payload_on": "pressed", "topic": "home/{cluster}/three_chimes"}
-    ,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary", "payload_on": "pressed", "topic": "home/{cluster}/button"}
+    {"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary", "payload_on": "ding_ding", "topic": "home/{cluster}/chime"}
+    ,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary", "payload_on": "ding_dong", "topic": "home/{cluster}/chime"}
+    ,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "westminster_abby", "topic": "home/{cluster}/chime"}
+    ,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "three_chimes": "pressed", "topic": "home/{cluster}/chime"}
+    ,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/button"}
     ]
     }
     '''
