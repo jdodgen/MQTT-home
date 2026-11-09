@@ -171,7 +171,7 @@ async def up_so_subscribe(client, led_8x8_queue, single_led_queue, topics):
             single_led_queue.put("heart_beat")
         for topic in topics:
             await client.subscribe(topic)
-        if cfg.send_start_email:
+        if getattr(cfg, "send_start_email", None): # cfg.send_start_email:
             print("emailing startup")
             await send_email("PCN Starting", boilerplate)
 
