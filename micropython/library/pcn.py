@@ -165,23 +165,26 @@ async def up_so_subscribe(client, led_8x8_queue, single_led_queue, topics):
         await client.up.wait()
         client.up.clear()
         print('doing subscribes', topics)
-        led_8x8_queue.put((("_",False), ))
-        single_led_queue.put("heart_beat")
+        if led_8x8_queue:
+            led_8x8_queue.put((("_",False), ))
+        if single_led_queue:   
+            single_led_queue.put("heart_beat")
         for topic in topics:
             await client.subscribe(topic)
         if cfg.send_start_email:
             print("emailing startup")
             await send_email("PCN Starting", boilerplate)
-        
- 
+
 async def down_report_outage(client, led_8x8_queue, single_led_queue):
     global last_config
     while True:
         await client.down.wait()
         client.down.clear()
         print('down_report_outage got outage')
-        led_8x8_queue.put((("^",False),))
-        single_led_queue.put("all_off")
+        if led_8x8_queue:
+            led_8x8_queue.put((("^",False),))
+        if single_led_queue:
+            single_led_queue.put("all_off")
         machine.soft_reset()
         
 boilerplate = '''Starting up:
@@ -242,12 +245,16 @@ async def make_first_connection(config, led_8x8_queue, single_led_queue):
                 try:
                     x=client._addr
                     print("we have ip address broker not connecting", client._addr)
-                    led_8x8_queue.put((("?", False),("#", False),("_", False),("#", False),("_", False),)) # report 3 flashes
-                    single_led_queue.put("broker")
+                    if led_8x8_queue:
+                        led_8x8_queue.put((("?", False),("#", False),("_", False),("#", False),("_", False),)) # report 3 flashes
+                    if single_led_queue:
+                        single_led_queue.put("broker")
                 except:
                     print("wifi failed no ip address")
-                    led_8x8_queue.put((("+",False),("^",False),("+", False),("^",False),("+", False),))  # report 2 flashes
-                    single_led_queue.put("wifi")
+                    if led_8x8_queue:
+                        led_8x8_queue.put((("+",False),("^",False),("+", False),("^",False),("+", False),))  # report 2 flashes
+                    if single_led_queue:
+                        single_led_queue.put("wifi")
                 await asyncio.sleep(cfg.wifi_sleep)
             else:
                 print("ip address", client._addr)
