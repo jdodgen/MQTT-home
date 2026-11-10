@@ -69,8 +69,10 @@ print("Device on:", serial_port)
 # In this example, if main.py is in 'project/', this adds 'project/'
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(current_dir, all_lib_offset))
+sys.path.append(os.path.join(current_dir, mp_lib_offset))
+
 import feature_power # located in all_lib_offset
-import feature_quad_chimes
+
 ###### end of stuff that needs modification ######
 
 def load_cluster(cluster_file_name):
@@ -94,7 +96,37 @@ def load_cluster(cluster_file_name):
         print(f"Line number: {e.lineno}")
         print(f"Column number: {e.colno}")
         sys.exit()
-
+        
+def wifi_list_of_list(cluster):
+    l = []
+    for ssid in cluster["network"]:
+        print("ssid", ssid)
+        pw = cluster["network"][ssid]["password"]
+        print("password", cluster["network"][ssid]["password"])
+        l.append([ssid, pw])
+    print(l)
+    return l
+    
+def print_sensors(sensors):
+    index = 1
+    ix = {}
+    sensor_keys = list(sensors.keys())
+    sensor_keys.sort()
+    for key in sensor_keys:
+        #print("sensor key=", key)
+        try:
+            desc =sensors[key]["desc"]
+        except:
+            desc=""
+        print("%s) %s %s" % (index,key, desc))
+        ix[index] = key
+        index += 1
+        if(('+' in desc) or ('/' in desc) or ('+' in key) or ('/' in key)):
+            print("\nERROR: future topic  [%s][%s] contains a / or +,  MQTT reserved fix in toml file\n" % (key,desc,))
+            sys.exit()
+    return ix
+    
+    
 class create_cfg:
     def __init__(self, cluster):
         self.cluster = cluster
@@ -234,12 +266,13 @@ def push_library_code():
     mp_lib_offset+"uuid.py",
     mp_lib_offset+"alert_handler.py",
     mp_lib_offset+"button.py",
-    mp_lib_offset+"umail.py",
+    # mp_lib_offset+"umail.py",
     mp_lib_offset+"mqtt_as.py",
     all_lib_offset+"mqtt_hello.py",
-    all_lib_offset+"feature_quad_chimes.py",
+    # all_lib_offset+"feature_quad_chimes.py",
     all_lib_offset+"feature_power.py",
     all_lib_offset+"msgqueue.py",
+    mp_lib_offset+"pcn.py",
     ]
     print("now pushing python library code")
     for c in code:
