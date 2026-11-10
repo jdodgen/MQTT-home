@@ -186,8 +186,8 @@ class create_cfg:
 # this is the cfg.py template uses % to pass in stuff
     def write_cfg(self):
         now = datetime.datetime.now()
-
-        cfg_text = f""" # MIT license copyright 2024, 2025, 2026 Jim Dodgen 
+        hello_payload = raw_doorbell_payload.replace("{{name}}", self.sensor_to_make). replace("{{cluster}}", self.cluster["cluster_id"])
+        cfg_text = f""" # MIT license copyright 2024-2026 Jim Dodgen 
         # this cfg.py was created by: install.py 
         # Date: {now.strftime("%Y-%m-%d %H:%M:%S")} 
         # MAKE YOUR CHANGES IN install.py 
@@ -209,8 +209,8 @@ class create_cfg:
         other_message_threshold=4 # how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off 
         # broker = '{self.cluster["mqtt_broker"]["broker"]}' 
         ssl = {self.cluster["mqtt_broker"].get("ssl", False)} # true or false 
-        user = '{self.cluster["mqtt_broker"].get("user", None)}' 
-        password = '{self.cluster["mqtt_broker"].get("password", None)}' 
+        user = '{self.cluster["mqtt_broker"].get("user", None)}' # ignored if ssl = False
+        password = '{self.cluster["mqtt_broker"].get("password", None)}' # ignored if ssl = False
         cluster_id = "{self.cluster["cluster_id"]}" 
         sensor_to_make = "{self.sensor_to_make}"
         PCN_publish_power_topic = "home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/power"  # payload is always "up"
@@ -219,7 +219,7 @@ class create_cfg:
         button_topic = "home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/button"  # payload "pressed"
         
         hello_topic = "home/{self.sensor_to_make}/hello" 
-        hello_payload = '''{raw_doorbell_payload.replace("{{name}}", self.sensor_to_make). replace("{{cluster}}", self.cluster["cluster_id"])}''' 
+        hello_payload = '''{hello_payload}''' ' 
         """
 
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
