@@ -40,11 +40,11 @@ raw_doorbell_payload = '''
     "desc": "Four different chimes",
     "features":
     [
-    {"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary", "payload_on": "ding_ding", "topic": "home/{cluster}/chime"}
-    ,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary", "payload_on": "ding_dong", "topic": "home/{cluster}/chime"}
+    {"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary",                "payload_on": "ding_ding", "topic": "home/{cluster}/chime"}
+    ,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary",               "payload_on": "ding_dong", "topic": "home/{cluster}/chime"}
     ,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "westminster_abby", "topic": "home/{cluster}/chime"}
-    ,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "three_chimes": "pressed", "topic": "home/{cluster}/chime"}
-    ,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary", "payload_on": "pressed", "topic": "home/{name}/button"}
+    ,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "payload_on": "three_chimes", "topic": "home/{cluster}/chime"}
+    ,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary",           "payload_on": "pressed", "topic": "home/{name}/button"}
     ]
     }
     '''
@@ -128,52 +128,52 @@ def print_sensors(sensors):
     
     
 class create_cfg:
-    def __init__(self, cluster):
+    def __init__(self, cluster, sensor_to_make):
         self.cluster = cluster
-        
-        self.payload = ""
-        self.location = "nowhere"
-        self.get_location()
-        self.power_feature = feature_power.feature(self.cluster["cluster_id"], location=self.location)   # publisher
-        print(self.power_feature.topic())
-        self.quad_chimes_feature = feature_quad_chimes.feature(self.cluster["cluster_id"], location=self.location, publish=True)
-        print(self.quad_chimes_feature.topic())
-        self.get_button_chime()
+        self.sensor_to_make = sensor_to_make
+        self.sensors = self.cluster["sensor"]
+        self.button_quad_chimes_publish_payload = self.sensors[self.sensor_to_make]["button_quad_chimes_publish"]
+        #self.pcn_topic = feature_power.feature(self.cluster["cluster_id"], location=self.location)   # publisher
+        #print(self.power_feature.topic())
+        #self.quad_chimes_feature = feature_quad_chimes.feature(self.cluster["cluster_id"], location=self.location, publish=True)
+        #print(self.quad_chimes_feature.topic())
+        #self.get_button_chime()
         #self.email_addresses()
+        self.wifi=wifi_list_of_list(self.cluster)
         self.write_cfg()
 
-    def get_location(self):
-        ndx=0
-        locations = self.cluster["locations"] #"locations"]
-        print("\nlocations:", locations)
-        for loc in locations:
-            ndx += 1
-            print("%s) %s" % (str(ndx), loc,))
-        print("select one (case insensitive): ", end="")
-        loc_selected = input().upper()
-        self.location = locations[int(loc_selected)-1]
-        print(f"Location: {loc_selected}, [{self.location}]")
+    # def get_location(self):
+        # ndx=0
+        # locations = self.cluster["locations"] #"locations"]
+        # print("\nlocations:", locations)
+        # for loc in locations:
+            # ndx += 1
+            # print("%s) %s" % (str(ndx), loc,))
+        # print("select one (case insensitive): ", end="")
+        # loc_selected = input().upper()
+        # self.location = locations[int(loc_selected)-1]
+        # print(f"Location: {loc_selected}, [{self.location}]")
 
-    def get_button_chime(self):
-        print("Button publishes:")
-        print("1) Westminster")
-        print("2) Ding dong")
-        print("3) Ding ding")
-        print("4) All three")
-        print("select one (case insensitive): ", end="")
-        chime_selected = input().upper()
-        #print("chime_selected = ", chime_selected)
-        if (chime_selected == "1"):
-            self.payload = self.quad_chimes_feature.payload_westminster()
-        elif (chime_selected == "2"):
-            self.payload = self.quad_chimes_feature.payload_ding_dong()
-        elif (chime_selected == "3"):
-            self.payload = self.quad_chimes_feature.payload_ding_ding()
-        elif (chime_selected == "4"):
-           self.payload = self.quad_chimes_feature.payload_three_chimes()
-        else:
-            print("invalid responce")
-        print("Chime selected", self.payload)
+    # def get_button_chime(self):
+        # print("Button publishes:")
+        # print("1) Westminster")
+        # print("2) Ding dong")
+        # print("3) Ding ding")
+        # print("4) All three")
+        # print("select one (case insensitive): ", end="")
+        # chime_selected = input().upper()
+        # #print("chime_selected = ", chime_selected)
+        # if (chime_selected == "1"):
+            # self.payload = self.quad_chimes_feature.payload_westminster()
+        # elif (chime_selected == "2"):
+            # self.payload = self.quad_chimes_feature.payload_ding_dong()
+        # elif (chime_selected == "3"):
+            # self.payload = self.quad_chimes_feature.payload_ding_ding()
+        # elif (chime_selected == "4"):
+           # self.payload = self.quad_chimes_feature.payload_three_chimes()
+        # else:
+            # print("invalid responce")
+        # print("Chime selected", self.payload)
 
     # def email_addresses(self):
         # self.cc_string = ''
@@ -185,69 +185,43 @@ class create_cfg:
 
 # this is the cfg.py template uses % to pass in stuff
     def write_cfg(self):
-        cfg_template = """
-# MIT license copyright 2024, 2025 Jim Dodgen
-# this cfg.py was created by: install.py
-# Date: %s
-# MAKE YOUR CHANGES IN install.py
-#
-led_gpio          = 3  # optional
-onboard_led_gpio  = 15 # built in BLUE led
-button_pin        = 12  # D8
-play_all_pin      = 35  # D1
-ding_dong_pin     = 33  # D2
-ding_ding_pin     = 18  # D3
-westminster_pin   = 16  # D4
-
-time_to_trigger = 1  # how long to hold down for a chime
-#
-#
-# wifi: IoT or guest network recommended
-ssid="%s"
-wifi_password = "%s"
-#
-#
-start_delay=0 # startup delay
-number_of_seconds_to_wait=30  # all sensors publish "power" messages every 30 seconds
-other_message_threshold=4  # how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off
-
-#
-broker = '%s'
-ssl = %s # true or false
-user = '%s'
-password = '%s'
-#
-
-PCN_publish_power = "%s"
-publish_button = "%s"
-publish_button_payload = "%s"
-cluster_id = "%s"
-location = "%s"
-hello_topic = "home/%s/hello"
-hello_payload = '''%s'''
-"""
         now = datetime.datetime.now()
-        cfg_text =  cfg_template % (now.strftime("%Y-%m-%d %H:%M:%S"),
-            self.cluster["network"]["ssid"],
-            self.cluster["network"]["wifi_password"],
-            self.cluster["mqtt_broker"]["broker"],
-            self.cluster["mqtt_broker"].get("ssl",False),
-            self.cluster["mqtt_broker"].get("user", None),
-            self.cluster["mqtt_broker"].get("password", None),
-            # self.cluster["email"]["to_list"],
-            # self.cluster["email"]["gmail_password"],
-            # self.cluster["email"]["gmail_user"],
-            #self.cc_string,
-            #self.cluster["email"]["to_list"],
-            self.power_feature.topic(),
-            self.quad_chimes_feature.topic(),
-            self.payload,
-            self.cluster["cluster_id"],
-            #self.cluster["send_email"],
-            self.location,
-            self.location,
-            raw_doorbell_payload.replace("{name}",self.location).replace("{cluster}",self.cluster["cluster_id"])
-            )
+
+        cfg_text = f""" # MIT license copyright 2024, 2025, 2026 Jim Dodgen 
+        # this cfg.py was created by: install.py 
+        # Date: {now.strftime("%Y-%m-%d %H:%M:%S")} 
+        # MAKE YOUR CHANGES IN install.py 
+        # led_gpio = 3 # optional 
+        onboard_led_gpio = 15 # built in BLUE led 
+        button_pin = 12 # D8 
+        play_all_pin = 35 # D1 
+        ding_dong_pin = 33 # D2 
+        ding_ding_pin = 18 # D3 
+        westminster_pin = 16 # D4 
+        time_to_trigger = 1 # how long to hold down for a chime 
+        # 
+        # 
+        # wifi: IoT or guest network recommended 
+        wifi= {self.wifi}
+        # 
+        # start_delay=0 # startup delay 
+        number_of_seconds_to_wait=30 # all sensors publish "power" messages every 30 seconds 
+        other_message_threshold=4 # how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off 
+        # broker = '{self.cluster["mqtt_broker"]["broker"]}' 
+        ssl = {self.cluster["mqtt_broker"].get("ssl", False)} # true or false 
+        user = '{self.cluster["mqtt_broker"].get("user", None)}' 
+        password = '{self.cluster["mqtt_broker"].get("password", None)}' 
+        cluster_id = "{self.cluster["cluster_id"]}" 
+        sensor_to_make = "{self.sensor_to_make}"
+        PCN_publish_power_topic = "home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/power"  # payload is always "up"
+        chime_topic = "home/{self.cluster["cluster_id"]}/chime" 
+        chime_payload = "{self.button_quad_chimes_publish_payload}"
+        button_topic = "home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/button"  # payload "pressed"
+        
+        hello_topic = "home/{self.sensor_to_make}/hello" 
+        hello_payload = '''{raw_doorbell_payload.replace("{{name}}", self.sensor_to_make). replace("{{cluster}}", self.cluster["cluster_id"])}''' 
+        """
+
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))
         
@@ -302,8 +276,20 @@ def main():
             break
         except:
             print("Try again")
-
-    create_cfg(cluster) # drops cfg.py file
+   
+    while True:
+        ix = print_sensors(cluster["sensor"])
+        print("select one: ", end="")
+        index = input()
+        sensor_to_make = ix[int(index)]
+        if sensor_to_make.lower() in cluster["sensor"]:
+           sensor_to_make =  sensor_to_make.lower()
+        print("request = ", sensor_to_make)
+        if sensor_to_make in cluster["sensor"]:
+            break
+        else:
+                print(">>> not found <<<")
+    create_cfg(cluster, sensor_to_make) # drops cfg.py file
 
     # install micropython kernal
     did_we_flash = False
