@@ -242,9 +242,9 @@ def push_library_code():
     mp_lib_offset+"button.py",
     # mp_lib_offset+"umail.py",
     mp_lib_offset+"mqtt_as.py",
-    all_lib_offset+"mqtt_hello.py",
+    #all_lib_offset+"mqtt_hello.py",
     # all_lib_offset+"feature_quad_chimes.py",
-    all_lib_offset+"feature_power.py",
+    #all_lib_offset+"feature_power.py",
     all_lib_offset+"msgqueue.py",
     mp_lib_offset+"pcn.py",
     ]
