@@ -30,6 +30,43 @@ import asyncio
 from machine import Pin
 from mqtt_as import MQTTClient, config
 
+
+
+========================
+import asyncio
+from machine import Pin
+from mqtt_as import MQTTClient, config
+
+async def handle_button(client, btn_flag):
+    while True:
+        await btn_flag.wait()
+        print("Button pressed!")
+        await client.publish('home/button', 'pressed', qos=1)
+        await asyncio.sleep_ms(250)
+
+async def main(client):
+    await client.connect()
+    
+    # 1. Setup button and flag cleanly inside main()
+    button = Pin(14, Pin.IN, Pin.PULL_UP)
+    btn_flag = asyncio.ThreadSafeFlag()
+    button.irq(trigger=Pin.IRQ_FALLING, handler=lambda _: btn_flag.set())
+    
+    # 2. Start the task and pass the flag to it
+    asyncio.create_task(handle_button(client, btn_flag))
+    
+    while True:
+        await asyncio.sleep(10)
+
+client = MQTTClient(config)
+try:
+    asyncio.run(main(client))
+finally:
+    client.close()
+
+
+
+===================
 # Setup button (assuming active-low with internal pull-up)
 button = Pin(14, Pin.IN, Pin.PULL_UP)
 btn_flag = asyncio.ThreadSafeFlag()
@@ -66,16 +103,7 @@ try:
     asyncio.run(main(client))
 finally:
     client.close()
-
-
-
-
-
-
-
-
-
-
+======================================
 
 
 SEND_HELLO = home/home_broker/send_hello"
