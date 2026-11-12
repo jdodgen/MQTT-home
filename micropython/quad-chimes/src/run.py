@@ -25,6 +25,59 @@ pin_ding_dong.value(1)
 pin_ding_ding.value(1)
 pin_west.value(1)
 
+
+import asyncio
+from machine import Pin
+from mqtt_as import MQTTClient, config
+
+# Setup button (assuming active-low with internal pull-up)
+button = Pin(14, Pin.IN, Pin.PULL_UP)
+btn_flag = asyncio.ThreadSafeFlag()
+
+# Hardware interrupt: runs immediately on press, even if asyncio is busy
+def button_isr(pin):
+    btn_flag.set()
+
+button.irq(trigger=Pin.IRQ_FALLING, handler=button_isr)
+
+async def handle_button(client):
+    while True:
+        # Pauses here using 0% CPU until the interrupt fires
+        await btn_flag.wait()
+        
+        print("Button pressed! Publishing MQTT message...")
+        await client.publish('home/button', 'pressed', qos=1)
+        
+        # Simple debounce delay so one press doesn't trigger multiple times
+        await asyncio.sleep_ms(250)
+
+async def main(client):
+    await client.connect()
+    # Start your button watcher as a background task
+    asyncio.create_task(handle_button(client))
+    
+    # Keep main alive (or run other periodic tasks here)
+    while True:
+        await asyncio.sleep(10)
+
+# Configure your Wi-Fi and broker settings in config as usual
+client = MQTTClient(config)
+try:
+    asyncio.run(main(client))
+finally:
+    client.close()
+
+
+
+
+
+
+
+
+
+
+
+
 SEND_HELLO = home/home_broker/send_hello"
 #wildcard_subscribe = feature_power.feature(cfg.cluster_id+"/+", subscribe=True)
 #print(wildcard_subscribe.topic())
@@ -232,30 +285,30 @@ async def main():
             await client.publish(button_topic, "pressed")
             print("button pressed")
         # first publish alive status
-        if cfg.monitor_only == True: # we don't publish or get tracked
-            pass  
-        else:
-            # test fixture
-            # sw_value = not sw_value;
-            sw_value = sw.test()
-            print("switch value", sw_value)
-            print("switch = %s switch_detected_true_value %s" % (sw_value, switch_detected_true_value))
-            if (cfg.switch == True and sw_value != switch_detected_true_value):
-                await client.publish(cfg.publish, "down")
-                if not switch_on_email_sent:  # we have not sent email
-                    switch_on_email_sent = True
-                    # send switch check email
-                    await send_email("(%s) %s %s" % 
-                    (cfg.device_letter, cfg.desc, cfg.switch_subject_event_true), "", cluster_id_only=True)
-            else:
-                print("publishing switch up message")
-                await client.publish(cfg.publish, "up")
-                if switch_on_email_sent:
-                    # email sent so send a now send up email
-                    await send_email("(%s) %s %s" % 
-                    (cfg.device_letter, cfg.desc, cfg.switch_subject_event_false), "", cluster_id_only=True)
-                switch_on_email_sent = False
-        print("\b[publish_check_loop]")
+        # if cfg.monitor_only == True: # we don't publish or get tracked
+            # pass  
+        # else:
+            # # test fixture
+            # # sw_value = not sw_value;
+            # sw_value = sw.test()
+            # print("switch value", sw_value)
+            # print("switch = %s switch_detected_true_value %s" % (sw_value, switch_detected_true_value))
+            # if (cfg.switch == True and sw_value != switch_detected_true_value):
+                # await client.publish(cfg.publish, "down")
+                # if not switch_on_email_sent:  # we have not sent email
+                    # switch_on_email_sent = True
+                    # # send switch check email
+                    # await send_email("(%s) %s %s" % 
+                    # (cfg.device_letter, cfg.desc, cfg.switch_subject_event_true), "", cluster_id_only=True)
+            # else:
+                # print("publishing switch up message")
+                # await client.publish(cfg.publish, "up")
+                # if switch_on_email_sent:
+                    # # email sent so send a now send up email
+                    # await send_email("(%s) %s %s" % 
+                    # (cfg.device_letter, cfg.desc, cfg.switch_subject_event_false), "", cluster_id_only=True)
+                # switch_on_email_sent = False
+        # print("\b[publish_check_loop]")
         # await check_for_down_sensors(led_8x8_queue, single_led_queue)
         if last_PCN_send+number_of_seconds_to_wait < now:
             last_PCN_send = now;
