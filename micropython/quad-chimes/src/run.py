@@ -132,7 +132,7 @@ def print(*args, **kwargs): # replace print
 
 #
 # current_watched_sensors[topic][SUB_TOPICS]
-current_watched_sensors = {}
+# current_watched_sensors = {}
 # SUB_TOPICS
 #MESSAGE_THIS_CYCLE = "MTC" # "message_this_cycle"
 #HAVE_WE_SENT_POWER_IS_DOWN_EMAIL = "HWSPISE" # "have_we_sent_power_is_down_email"
