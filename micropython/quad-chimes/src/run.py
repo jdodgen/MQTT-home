@@ -25,85 +25,82 @@ pin_ding_dong.value(1)
 pin_ding_ding.value(1)
 pin_west.value(1)
 
+# ========================
+# import asyncio
+# from machine import Pin
+# from mqtt_as import MQTTClient, config
 
-import asyncio
-from machine import Pin
-from mqtt_as import MQTTClient, config
+# async def handle_button(client, btn_flag):
+    # while True:
+        # await btn_flag.wait()
+        # print("Button pressed!")
+        # await client.publish('home/button', 'pressed', qos=1)
+        # await asyncio.sleep_ms(250)
 
-
-
-========================
-import asyncio
-from machine import Pin
-from mqtt_as import MQTTClient, config
-
-async def handle_button(client, btn_flag):
-    while True:
-        await btn_flag.wait()
-        print("Button pressed!")
-        await client.publish('home/button', 'pressed', qos=1)
-        await asyncio.sleep_ms(250)
-
-async def main(client):
-    await client.connect()
+# async def main(client):
+    # await client.connect()
     
-    # 1. Setup button and flag cleanly inside main()
-    button = Pin(14, Pin.IN, Pin.PULL_UP)
-    btn_flag = asyncio.ThreadSafeFlag()
-    button.irq(trigger=Pin.IRQ_FALLING, handler=lambda _: btn_flag.set())
+    # # 1. Setup button and flag cleanly inside main()
+    # button = Pin(14, Pin.IN, Pin.PULL_UP)
+    # btn_flag = asyncio.ThreadSafeFlag()
+    # button.irq(trigger=Pin.IRQ_FALLING, handler=lambda _: btn_flag.set())
     
-    # 2. Start the task and pass the flag to it
-    asyncio.create_task(handle_button(client, btn_flag))
+    # # 2. Start the task and pass the flag to it
+    # asyncio.create_task(handle_button(client, btn_flag))
     
-    while True:
-        await asyncio.sleep(10)
+    # while True:
+        # await asyncio.sleep(10)
 
-client = MQTTClient(config)
-try:
-    asyncio.run(main(client))
-finally:
-    client.close()
+# client = MQTTClient(config)
+# try:
+    # asyncio.run(main(client))
+# finally:
+    # client.close()
 
 
 
-===================
-# Setup button (assuming active-low with internal pull-up)
-button = Pin(14, Pin.IN, Pin.PULL_UP)
-btn_flag = asyncio.ThreadSafeFlag()
+# ===================
+# import asyncio
+# from machine import Pin
+# from mqtt_as import MQTTClient, config
 
-# Hardware interrupt: runs immediately on press, even if asyncio is busy
-def button_isr(pin):
-    btn_flag.set()
+# # Setup button (assuming active-low with internal pull-up)
+# button = Pin(14, Pin.IN, Pin.PULL_UP)
+# btn_flag = asyncio.ThreadSafeFlag()
 
-button.irq(trigger=Pin.IRQ_FALLING, handler=button_isr)
+# # Hardware interrupt: runs immediately on press, even if asyncio is busy
+# def button_isr(pin):
+    # btn_flag.set()
 
-async def handle_button(client):
-    while True:
-        # Pauses here using 0% CPU until the interrupt fires
-        await btn_flag.wait()
+# button.irq(trigger=Pin.IRQ_FALLING, handler=button_isr)
+
+# async def handle_button(client):
+    # while True:
+        # # Pauses here using 0% CPU until the interrupt fires
+        # await btn_flag.wait()
         
-        print("Button pressed! Publishing MQTT message...")
-        await client.publish('home/button', 'pressed', qos=1)
+        # print("Button pressed! Publishing MQTT message...")
+        # await client.publish('home/button', 'pressed', qos=1)
         
-        # Simple debounce delay so one press doesn't trigger multiple times
-        await asyncio.sleep_ms(250)
+        # # Simple debounce delay so one press doesn't trigger multiple times
+        # await asyncio.sleep_ms(250)
 
-async def main(client):
-    await client.connect()
-    # Start your button watcher as a background task
-    asyncio.create_task(handle_button(client))
+# async def main(client):
+    # await client.connect()
+    # # Start your button watcher as a background task
+    # asyncio.create_task(handle_button(client))
     
-    # Keep main alive (or run other periodic tasks here)
-    while True:
-        await asyncio.sleep(10)
+    # # Keep main alive (or run other periodic tasks here)
+    # while True:
+        # await asyncio.sleep(10)
 
-# Configure your Wi-Fi and broker settings in config as usual
-client = MQTTClient(config)
-try:
-    asyncio.run(main(client))
-finally:
-    client.close()
-======================================
+# # Configure your Wi-Fi and broker settings in config as usual
+# client = MQTTClient(config)
+# try:
+    # asyncio.run(main(client))
+# finally:
+    # client.close()
+# ======================================
 
 
 SEND_HELLO = home/home_broker/send_hello"
@@ -250,9 +247,18 @@ async def raw_messages(client):  # Respond to all incoming messages
     # if need_email and cfg.send_email:
         # await send_email("PCN One or more Power Outages or Events", make_email_body(), cluster_id_only=True)
 
+async def handle_button(client, btn_flag):
+    while True:
+        await btn_flag.wait()
+        print("Button pressed!")
+        await client.publish('home/button', 'pressed', qos=1)
+        await asyncio.sleep_ms(250)
+        
 async def main():
     global led
-    button_press = button.button(cfg.button_pin)
+   
+    
+    ## button_press = button.button(cfg.button_pin)
     while True:
         print("checking connection")
         try:
@@ -292,7 +298,14 @@ async def main():
     #
     asyncio.create_task(raw_messages(client, led_8x8_queue, single_led_queue))
     asyncio.create_task(pcn.up_so_subscribe(client, led_8x8_queue, single_led_queue, [chime_topic,SEND_HELLO,]))
-    asyncio.create_task(pcn.down_report_outage(client, led_8x8_queue, single_led_queue))        
+    asyncio.create_task(pcn.down_report_outage(client, led_8x8_queue, single_led_queue))  
+    
+     # 1. Setup button and flag cleanly inside main()
+    button = machine.Pin(cfg.button_pin, machine.Pin.IN, machine.Pin.PULL_UP)
+    btn_flag = asyncio.ThreadSafeFlag()
+    button.irq(trigger=Pin.IRQ_FALLING, handler=lambda _: btn_flag.set())
+    # 2. Start the task and pass the flag to it
+    asyncio.create_task(handle_button(client, btn_flag))      
 
     # sw = switch.switch(cfg.switch_pin, client)
     # print("switch is",sw.test())
@@ -307,10 +320,10 @@ async def main():
     # sw_value = 0; # test fixture
     last_PCN_send = now;
     while True:  # Main loop
-        await asyncio.sleep(0.3)
-        if (button_press.test() == 0):
-            await client.publish(chime_topic, chime_payload)
-            await client.publish(button_topic, "pressed")
+        # await asyncio.sleep(0.3)
+        # if (button_press.test() == 0):
+            # await client.publish(chime_topic, chime_payload)
+            # await client.publish(button_topic, "pressed")
             print("button pressed")
         # first publish alive status
         # if cfg.monitor_only == True: # we don't publish or get tracked
@@ -338,9 +351,11 @@ async def main():
                 # switch_on_email_sent = False
         # print("\b[publish_check_loop]")
         # await check_for_down_sensors(led_8x8_queue, single_led_queue)
-        if last_PCN_send+number_of_seconds_to_wait < now:
-            last_PCN_send = now;
-            await client.publish(PCN_publish_power_topic, "up")
+        # if last_PCN_send+number_of_seconds_to_wait < now:
+            # last_PCN_send = now;
+        await client.publish(PCN_publish_power_topic, "up")
+        await asyncio.sleep(number_of_seconds_to_wait)
+        
 
 ############ startup ###############
 time.sleep(cfg.start_delay)
