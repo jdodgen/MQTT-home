@@ -9,7 +9,19 @@ xprint = print
 my_name = "[triggers_daemon]"
 def print(*args, **kwargs): 
     xprint(my_name, *args, **kwargs) 
-
+    
+def clean_msg(raw):
+    # Handle both bytes and str safely
+    if isinstance(raw, bytes):
+        raw = raw.decode("utf-8")
+    return (
+        raw.replace("{", "")
+        .replace("}", "")
+        .replace('"', "")
+        .replace(" ", "")
+        .lower()
+    )
+    
 class AsyncTriggersDaemon:
     def __init__(self):
         self.triggers = {}
@@ -42,9 +54,7 @@ class AsyncTriggersDaemon:
         print(f"working topic: {topic} payload {payload}")
         for trigger_payload in self.triggers[topic]:  # loop though target
             print(f"trigger_payload {trigger_payload}")
-            if (trigger_payload.decode("utf-8").replace("{","").replace("}","").replace('"',"").replace(' ',"").lower() 
-            in 
-            payload.decode("utf-8").replace("{","").replace("}","").replace('"',"").replace(' ',"").lower()):  # some payloads contain lots of other things
+            if clean_msg(trigger_payload) in clean_msg(payload):  # some payloads contain lots of other things
                 one_or_more_found = True
                 print(f"Processing topic: {topic} with payload: {payload}")
                 things_to_pub = self.triggers[topic][trigger_payload]
