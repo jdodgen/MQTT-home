@@ -4,27 +4,6 @@
 # Y N defaults are designed for rapid deployment during development
 # usage is: "python3 install.py cluster_example.toml"
 # this does as much preprocessing as it can to freeup the microprocessor
-cluster_example_toml='''
-# this is a toml configuration file see https://toml.io/
-# this file is used by install.py to generate device cfg.py files
-
-cluster_id = "your place"  # as in: "/home/your place/Big Generator/power"
-
-[network]
-ssid =  "mywifi"
-wifi_password = '12345678'
-
-[mqtt_broker]
-broker="home-broker.local"  # or where ever your MQTT broker is
-ssl = true/false
-user = "user"
-password = "password"
-
-[email]
-to_list = ["foo@bar.com", "bar@foo.com"]
-gmail_password = "xxx xxx xxx xxx"
-gmail_user = "??@gmail.com"
-'''
 
 import os
 from pathlib import Path
@@ -32,22 +11,23 @@ import datetime
 import tomllib
 import sys
 import json
+import time
 
 
 raw_doorbell_payload = '''
-    {
-    "name": "{name}",
-    "desc": "Four different chimes",
-    "features":
-    [
-    {"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary",                "payload_on": "ding_ding", "topic": "home/{cluster}/chime"}
-    ,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary",               "payload_on": "ding_dong", "topic": "home/{cluster}/chime"}
-    ,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "westminster_abby", "topic": "home/{cluster}/chime"}
-    ,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "payload_on": "three_chimes", "topic": "home/{cluster}/chime"}
-    ,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary",           "payload_on": "pressed", "topic": "home/{name}/button"}
-    ]
-    }
-    '''
+{
+"name": "{name}",
+"desc": "Four different chimes",
+"features":
+[
+{"mqtt": "sub", "property": "ding_ding", "desc": "Ding ding chime", "type": "momentary",                "payload_on": "ding_ding", "topic": "home/{cluster}/chime"}
+,{"mqtt": "sub", "property": "ding_dong", "desc": "Ding dong chime", "type": "momentary",               "payload_on": "ding_dong", "topic": "home/{cluster}/chime"}
+,{"mqtt": "sub", "property": "westminster_abby", "desc": "Westminster abby chime", "type": "momentary", "payload_on": "westminster_abby", "topic": "home/{cluster}/chime"}
+,{"mqtt": "sub", "property": "three_chimes", "desc": "westminster_abby, ding ding and ding dong chimes", "type": "momentary", "payload_on": "three_chimes", "topic": "home/{cluster}/chime"}
+,{"mqtt": "pub", "property": "button", "desc": "simple momentary event", "type": "momentary",           "payload_on": "pressed", "topic": "home/{name}/button"}
+]
+}
+'''
 
 #foo = raw_doorbell_payload.replace("{name}", "XX").replace("{cluster}", "YYY")
 #print(foo)
@@ -71,7 +51,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(current_dir, all_lib_offset))
 sys.path.append(os.path.join(current_dir, mp_lib_offset))
 
-import feature_power # located in all_lib_offset
+#import feature_power # located in all_lib_offset
 
 ###### end of stuff that needs modification ######
 
@@ -84,7 +64,7 @@ def load_cluster(cluster_file_name):
     try:
         with open(cluster_toml, 'rb') as toml_file:
             cluster = tomllib.load(toml_file)
-        print(cluster)
+        #print(cluster)
         return cluster
                 # print(cluster)
     except FileNotFoundError:
@@ -187,40 +167,42 @@ class create_cfg:
     def write_cfg(self):
         now = datetime.datetime.now()
         hello_payload = raw_doorbell_payload.replace("{{name}}", self.sensor_to_make). replace("{{cluster}}", self.cluster["cluster_id"])
-        cfg_text = f""" # MIT license copyright 2024-2026 Jim Dodgen 
-        # this cfg.py was created by: install.py 
-        # Date: {now.strftime("%Y-%m-%d %H:%M:%S")} 
-        # MAKE YOUR CHANGES IN install.py 
-        # led_gpio = 3 # optional 
-        onboard_led_gpio = 15 # built in BLUE led 
-        button_pin = 12 # D8 
-        play_all_pin = 35 # D1 
-        ding_dong_pin = 33 # D2 
-        ding_ding_pin = 18 # D3 
-        westminster_pin = 16 # D4 
-        time_to_trigger = 1 # how long to hold down for a chime 
-        # 
-        # 
-        # wifi: IoT or guest network recommended 
-        wifi= {self.wifi}
-        # 
-        # start_delay=0 # startup delay 
-        number_of_seconds_to_wait=30 # all sensors publish "power" messages every 30 seconds 
-        other_message_threshold=4 # how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off 
-        # broker = '{self.cluster["mqtt_broker"]["broker"]}' 
-        ssl = {self.cluster["mqtt_broker"].get("ssl", False)} # true or false 
-        user = '{self.cluster["mqtt_broker"].get("user", None)}' # ignored if ssl = False
-        password = '{self.cluster["mqtt_broker"].get("password", None)}' # ignored if ssl = False
-        cluster_id = "{self.cluster["cluster_id"]}" 
-        sensor_to_make = "{self.sensor_to_make}"
-        PCN_publish_power_topic = "home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/power"  # payload is always "up"
-        chime_topic = "home/{self.cluster["cluster_id"]}/chime" 
-        chime_payload = "{self.button_quad_chimes_publish_payload}"
-        button_topic = "home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/button"  # payload "pressed"
-        
-        hello_topic = "home/{self.sensor_to_make}/hello" 
-        hello_payload = '''{hello_payload}''' ' 
-        """
+        cfg_text = f""" 
+# MIT license copyright 2024-2026 Jim Dodgen 
+# this cfg.py was created by: install.py 
+# Date: {now.strftime("%Y-%m-%d %H:%M:%S")} 
+# MAKE YOUR CHANGES IN install.py 
+# led_gpio = 3 # optional 
+onboard_led_gpio = 15 # built in BLUE led 
+button_pin = 12 # D8 
+play_all_pin = 35 # D1 
+ding_dong_pin = 33 # D2 
+ding_ding_pin = 18 # D3 
+westminster_pin = 16 # D4 
+time_to_trigger = 1 # how long to hold down for a chime 
+# 
+# 
+# wifi: IoT or guest network recommended 
+wifi= {self.wifi}
+wifi_sleep = 3
+# 
+# start_delay=0 # startup delay 
+number_of_seconds_to_wait=30 # all sensors publish "power" messages every 30 seconds 
+other_message_threshold=4 # how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off 
+broker = '{self.cluster["mqtt_broker"]["broker"]}' 
+ssl = {self.cluster["mqtt_broker"].get("ssl", False)} # true or false 
+user = '{self.cluster["mqtt_broker"].get("user", None)}' # ignored if ssl = False
+password = '{self.cluster["mqtt_broker"].get("password", None)}' # ignored if ssl = False
+cluster_id = "{self.cluster["cluster_id"]}" 
+sensor_to_make = "{self.sensor_to_make}"
+PCN_publish_power_topic = "home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/power"  # payload is always "up"
+chime_topic = "home/{self.cluster["cluster_id"]}/chime" 
+chime_payload = "{self.button_quad_chimes_publish_payload}"
+button_topic = "home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/button"  # payload "pressed"
+
+hello_topic = "home/{self.sensor_to_make}/hello" 
+hello_payload = '''{hello_payload}''' 
+"""
 
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
         #   gmail_password, gmail_user ))
@@ -230,16 +212,17 @@ class create_cfg:
         print("created cfg.py")
 
 def flash_micropython():
-    os.system("esptool.py --port /dev/ttyACM0 erase_flash")
-    os.system("esptool.py --chip esp32s2 --port /dev/ttyACM0 write_flash -z 0x1000 ESP32_GENERIC_S2-20250415-v1.25.0.bin")
+    os.system("esptool --port /dev/ttyACM0 --after no-reset erase-flash")
+    time.sleep(1)
+    os.system("esptool --chip esp32s2 --port /dev/ttyACM0 write-flash -z 0x1000 ESP32_GENERIC_S2-20260824-v1.29.0.bin")
 
 def push_library_code():
     code = [
     mp_lib_offset+"main.py",
     mp_lib_offset+"boot.py",
     mp_lib_offset+"uuid.py",
-    mp_lib_offset+"alert_handler.py",
-    mp_lib_offset+"button.py",
+    #mp_lib_offset+"alert_handler.py",
+    #mp_lib_offset+"button.py",
     # mp_lib_offset+"umail.py",
     mp_lib_offset+"mqtt_as.py",
     #all_lib_offset+"mqtt_hello.py",
@@ -255,28 +238,45 @@ def push_library_code():
 
 def push_application_code():
     code = [
-    "run.py",
     "cfg.py",
+    "run.py",
+    mp_lib_offset+"pcn.py",
     ]
     print("now pushing python application code")
     for c in code:
         print("installing", c)
         os.system("ampy --port %s put %s" % (serial_port,c))
-
+        
+def prefill_input(prompt, text=""):
+    import readline
+    def hook():
+        readline.insert_text(text)
+    readline.set_startup_hook(hook)
+    try:
+        return input(prompt)
+    finally:
+        # Always clear the hook so future input() calls aren't prefilled
+        readline.set_startup_hook()
+        
 # this runs from the command line
 def main():
+    from pathlib import Path
+    file_path = Path("last_cluster")
     while True:
         try:
             cluster_name = sys.argv[1]
         except:
-            print("Input cluster toml file name:")
-            cluster_name = input()
+            try:
+                cluster_name = file_path.read_text(encoding="utf-8")
+            except:
+                cluster_name = ""
+            cluster_name = prefill_input("Input cluster toml file name: ", cluster_name)
         try:
             cluster = load_cluster(cluster_name)
             break
         except:
             print("Try again")
-   
+    file_path.write_text(cluster_name, encoding="utf-8")
     while True:
         ix = print_sensors(cluster["sensor"])
         print("select one: ", end="")

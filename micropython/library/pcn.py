@@ -6,10 +6,14 @@ import gc
 import os
 import asyncio
 import machine
-import tm1640
-import umail
+try:
+    import tm1640
+    import umail
+    import alert_handler
+except:
+    pass
 import cfg
-import alert_handler
+import network
 from mqtt_as import MQTTClient
 
 # conditional formatted print
@@ -236,12 +240,14 @@ async def make_first_connection(config, led_8x8_queue, single_led_queue):
             print("trying ...", w)
             config['ssid'] = w[0]
             config['wifi_pw'] = w[1]
+            MQTTClient.DEBUG = True
             client = MQTTClient(config)
+            await asyncio.sleep(1)
             # print("switch is",sw.test())
             try:
                 await client.connect()
             except Exception as e:
-                print("connection problem [", e,);
+                print(f"connection problem [{e}]");
                 try:
                     x=client._addr
                     print("we have ip address broker not connecting", client._addr)
@@ -249,8 +255,8 @@ async def make_first_connection(config, led_8x8_queue, single_led_queue):
                         led_8x8_queue.put((("?", False),("#", False),("_", False),("#", False),("_", False),)) # report 3 flashes
                     if single_led_queue:
                         single_led_queue.put("broker")
-                except:
-                    print("wifi failed no ip address")
+                except Exception as e:
+                    print(f"wifi failed no ip address [{e}]")
                     if led_8x8_queue:
                         led_8x8_queue.put((("+",False),("^",False),("+", False),("^",False),("+", False),))  # report 2 flashes
                     if single_led_queue:
