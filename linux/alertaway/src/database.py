@@ -479,7 +479,7 @@ class database:
         left join mqtt_device on mqtt_feature.friendly_name = mqtt_device.friendly_name
         where  mqtt_feature.access = 'pub'
         and (
-        (mqtt_device.source = "ZB" and property = "state" and type = "binary" )
+        (mqtt_device.source = "ZB" and type = "binary" )
          or
          mqtt_device.source != "ZB") 
         order by topic desc
