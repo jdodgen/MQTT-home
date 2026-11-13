@@ -166,7 +166,7 @@ class create_cfg:
 # this is the cfg.py template uses % to pass in stuff
     def write_cfg(self):
         now = datetime.datetime.now()
-        hello_payload = raw_doorbell_payload.replace("{{name}}", self.sensor_to_make). replace("{{cluster}}", self.cluster["cluster_id"])
+        hello_payload = raw_doorbell_payload.replace("{name}", self.sensor_to_make). replace("{cluster}", self.cluster["cluster_id"])
         cfg_text = f""" 
 # MIT license copyright 2024-2026 Jim Dodgen 
 # this cfg.py was created by: install.py 

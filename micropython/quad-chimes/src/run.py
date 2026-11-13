@@ -44,8 +44,8 @@ async def raw_messages(client):  # Respond to all incoming messages
                 pin_ding_dong.value(0)
                 await asyncio.sleep(1)
                 pin_ding_dong.value(1)
-            elif msg == "westminster": 
-                print("chiming ...westminster")    
+            elif msg == "westminster_abby": 
+                print("chiming ...westminster_abby")    
                 pin_west.value(0)
                 await asyncio.sleep(1)
                 pin_west.value(1)
@@ -58,7 +58,7 @@ async def raw_messages(client):  # Respond to all incoming messages
                 print(f"unknown payload: topic [{topic}] payload [{msg}]")
         elif (topic == SEND_HELLO):
             print("callback hello_request")
-            await say_hello(client)
+            await client.publish(cfg.hello_topic, cfg.hello_payload)
         else:
              print(f"unknown message topic [{topic}] payload [{msg}]")
     print("raw_messages: should never get here, messages exiting?")
@@ -103,7 +103,7 @@ async def main():
     button.irq(trigger=machine.Pin.IRQ_FALLING, handler=lambda _: btn_flag.set())
     # 2. Start the task and pass the flag to it
     asyncio.create_task(handle_button(client, btn_flag))      
-
+    await client.publish(cfg.hello_topic, cfg.hello_payload)
     while True:  # Main loop
         await client.publish(cfg.PCN_publish_power_topic, "up")
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
