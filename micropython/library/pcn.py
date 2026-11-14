@@ -232,40 +232,78 @@ async def send_email(subject, body, cluster_id_only=False):
 # 
  
 async def make_first_connection(config, led_8x8_queue, single_led_queue):
-    got_connection = False
     print("checking for good wifi", cfg.wifi)
-    while True:
-        # Even though mqtt_as automaticly reconnects an initial connection is required
-        for w in cfg.wifi:  # a list of lists each "w" is (ssid,password)
-            print("trying ...", w)
-            config['ssid'] = w[0]
-            config['wifi_pw'] = w[1]
+    wlan = network.WLAN(network.STA_IF)
+    client = None
+    got_connection = False
+
+    while not got_connection:
+        for w in cfg.wifi:
+            ssid, password = w[0], w[1]
+            print("[pcn] trying ...", ssid)
+
+            # 1. Clean up any previous MQTTClient
+            if client is not None:
+                try:
+                    client.close()
+                except Exception:
+                    pass
+                client = None
+
+            # 2. Full software radio cycle (required on ESP32-S2 to clear Internal State Error)
+            wlan.active(False)
+            await asyncio.sleep(1.0)
+            wlan.active(True)
+            await asyncio.sleep(0.5)
+            wlan.config(txpower=8.5)
+            wlan.config(pm=wlan.PM_NONE)
+
+            # 3. Connect Wi-Fi directly without mqtt_as interfering
+            try:
+                wlan.connect(ssid, password)
+            except OSError as e:
+                print(f"[pcn] wlan.connect error [{e}]")
+                await asyncio.sleep(2)
+                continue
+
+            # Wait up to 12 seconds for DHCP IP
+            connected_wifi = False
+            for _ in range(24):
+                if wlan.isconnected() and wlan.ifconfig()[0] != "0.0.0.0":
+                    connected_wifi = True
+                    break
+                await asyncio.sleep(0.5)
+
+            if not connected_wifi:
+                print(f"[pcn] wifi failed no ip address (status={wlan.status()})")
+                if led_8x8_queue:
+                    led_8x8_queue.put((("+",False),("^",False),("+", False),("^",False),("+", False),))
+                if single_led_queue:
+                    single_led_queue.put("wifi")
+                await asyncio.sleep(cfg.wifi_sleep)
+                continue
+
+            print("[pcn] Wi-Fi connected! IP:", wlan.ifconfig()[0])
+
+            # 4. Pass the already-connected wlan interface to mqtt_as
+            config['ssid'] = ssid
+            config['wifi_pw'] = password
+            config['iface'] = wlan
             MQTTClient.DEBUG = True
             client = MQTTClient(config)
-            await asyncio.sleep(1)
-            # print("switch is",sw.test())
+
             try:
                 await client.connect()
             except Exception as e:
-                print(f"connection problem [{e}]");
-                try:
-                    x=client._addr
-                    print("we have ip address broker not connecting", client._addr)
-                    if led_8x8_queue:
-                        led_8x8_queue.put((("?", False),("#", False),("_", False),("#", False),("_", False),)) # report 3 flashes
-                    if single_led_queue:
-                        single_led_queue.put("broker")
-                except Exception as e:
-                    print(f"wifi failed no ip address [{e}]")
-                    if led_8x8_queue:
-                        led_8x8_queue.put((("+",False),("^",False),("+", False),("^",False),("+", False),))  # report 2 flashes
-                    if single_led_queue:
-                        single_led_queue.put("wifi")
+                print(f"[pcn] we have ip address broker not connecting [{e}]")
+                if led_8x8_queue:
+                    led_8x8_queue.put((("?", False),("#", False),("_", False),("#", False),("_", False),))
+                if single_led_queue:
+                    single_led_queue.put("broker")
                 await asyncio.sleep(cfg.wifi_sleep)
             else:
-                print("ip address", client._addr)
+                print("[pcn] connected! Broker:", client._addr)
                 got_connection = True
                 break
-        if got_connection == True:
-            break
+
     return client
