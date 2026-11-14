@@ -19,7 +19,7 @@ pin_ding_dong.value(1)
 pin_ding_ding.value(1)
 pin_west.value(1)
 
-SEND_HELLO = "home/home_broker/send_hello"
+SEND_HELLO = b"home/home_broker/send_hello"
 
 # conditional formatted print
 xprint = print # copy print
@@ -29,27 +29,25 @@ def print(*args, **kwargs): # replace print
 
 async def raw_messages(client):  # Respond to all incoming messages 
     # loop on message queue
-    async for btopic, bmsg, retained in client.queue:
-        topic = btopic.decode('utf-8')
-        msg = bmsg.decode('utf-8')
+    async for topic, msg, retained in client.queue:
         print("raw_messages topic[%s] payload[%s]" % (topic, msg,))
         if topic == cfg.chime_topic: 
-            if msg == "ding_ding":
+            if msg == b"ding_ding":
                 print("chiming ...ding_ding")    
                 pin_ding_ding.value(0)
                 await asyncio.sleep(1)
                 pin_ding_ding.value(1)
-            elif msg == "ding_dong":  
+            elif msg == b"ding_dong":  
                 print("chiming ...ding_dong")    
                 pin_ding_dong.value(0)
                 await asyncio.sleep(1)
                 pin_ding_dong.value(1)
-            elif msg == "westminster_abby": 
+            elif msg == b"westminster_abby": 
                 print("chiming ...westminster_abby")    
                 pin_west.value(0)
                 await asyncio.sleep(1)
                 pin_west.value(1)
-            elif msg == "three_chimes":     
+            elif msg == b"three_chimes":     
                 print("chiming ...play_all")     
                 pin_play_all.value(0)
                 await asyncio.sleep(1)
@@ -69,7 +67,7 @@ async def handle_button(client, btn_flag):
         btn_flag.clear()
         print("Button pressed!")
         await client.publish(cfg.chime_topic, cfg.chime_payload)
-        await client.publish(cfg.button_topic, "pressed")
+        await client.publish(cfg.button_topic, b"pressed")
         await asyncio.sleep(1)
         btn_flag.clear()
         
@@ -105,7 +103,7 @@ async def main():
     asyncio.create_task(handle_button(client, btn_flag))      
     await client.publish(cfg.hello_topic, cfg.hello_payload)
     while True:  # Main loop
-        await client.publish(cfg.PCN_publish_power_topic, "up")
+        await client.publish(cfg.PCN_publish_power_topic, b"up")
         await asyncio.sleep(cfg.number_of_seconds_to_wait)
 
 ############ startup ###############

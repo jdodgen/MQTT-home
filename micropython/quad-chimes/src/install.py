@@ -195,13 +195,13 @@ user = '{self.cluster["mqtt_broker"].get("user", None)}' # ignored if ssl = Fals
 password = '{self.cluster["mqtt_broker"].get("password", None)}' # ignored if ssl = False
 cluster_id = "{self.cluster["cluster_id"]}" 
 sensor_to_make = "{self.sensor_to_make}"
-PCN_publish_power_topic = "home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/power"  # payload is always "up"
-chime_topic = "home/{self.cluster["cluster_id"]}/chime" 
-chime_payload = "{self.button_quad_chimes_publish_payload}"
-button_topic = "home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/button"  # payload "pressed"
+PCN_publish_power_topic = b"home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/power"  # payload is always "up"
+chime_topic = b"home/{self.cluster["cluster_id"]}/chime" 
+chime_payload = b"{self.button_quad_chimes_publish_payload}"
+button_topic = b"home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/button"  # payload "pressed"
 
-hello_topic = "home/{self.sensor_to_make}/hello" 
-hello_payload = '''{hello_payload}''' 
+hello_topic = b"home/{self.sensor_to_make}/hello" 
+hello_payload = b'''{hello_payload}''' 
 """
 
         #print("[%s][%s] [%s]\n%s [%s][%s]\n" % (ssid, wifi_password, broker, to_list,
