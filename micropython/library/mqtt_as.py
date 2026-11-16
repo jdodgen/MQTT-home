@@ -26,9 +26,9 @@ from machine import unique_id
 import network
 
 gc.collect()
-from sys import platform
+from sys import platform, implementation
 
-VERSION = (0, 8, 4)
+VERSION = (0, 8, 5)
 # Default initial size for input messge buffer. Increase this if large messages
 # are expected, but rarely, to avoid big runtime allocations
 IBUFSIZE = 50
@@ -39,10 +39,11 @@ MSG_BYTES = True
 # Legitimate errors while waiting on a socket. See uasyncio __init__.py open_connection().
 ESP32 = platform == "esp32"
 RP2 = platform == "rp2"
+NINA = RP2 and implementation._machine.startswith("Arduino")  # ublox Nina radio
 if ESP32:
     # https://forum.micropython.org/viewtopic.php?f=16&t=3608&p=20942#p20942
-    BUSY_ERRORS = [EINPROGRESS, ETIMEDOUT, 118, 119,116]  # Add in weird ESP32 errors
-elif RP2:
+    BUSY_ERRORS = [EINPROGRESS, ETIMEDOUT, 118, 119]  # Add in weird ESP32 errors
+elif RP2 and not NINA:
     BUSY_ERRORS = [EINPROGRESS, ETIMEDOUT, -110]
 else:
     BUSY_ERRORS = [EINPROGRESS, ETIMEDOUT]
@@ -72,10 +73,7 @@ class MsgQueue:
         if self._wi == self._ri:  # Would indicate empty
             self._ri = (self._ri + 1) % self._size  # Discard a message
             self.discards += 1
-            
-    def empty(self):
-        return True if self._ri == self._wi else False
-        
+
     def __aiter__(self):
         return self
 
@@ -112,7 +110,6 @@ config = {
     "gateway": False,
     "mqttv5": False,
     "mqttv5_con_props": None,
-    "wifi_reconnects": -1,
 }
 
 
@@ -171,7 +168,6 @@ class MQTT_base:
         # WiFi config
         self._ssid = config["ssid"]  # Required for ESP32 / Pyboard D. Optional ESP8266
         self._wifi_pw = config["wifi_pw"]
-        self.wifi_reconnects = config["wifi_reconnects"] # ESP32 defalt 
         self._ssl = config["ssl"]
         self._ssl_params = config["ssl_params"]
         # Callbacks and coros
@@ -371,8 +367,8 @@ class MQTT_base:
         # Only read the first 2 bytes, as properties have their own length
         connack_resp = await self._as_read(2)
 
-        # Connect ack flags
-        if connack_resp[0] != 0:
+        # Connect ack flags (ignore Session Present bit)
+        if connack_resp[0] & 0xFE:
             raise OSError(-1, "CONNACK flags not 0")
         # Reason code
         if connack_resp[1] != 0:
@@ -722,6 +718,9 @@ class MQTTClient(MQTT_base):
                 return
             s.active(True)
             s.connect()  # ESP8266 remembers connection.
+            if "ifconfig" in config:
+                s.ifconfig(config["ifconfig"])
+
             for _ in range(60):
                 # Break out on fail or success. Check once per sec.
                 if s.status() != network.STAT_CONNECTING:
@@ -733,18 +732,21 @@ class MQTTClient(MQTT_base):
                 await asyncio.sleep(1)
             if not s.isconnected() and self._ssid is not None and self._wifi_pw is not None:
                 s.connect(self._ssid, self._wifi_pw)
+                if "ifconfig" in config:
+                    s.ifconfig(config["ifconfig"])
+
                 # Break out on fail or success. Check once per sec.
                 while s.status() == network.STAT_CONNECTING:
                     await asyncio.sleep(1)
         else:
             s.active(True)
-            if RP2:  # Disable auto-sleep.
+            if RP2 and not NINA:  # Disable auto-sleep.
                 # https://datasheets.raspberrypi.com/picow/connecting-to-the-internet-with-pico-w.pdf
                 # para 3.6.3
                 s.config(pm=0xA11140)
             s.connect(self._ssid, self._wifi_pw)
-            if ESP32:
-                s.config(reconnects=self.wifi_reconnects)
+            if "ifconfig" in config:
+                s.ifconfig(config["ifconfig"])
             for _ in range(60):  # Break out on fail or success. Check once per sec.
                 await asyncio.sleep(1)
                 # Loop while connecting or no IP
@@ -762,7 +764,7 @@ class MQTTClient(MQTT_base):
                 elif PYBOARD:  # No symbolic constants in network
                     if not 1 <= s.status() <= 2:
                         break
-                elif RP2:  # 1 is STAT_CONNECTING. 2 reported by user (No IP?)
+                elif RP2 and not NINA:  # 1 is STAT_CONNECTING. 2 reported by user (No IP?)
                     if not 1 <= s.status() <= 2:
                         break
             else:  # Timeout: still in connecting state
@@ -778,7 +780,7 @@ class MQTTClient(MQTT_base):
                 if not s.isconnected():
                     raise OSError("Connection Unstable")  # in 1st 5 secs
                 await asyncio.sleep(1)
-            self.dprint("Got reliable connection %s", s.ifconfig())
+            self.dprint("Got reliable connection")
 
     async def connect(self, *, quick=False):  # Quick initial connect option for battery apps
         if not self._has_connected:
