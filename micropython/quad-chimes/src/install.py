@@ -185,8 +185,10 @@ time_to_trigger = 1 # how long to hold down for a chime
 # wifi: IoT or guest network recommended 
 wifi= {self.wifi}
 wifi_sleep = 3
+wifi_txpower = 8.5  # 8.5 (default) is good for the esp32-s2 Mini antenna. for others try 15 or 20 if needed
 # 
 # start_delay=0 # startup delay 
+MQTTClient_debug = False
 number_of_seconds_to_wait=30 # all sensors publish "power" messages every 30 seconds 
 other_message_threshold=4 # how many number_of_seconds_to_wait (2 minutes) to indicate a sensor is down or off 
 broker = '{self.cluster["mqtt_broker"]["broker"]}' 

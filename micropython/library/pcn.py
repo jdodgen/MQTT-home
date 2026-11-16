@@ -6,7 +6,7 @@ import gc
 import os
 import asyncio
 import machine
-try:
+try: # these are optional 
     import tm1640
     import umail
     import alert_handler
@@ -31,13 +31,6 @@ def print_flash_usage():
     flash_size = esp.flash_size()
     flash_user_start = esp.flash_user_start()
     print("ESP flash: total %d used  %d free %d" % (flash_size, flash_user_start, flash_size-flash_user_start))
-    
-# show PSRAM messages.
-async def _memory(self):
-    while True:
-        await asyncio.sleep(20)
-        gc.collect()
-        print("RAM free %d alloc %d" % (gc.mem_free(), gc.mem_alloc(),))  
         
 def get_8x8_matrix(string):
     print("get_8x8_matrix [%s]" % (string))
@@ -239,8 +232,9 @@ async def make_first_connection(config, led_8x8_queue, single_led_queue):
 
     while not got_connection:
         for w in cfg.wifi:
+            # this is a fix for esp32-s2 wifi radio issues
             ssid, password = w[0], w[1]
-            print("[pcn] trying ...", ssid)
+            print("[fix] trying ...", ssid)
 
             # 1. Clean up any previous MQTTClient
             if client is not None:
@@ -255,14 +249,14 @@ async def make_first_connection(config, led_8x8_queue, single_led_queue):
             await asyncio.sleep(1.0)
             wlan.active(True)
             await asyncio.sleep(0.5)
-            wlan.config(txpower=8.5)
+            wlan.config(txpower=getattr(cfg, "wifi_txpower", 8.5)) # esp32-s2 is the default set classic ESP32 or S3 to 15 or 20
             wlan.config(pm=wlan.PM_NONE)
 
             # 3. Connect Wi-Fi directly without mqtt_as interfering
             try:
                 wlan.connect(ssid, password)
             except OSError as e:
-                print(f"[pcn] wlan.connect error [{e}]")
+                print(f"[fix] wlan.connect error [{e}]")
                 await asyncio.sleep(2)
                 continue
 
@@ -275,7 +269,7 @@ async def make_first_connection(config, led_8x8_queue, single_led_queue):
                 await asyncio.sleep(0.5)
 
             if not connected_wifi:
-                print(f"[pcn] wifi failed no ip address (status={wlan.status()})")
+                print(f"[fix] wifi failed no ip address (status={wlan.status()})")
                 if led_8x8_queue:
                     led_8x8_queue.put((("+",False),("^",False),("+", False),("^",False),("+", False),))
                 if single_led_queue:
@@ -283,27 +277,27 @@ async def make_first_connection(config, led_8x8_queue, single_led_queue):
                 await asyncio.sleep(cfg.wifi_sleep)
                 continue
 
-            print("[pcn] Wi-Fi connected! IP:", wlan.ifconfig()[0])
-
+            print("[fix] Wi-Fi connected! IP:", wlan.ifconfig()[0])
+           
             # 4. Pass the already-connected wlan interface to mqtt_as
+            #
+            # end of esp32-s2 fix
             config['ssid'] = ssid
             config['wifi_pw'] = password
             config['iface'] = wlan
-            MQTTClient.DEBUG = True
+            MQTTClient.DEBUG = cfg.MQTTClient_debug
             client = MQTTClient(config)
-
             try:
                 await client.connect()
             except Exception as e:
-                print(f"[pcn] we have ip address broker not connecting [{e}]")
+                print(f"we have ip address broker not connecting [{e}]")
                 if led_8x8_queue:
                     led_8x8_queue.put((("?", False),("#", False),("_", False),("#", False),("_", False),))
                 if single_led_queue:
                     single_led_queue.put("broker")
                 await asyncio.sleep(cfg.wifi_sleep)
             else:
-                print("[pcn] connected! Broker:", client._addr)
+                print("connected! Broker:", client._addr)
                 got_connection = True
                 break
-
     return client
