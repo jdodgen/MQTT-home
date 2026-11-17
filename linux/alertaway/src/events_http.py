@@ -10,15 +10,17 @@ import aiohttp_jinja2
 import jinja2
 import aiosqlite
 import http_common as config
+import restart_service
 
 DB_NAME =   config.DB_NAME
 OUR_PORT =  config.EVENTS_PORT
-
+message = ""
 #
 # --- EVENT HANDLERS ---
 #
 @aiohttp_jinja2.template('events.html')
 async def handle_list_events(request):
+    message = request.query.get("msg", "")
     async with config.db_connect() as db:
         async with db.execute("""SELECT event_id,
             mqtt_feature.mqtt_feature_id as mqtt_feature_id,
@@ -37,7 +39,8 @@ async def handle_list_events(request):
             'events': event_rows,
             "features": feature_rows,
             'query': request.query,
-            "nav_section": config.nav_section(raw=True)
+            "nav_section": config.nav_section(raw=True),
+            "msg": message,
             }
 
 async def handle_add_event(request):
@@ -193,12 +196,18 @@ async def handle_update_links(request):
     raise web.HTTPFound('/')
 
 
+from yarl import URL
+async def restart_daemon(request):
+  print("restarting daemon")
+  result = restart_service.restart("alertaway-send_emails_daemon")
+  print(result)
+  url = URL("/events").with_query(msg=str(result))
+  return web.HTTPFound(url)
+    
 # here we go !
 # Store the IP once when the app starts
-
-    
 app = web.Application()
-
+message = ''
 # 2. Setup Jinja2 (Tells 'app' where your HTML files are)
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader('./templates'))
 app.router.add_static('/static/', path='static', name='static')
@@ -211,7 +220,8 @@ app.add_routes([
     #web.post('/test-http',      handle_test_http)
     web.get('/manage',          handle_manage_view),
     web.post('/update-links',   handle_update_links),
-    web.post('/run-event',      handle_run_event)
+    web.post('/run-event',      handle_run_event),
+    web.post("/events/restart", restart_daemon)
 ])
 
 # 4. Start the server

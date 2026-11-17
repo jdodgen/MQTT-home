@@ -2,6 +2,10 @@
 {% block title %}Events{% endblock %}
 {% block content %}  <!-- put body here without <body> -->
     <h2>Add / Edit Event</h2>
+    <form action="/events/restart" method="post">
+        <button type="submit" style="background: #28a745; color: white; border: none; padding: 10px 20px; cursor: pointer;">Restart email Daemon</button><br>
+        <font color="red">{{ msg }}</font><br>&nbsp<br>
+    </form>
     <form action="/events/add" method="post">
         <input type="text" name="events_name" placeholder="Event Name" value="{{ query.get('refill_name', '') }}" required><br>
         {% if query.get('refill_topic', None) %} 
