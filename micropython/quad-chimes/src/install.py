@@ -200,7 +200,7 @@ sensor_to_make = "{self.sensor_to_make}"
 PCN_publish_power_topic = b"home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/power"  # payload is always "up"
 chime_topic = b"home/{self.cluster["cluster_id"]}/chime" 
 chime_payload = b"{self.button_quad_chimes_publish_payload}"
-button_topic = b"home/{self.cluster["cluster_id"]}/{self.sensor_to_make}/button"  # payload "pressed"
+button_topic = b"home/{self.sensor_to_make}/button"  # payload "pressed"
 
 hello_topic = b"home/{self.sensor_to_make}/hello" 
 hello_payload = b'''{hello_payload}''' 
