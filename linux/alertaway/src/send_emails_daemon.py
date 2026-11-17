@@ -1,14 +1,10 @@
-# MIT license copyright 2025,2026 Jim Dodgen
-# simple_emailer 
-# emails a pre-defined collection of ip camera jpgs as well as some text.
-# to a one or more email addresses 
-# triggered by a MQTT topic and payload (optional)
-# requires only a MQTT Broker.
-# all contained in a config.py file
-# can run on command line/systemd or 
-# included in other projects using start_daemon()
-#
-VERSION = (2, 0, 0)
+# MIT License Copyright 2026 Jim Dodgen
+
+import asyncio
+from aiomqtt import Client
+#import database
+import http_common as config
+import config_send_emails as cse
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -16,32 +12,21 @@ from email.mime.image import MIMEImage
 import ssl
 import binascii
 import multiprocessing
-import time
 import requests
 from PIL import Image
 import io
-from queue import Empty
-import config_send_emails as cse
-#from mqtt_manager import mqtt_manager
-import message
-import http_common as config
+import time
 
 PCN_TOPIC = "home/alertaway/sendemails/power"
-#client = None
-my_name = "send_emails"
-xprint = print # copy print
-def print(*args, **kwargs): # replace print
-    #return # comment/uncomment to turn print on off
-    try:
-        if isinstance(args, tuple) :
-            area, comment = args[0].split(None,1)
-            comment += " "+" ".join(list(args[1:]))
-        else:
-            area, comment = args[0].split(None,1)    
-        xprint("["+my_name+"/"+area+"]",comment, **kwargs)
-    except:
-        xprint(f"[{my_name}]", *args, **kwargs) # the copied real print
+
+xprint = print 
+my_name = "[send_emails_daemon]"
+def print(*args, **kwargs): 
+    xprint(my_name, *args, **kwargs) 
     
+## this is runas a seperate process because if the dificulty of asyncio'ing it
+## feel free to convert it in the future
+
 def download_image_data(url_info):
     print(f"download_image_data [{url_info['url']}][{url_info.get('user', '')},{url_info.get('pw', '')}]")
     try:
@@ -99,7 +84,24 @@ def send_email_task(emailer_q): #, cluster_id_only=False):
     print("send_email_task starting")
     chunk_size = 100
     while True:
-        found_match, jpgs = emailer_q.get()
+        found_match = emailer_q.get()
+        images = []
+        image_urls = found_match["image_urls"]
+        # url's loop
+        for url in image_urls:
+            print("main getting download_image_data")
+            try:
+                image = download_image_data(url)
+                if image is None:
+                    print("main download_image_data returned None")
+            except Exception as e:
+                print(f"main Exception download_image_data: [{e}]")
+                image = None
+            else:
+                #print("got image", url, type(image), image[:50])
+                print("main got image")
+                if image:
+                    images.append([url, image])
         # print("send_email_task our id [%s]" % (ident,))
         msg = MIMEMultipart()
         msg['Subject'] = found_match["subject"] # +" "+ident
@@ -107,7 +109,7 @@ def send_email_task(emailer_q): #, cluster_id_only=False):
         msg['To'] = found_match["cc_string"]
         msg['Cc'] = found_match["cc_string"]
         msg.attach(MIMEText(found_match["body"]))
-        for url, jpg in jpgs:
+        for url, jpg in images:
             print(f"send_email_task MIMEImage[{url['url']}]")
             msg_image = MIMEImage(jpg, "jpeg", name="")
             msg.attach(msg_image)
@@ -123,97 +125,125 @@ def send_email_task(emailer_q): #, cluster_id_only=False):
             print("send_email_task  FAILED")
             time.sleep(1)
 
-def main():
-    print("main starting")
-    mqtt_q = multiprocessing.Queue(10)
+## end of send_email_task process
+    
+def clean_msg(raw):
+    # Handle both bytes and str safely
+    if isinstance(raw, bytes):
+        raw = raw.decode("utf-8")
+    return (
+        raw.replace("{", "")
+        .replace("}", "")
+        .replace('"', "")
+        .replace(" ", "")
+        .lower()
+    )
+    
+class AsyncSendEmailsDaemon:
+    def __init__(self):
+        self.triggers = {}
+        self.db = None
+        self.client = None
+        #self.load_triggers()
+
+    # def load_triggers(self):
+        # db = database.database(row_factory=True)
+        # raw_triggers = db.get_all_triggers()
+        # #db.close()
+        # self.triggers.clear()
+        # for t in raw_triggers:
+            # pub_topic = t["ptopic"]
+            # pub_payload = t["pub_payload"].encode()
+            # sub_topic = t["stopic"]
+            # sub_payload = t["sub_payload"].encode()
+            # if sub_topic not in self.triggers:
+                # self.triggers[sub_topic] = {}
+            # if sub_payload not in self.triggers[sub_topic]:
+                # self.triggers[sub_topic][sub_payload] = []  
+            # self.triggers[sub_topic][sub_payload].append([pub_topic, pub_payload])
+        # print(f"Trigger structure updated: {self.triggers}")
+
+    # async def handle_message(self, client, topic: str, payload: bytes):
+        # if topic not in self.triggers:
+            # print(f"topic not found: {topic}")
+            # return
+        # one_or_more_found = False
+        # print(f"working topic: {topic} payload {payload}")
+        # for trigger_payload in self.triggers[topic]:  # loop though target
+            # print(f"trigger_payload {trigger_payload}")
+            # if clean_msg(trigger_payload) in clean_msg(payload):  # some payloads contain lots of other things
+                # one_or_more_found = True
+                # print(f"Processing topic: {topic} with payload: {payload}")
+                # things_to_pub = self.triggers[topic][trigger_payload]
+                # for target_topic, target_payload in things_to_pub:
+                    # print(f"publishing [{target_topic}], [{target_payload}]")
+                    # await client.publish(target_topic, target_payload)
+        # if one_or_more_found:
+            # print(f"Unknown payload for topic {topic}: {payload}")
+
+    async def mqtt_loop(self, emailer_q):
+        reconnect_delay = 1  # Start with a 1-second delay on disconnect
+        cfg = config.get_db_config()
+        toggle_list = {"topic":  "payload",}
+        while True:
+            try:
+                print(f'broker {cfg["local_broker_ip"]} {cfg["local_broker_port"]}')
+                async with Client(hostname=cfg["local_broker_ip"], port=cfg["local_broker_port"]) as client:
+                    print("broker connected")
+                    #await client.subscribe("#")
+                    for topic in cse.TOPICS:
+                        print(f"subscribing to: {topic}")
+                        await client.subscribe(topic)
+                    async for message in client.messages:
+                        topic = message.topic.value 
+                        payload = message.payload.decode('utf-8',errors="replace")
+                        print(f"message in {topic} {payload[:100]}")
+                        this_topic = cse.TOPICS.get(topic, None)
+                        print("main from mqtt_q:message topic[%s], payload[%s] " % (topic, payload[:100]))
+                        if not this_topic:  # just checking 
+                            print(f"main got a missing subscribe {topic}")
+                        else:  # good one
+                             #print("main this_topic:", this_topic)
+                            print("main this_topic.keys:",this_topic.keys())
+                            found_match = {}
+            
+                            if payload in this_topic.keys():  
+                                found_match = this_topic[payload] # see config.py for the data structure
+                                #print(">>found_match<<", found_match)
+                                if found_match["only_on_change_of_payload"]:
+                                    #print(f"main match on change topic [{topic}][{payload}] toggle list [{toggle_list}]")
+                                    if topic in toggle_list:
+                                        print(f"main toggle_list[{toggle_list[topic]}] ==  payload [{payload}]")
+                                        if toggle_list[topic] == payload: # been here loas time so then bypass
+                                            print(f"main payload was the same so ignored")
+                                            continue
+                                        toggle_list[topic] = payload # update payload
+                                    else: # new guy
+                                        toggle_list[topic] = payload
+                
+                                #print("main msg found")
+                            elif None  in this_topic.keys():  # this is gets all for mqtt topic ignoring payload
+                                found_match = this_topic[None]
+                                #print("main AlL found")
+                            if found_match: 
+                                emailer_q.put(found_match)
+                            #await self.handle_message(client, message.topic.value, message.payload)
+                        #except Exception as msg_err:
+                            #print(f"Error processing message on {message.topic}: {msg_err}")
+            except Exception as critical_err:
+                # Handle completely unexpected bugs (e.g., database failures during load_triggers)
+                print(f"Unexpected daemon error: {critical_err}")
+                await asyncio.sleep(5)  # Safe delay before trying to boot up again
+
+async def main():
     emailer_q = multiprocessing.Queue(10)
     emailer = multiprocessing.Process(target=send_email_task, args=(emailer_q,))
     emailer.start()
-    client = message.message(mqtt_q, my_parent=my_name)
-    #client = mqtt_manager(mqtt_q)
-    toggle_list = {"topic":  "payload",}
-    last_publish = 0
-    while True:
-        #print("waiting for message")
-        # topic, payload_raw = mqtt_q.get()
-        #
-        # MAIN LOOP
-        #
-        try:
-            command, topic, payload_raw = mqtt_q.get(block=True, timeout=config.PCN_INTERVAL)
-        except Empty:
-            # send PCN alive now
-            try:
-                client.publish(PCN_TOPIC,"up")
-                #client.publish_command(PCN_TOPIC,"up")
-                last_publish = time.time()
-            except Exception as e:
-                print(f"main publish up failed {e}")
-            if not emailer.is_alive():
-                print("main emailer process dead")
-            continue
-        print(f"command {command} topic {topic} payload_raw {payload_raw}")
-        if command == "connected":
-            continue
-        now = time.time()
-        if last_publish+config.PCN_INTERVAL < now:
-            # send PCN alive now
-            client.publish(PCN_TOPIC,"up")
-            #client.publish_command(PCN_TOPIC,"up")
-            last_publish = now
-        
-        payload = payload_raw.decode('utf-8') if payload_raw != None else None
-        this_topic = cse.TOPICS.get(topic, None)
-        print("main from mqtt_q:message topic[%s], payload[%s] " % (topic, payload))
-        if not this_topic:  # just checking 
-            print(f"main got a missing subscribe {topic}")
-        else:  # good one
-            #print("main this_topic:", this_topic)
-            print("main this_topic.keys:",this_topic.keys())
-            found_match = {}
-            
-            if payload in this_topic.keys():  
-                found_match = this_topic[payload] # see config.py for the data structure
-                #print(">>found_match<<", found_match)
-                if found_match["only_on_change_of_payload"]:
-                    #print(f"main match on change topic [{topic}][{payload}] toggle list [{toggle_list}]")
-                    if topic in toggle_list:
-                        print(f"main toggle_list[{toggle_list[topic]}] ==  payload [{payload}]")
-                        if toggle_list[topic] == payload: # been here loas time so then bypass
-                            print(f"main payload was the same so ignored")
-                            continue
-                        toggle_list[topic] = payload # update payload
-                    else: # new guy
-                        toggle_list[topic] = payload
-                
-                #print("main msg found")
-            elif None  in this_topic.keys():  # this is gets all for mqtt topic ignoring payload
-                found_match = this_topic[None]
-                #print("main AlL found")
-            if found_match:
-                print(f"main found_match: [{topic}],[{payload}]")
-                images = []
-                image_urls = found_match["image_urls"]
-                # url's loop
-                for url in image_urls:
-                    print("main getting download_image_data")
-                    try:
-                        image = download_image_data(url)
-                        if image is None:
-                            print("main download_image_data returned None")
-                    except Exception as e:
-                        print(f"main Exception download_image_data: [{e}]")
-                        image = None
-                    else:
-                        #print("got image", url, type(image), image[:50])
-                        print("main got image")
-                        if image:
-                            images.append([url, image])
-                print("main emailer_q.put emailer")
-                emailer_q.put([found_match, images])
-    print("exiting main??")
-    
-############ startup ###############
+    daemon = AsyncSendEmailsDaemon()
+    await daemon.mqtt_loop(emailer_q)
+
 if __name__ == "__main__":
-    main()
-    print("exiting, should not get here")
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Daemon stopped safely.")

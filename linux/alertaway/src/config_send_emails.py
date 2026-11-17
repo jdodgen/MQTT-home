@@ -128,9 +128,9 @@ def build_a_payload(event):
         list_of_images = []
         image_urls = get_cameras(event["event_id"])
         for i in image_urls:
-            print(f'/n]ngetting image [{i["camera_name"]}]')
+            print(f'making URL [{i["camera_name"]}]')
             d = {"url": i["url"], 'user': i['user'], 'pw': i["password"], 'rotate': i["rotate"]}
-            #print("url",d)
+            print("url",d)
             #print("\n\n")
             list_of_images.append(d)
         
@@ -251,5 +251,4 @@ PCN_TOPIC = db_config["publish"]
 # print(f"BROKER [{BROKER}] SSL [{SSL}] USER [{USER}] PASSWORD [{PASSWORD}]\n\tGMAIL_PASSWORD [{GMAIL_PASSWORD}] GMAIL_USER  [{GMAIL_PASSWORD}]")
 # print("TOPICS >>>>>>>>>>>> ", TOPICS)
 
-DEFAULT_PORT = 8883
 ALIVE_INTERVAL = 30
