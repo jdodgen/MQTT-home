@@ -2,7 +2,7 @@
 import os 
 import time
 
-micropython_bin = "ESP32_GENERIC_S2-20250911-v1.26.1.bin"
+micropython_bin = "ESP32_GENERIC_S2-20260824-v1.29.0.bin"
 # micropython_bin = "/home/jim/Downloads/ESP32_GENERIC_S2-20250415-v1.25.0.bin"
 
 class flasher:
