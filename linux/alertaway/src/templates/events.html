@@ -27,9 +27,9 @@
         <label for="notify-off">Off</label>
         <br>
         <label>Send emails only when payload changes?</label>
-        <input type="radio" id="only_on_change_of_payload-on" name="only_on_change_of_payload" value="1" checked>
+        <input type="radio" id="only_on_change_of_payload-on" name="only_on_change_of_payload" value="1">
         <label for="notify-on">Only on change</label>
-        <input type="radio" id="only_on_change_of_payload-off" name="only_on_change_of_payload" value="0">
+        <input type="radio" id="only_on_change_of_payload-off" name="only_on_change_of_payload" value="0" checked>
         <label for="only_on_change_of_payload-off">All messages</label>
         <br>
         <input type="text" name="subject" placeholder="Email Subject" value="{{ query.get('refill_subj', '') }}" style="width: 100%;">
@@ -53,7 +53,7 @@
                 <input type="hidden" name="events_name" value="{{  data['events_name']  }}">
                 <button type="submit">Delete & Edit</button>
             </form>
-            <a href="/manage?event_id={{ data['event_id'] }}&events_name={{ data['events_name'] }}"><button>Link Assets</button></a>
+            <a href="/manage?event_id={{ data['event_id'] }}&events_name={{ data['events_name'] }}"><button>Link cameras & emails</button></a>
         </td>
     </tr>
     {% endfor %}
