@@ -33,7 +33,10 @@ async def handle_list_events(request):
             FROM events 
             JOIN mqtt_feature on mqtt_feature.mqtt_feature_id = events.mqtt_feature_id""") as cursor:
             event_rows = await cursor.fetchall()
-        async with db.execute("SELECT * FROM mqtt_feature where access = 'pub'") as cursor:
+        async with db.execute("""SELECT * 
+            FROM mqtt_feature 
+            WHERE access = 'pub' 
+            and true_value NOT like '%number%'""") as cursor:
             feature_rows = await cursor.fetchall()
         return {
             'events': event_rows,

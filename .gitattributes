@@ -1,0 +1,4 @@
+
+# Or ignore all .pl and .pm files across the repo
+*.pl linguist-vendored
+*.pm linguist-vendored
