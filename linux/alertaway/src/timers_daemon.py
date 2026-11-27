@@ -104,7 +104,7 @@ async def process_timer(sunrize_seconds, sunset_seconds, lat_long, atime, curren
     if stop_seconds > start_seconds: # DST some times causes stop time to have passed after sunrise/or sunset
         t1 = asyncio.create_task(wait_and_send(start_seconds, topic, start_value, cfg))
         t2 = asyncio.create_task(wait_and_send(stop_seconds,  topic, stop_value, cfg))
-    current_day_tasks.extend([t1, t2])
+        current_day_tasks.extend([t1, t2])
 
 async def start_timers(lat_long, times, current_day_tasks):
     cfg = config.get_db_config()
